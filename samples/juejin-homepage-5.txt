@@ -1,0 +1,17 @@
+# Juejin homepage sample URLs collected on 2026-06-06.
+# Source: https://juejin.cn/
+
+# 全面封禁 Cursor！又一家大厂出手了
+https://juejin.cn/post/7584110439933100078
+
+# 苦撑13年，创始人离职出走，拉勾终究还是倒下了…
+https://juejin.cn/post/7644845137235689472
+
+# 程序员副业 | 2026年4月复盘
+https://juejin.cn/post/7634732507103969326
+
+# 每月13亿免费Token，14家AI大厂的API任你用，包括Gemini
+https://juejin.cn/post/7645208859774500899
+
+# 我用AI做了个微信小游戏-上线了
+https://juejin.cn/post/7641048219231010862

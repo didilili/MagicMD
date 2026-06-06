@@ -26,11 +26,13 @@ wait_selector = "#js_content"
 
 [platforms.juejin]
 enabled = true
-browser = "http"
+browser = "camoufox"
+wait_selector = "article"
 
 [platforms.csdn]
 enabled = true
-browser = "http"
+browser = "camoufox"
+wait_selector = "#content_views"
 
 [platforms.generic]
 enabled = true

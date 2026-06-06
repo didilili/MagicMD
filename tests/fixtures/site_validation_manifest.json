@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "description": "Live site validation baseline for MagicMD v0.1 beyond the WeChat regression corpus.",
+  "generated_from": "output/juejin-homepage-003-default-fixed/batch-report.md",
+  "validated_at": "2026-06-06",
+  "platform_status": {
+    "wechat": "stable_primary",
+    "csdn": "experimental_browser_required",
+    "juejin": "experimental_browser_required",
+    "generic": "best_effort_static_html"
+  },
+  "articles": [
+    {
+      "platform": "juejin",
+      "url": "https://juejin.cn/post/7584110439933100078",
+      "fetch_mode": "camoufox",
+      "status": "converted",
+      "notes": "Converted from the Juejin homepage sample set with default Camoufox fetching and no batch warnings."
+    },
+    {
+      "platform": "juejin",
+      "url": "https://juejin.cn/post/7644845137235689472",
+      "fetch_mode": "camoufox",
+      "status": "converted",
+      "notes": "Converted from the Juejin homepage sample set with default Camoufox fetching and no batch warnings."
+    },
+    {
+      "platform": "juejin",
+      "url": "https://juejin.cn/post/7634732507103969326",
+      "fetch_mode": "camoufox",
+      "status": "converted",
+      "notes": "Converted from the Juejin homepage sample set with default Camoufox fetching and no batch warnings."
+    },
+    {
+      "platform": "juejin",
+      "url": "https://juejin.cn/post/7645208859774500899",
+      "fetch_mode": "camoufox",
+      "status": "converted",
+      "notes": "Converted from the Juejin homepage sample set with default Camoufox fetching and no batch warnings."
+    },
+    {
+      "platform": "juejin",
+      "url": "https://juejin.cn/post/7641048219231010862",
+      "fetch_mode": "camoufox",
+      "status": "converted",
+      "notes": "Converted from the Juejin homepage sample set with default Camoufox fetching and no batch warnings."
+    },
+    {
+      "platform": "csdn",
+      "url": "https://blog.csdn.net/yangyin007/article/details/154687653",
+      "fetch_mode": "camoufox",
+      "status": "converted_with_quality_warnings",
+      "notes": "Plain HTTP returned 521 in live validation; Camoufox converted the article but quality scan reported code/emphasis cleanup signals."
+    },
+    {
+      "platform": "csdn",
+      "url": "https://blog.csdn.net/musicml/article/details/154224227",
+      "fetch_mode": "camoufox",
+      "status": "converted_with_quality_warnings",
+      "notes": "Plain HTTP returned 521 in live validation; Camoufox converted the article but quality scan reported code/emphasis cleanup signals."
+    }
+  ]
+}

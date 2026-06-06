@@ -45,8 +45,8 @@ class MagicMDConfig(BaseModel):
     platforms: dict[str, PlatformConfig] = Field(
         default_factory=lambda: {
             "wechat": PlatformConfig(browser="camoufox", wait_selector="#js_content"),
-            "juejin": PlatformConfig(browser="http"),
-            "csdn": PlatformConfig(browser="http"),
+            "juejin": PlatformConfig(browser="camoufox", wait_selector="article"),
+            "csdn": PlatformConfig(browser="camoufox", wait_selector="#content_views"),
             "generic": PlatformConfig(browser="http"),
         }
     )

@@ -8,15 +8,16 @@ from typing import Any
 
 
 def scan_markdown_quality(markdown: str) -> list[str]:
+    prose_markdown = _without_fenced_code(markdown)
     checks = {
         "empty_code_fence": _has_empty_code_fence(markdown),
-        "image_used_as_heading": bool(re.search(r"^#{1,6}\s+(Image|!\[)", markdown, re.MULTILINE)),
+        "image_used_as_heading": bool(re.search(r"^#{1,6}\s+(Image|!\[)", prose_markdown, re.MULTILINE)),
         "fragmented_recommendation_text": bool(
-            re.search(r"推\*{2,}荐\*{2,}阅\*{2,}读", markdown)
+            re.search(r"推\*{2,}荐\*{2,}阅\*{2,}读", prose_markdown)
         ),
-        "fragmented_bold_text": bool(re.search(r"\*\*[^*\n]{1,12}\*\*\S{0,2}\*{2,}", markdown)),
-        "broken_numbered_link_emphasis": bool(re.search(r"\*{3,}\d+[.．]\*{3,}\s*\[", markdown)),
-        "broken_linked_image": "[\n\n![Image]" in markdown or "\n\n](" in markdown,
+        "fragmented_bold_text": bool(re.search(r"\*\*[^*\n]{1,12}\*{4,}[^*\n]{1,12}\*\*", prose_markdown)),
+        "broken_numbered_link_emphasis": bool(re.search(r"\*{3,}\d+[.．]\*{3,}\s*\[", prose_markdown)),
+        "broken_linked_image": "[\n\n![Image]" in prose_markdown or "\n\n](" in prose_markdown,
     }
     return [name for name, matched in checks.items() if matched]
 
@@ -34,17 +35,20 @@ def build_package_quality(url: str, package_dir: str | Path) -> dict[str, Any]:
         quality_issues.append("missing_article_markdown")
     if not metadata:
         quality_issues.append("missing_metadata")
+    warnings = list(extraction.get("warnings") or [])
+    content_not_found = next((warning for warning in warnings if warning.endswith("_content_not_found")), "")
 
     return {
         "url": url,
-        "status": "ok",
+        "status": "fail" if content_not_found else "ok",
         "title": str(metadata.get("title") or ""),
         "source_url": str(metadata.get("source_url") or url),
         "package_dir": str(package_path),
-        "warnings": list(extraction.get("warnings") or []),
+        "warnings": warnings,
         "quality_issues": quality_issues,
         "image_count": len(images),
         "video_count": markdown.count("[视频](") + markdown.count("[Video]("),
+        **({"error": content_not_found} if content_not_found else {}),
     }
 
 
@@ -124,7 +128,34 @@ def _render_markdown_report(payload: dict[str, Any]) -> str:
 
 
 def _has_empty_code_fence(markdown: str) -> bool:
-    return bool(re.search(r"```[a-zA-Z0-9_-]*\s*```", markdown, re.MULTILINE))
+    in_fence = False
+    has_content = False
+    for line in markdown.splitlines():
+        if re.match(r"^`{3,}[a-zA-Z0-9_-]*\s*$", line):
+            if in_fence:
+                if not has_content:
+                    return True
+                in_fence = False
+                has_content = False
+            else:
+                in_fence = True
+                has_content = False
+            continue
+        if in_fence and line.strip():
+            has_content = True
+    return False
+
+
+def _without_fenced_code(markdown: str) -> str:
+    lines: list[str] = []
+    in_fence = False
+    for line in markdown.splitlines():
+        if re.match(r"^`{3,}[a-zA-Z0-9_-]*\s*$", line):
+            in_fence = not in_fence
+            continue
+        if not in_fence:
+            lines.append(line)
+    return "\n".join(lines)
 
 
 def _read_json(path: Path) -> dict[str, Any]:

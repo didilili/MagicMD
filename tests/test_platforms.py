@@ -357,6 +357,81 @@ def test_parse_juejin_html_extracts_basic_article():
     assert article.images[0].source_url == "https://example.com/juejin.png"
 
 
+def test_parse_juejin_html_prefers_rendered_body_over_article_shell():
+    html = """
+    <html><body>
+      <article>
+        <h1>程序员副业 | 2026年4月复盘</h1>
+        <a class="author-name" href="/user/3368559354851470/posts">嘟嘟MD</a>
+        <time datetime="2026-05-03">2026-05-03</time>
+        <span>11,734</span>
+        <span>阅读9分钟</span>
+        <div class="markdown-body">
+          <p>本文首发于公众号：嘟爷创业日记。</p>
+          <h2>一、月度大事</h2>
+          <p>这是正文。</p>
+        </div>
+      </article>
+    </body></html>
+    """
+
+    article = parse_juejin_html(html, "https://juejin.cn/post/demo")
+
+    assert article.title == "程序员副业 | 2026年4月复盘"
+    assert article.author == "嘟嘟MD"
+    assert article.published_at == "2026-05-03"
+    assert "本文首发于公众号" in article.content_markdown
+    assert "## 一、月度大事" in article.content_markdown
+    assert "# 程序员副业" not in article.content_markdown
+    assert "嘟嘟MD" not in article.content_markdown
+    assert "11,734" not in article.content_markdown
+    assert "阅读9分钟" not in article.content_markdown
+
+
+def test_parse_juejin_html_extracts_team_author_name():
+    html = """
+    <html><body>
+      <article>
+        <h1>React + TypeScript实践</h1>
+        <div class="container team-follow">
+          <a href="/team/6930802337313210381/posts"><span class="title">字节前端</span></a>
+          <time datetime="2021-04-19">2021-04-19</time>
+        </div>
+        <div class="markdown-body">
+          <p>正文内容。</p>
+        </div>
+      </article>
+    </body></html>
+    """
+
+    article = parse_juejin_html(html, "https://juejin.cn/post/team")
+
+    assert article.author == "字节前端"
+    assert article.published_at == "2021-04-19"
+    assert "正文内容。" in article.content_markdown
+
+
+def test_parse_juejin_html_cleans_code_copy_widget_prefixes():
+    html = """
+    <html><body>
+      <article>
+        <h1>掘金代码文章</h1>
+        <a class="author-name">MagicMD</a>
+        <div class="markdown-body">
+          <pre><code>js复制代码import React from 'react'</code></pre>
+          <pre><code>复制代码npm install</code></pre>
+        </div>
+      </article>
+    </body></html>
+    """
+
+    article = parse_juejin_html(html, "https://juejin.cn/post/code")
+
+    assert "复制代码" not in article.content_markdown
+    assert "import React from 'react'" in article.content_markdown
+    assert "npm install" in article.content_markdown
+
+
 def test_parse_generic_html_uses_article_element():
     html = (FIXTURES / "generic" / "basic.html").read_text(encoding="utf-8")
 
@@ -377,3 +452,24 @@ def test_parse_csdn_html_extracts_basic_article():
     assert article.platform == "csdn"
     assert "CSDN 正文" in article.content_markdown
     assert article.images[0].source_url == "https://example.com/csdn.png"
+
+
+def test_parse_csdn_html_cleans_code_widget_noise():
+    html = """
+    <html><body>
+      <h1 class="title-article">CSDN 代码文章</h1>
+      <div id="content_views">
+        <p>正文前。</p>
+        <pre><code>counter(line)print("hello")AI写代码</code></pre>
+        <pre><code>counter(line)</code></pre>
+        <p>正文后。</p>
+      </div>
+    </body></html>
+    """
+
+    article = parse_csdn_html(html, "https://blog.csdn.net/demo/article/details/2")
+
+    assert 'print("hello")' in article.content_markdown
+    assert "counter(line)" not in article.content_markdown
+    assert "AI写代码" not in article.content_markdown
+    assert "```\n```" not in article.content_markdown

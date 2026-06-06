@@ -9,7 +9,8 @@ MagicMD 是一个把公开文章链接一键转换为 Markdown 内容包的 CLI 
 ## 特性
 
 - 输入一个文章 URL，输出 Markdown 内容包。
-- 支持微信公众号、掘金、CSDN 和通用公开文章页面。
+- 稳定支持微信公众号文章；实验支持掘金和 CSDN，默认使用浏览器模式处理这些动态页面。
+- 支持通用公开文章页面的基础提取。
 - 支持批量 URL 转换。
 - 支持可配置的 Markdown front matter 和输出结构。
 - 自动下载文章图片，并改写 Markdown 图片链接为本地路径。
@@ -36,6 +37,12 @@ uv run magicmd "https://mp.weixin.qq.com/s/example"
 
 ```bash
 uv run magicmd convert "https://juejin.cn/post/example" -o output/
+```
+
+转换 CSDN 文章：
+
+```bash
+uv run magicmd convert "https://blog.csdn.net/user/article/details/123" -o output/
 ```
 
 批量转换：
@@ -97,6 +104,7 @@ magicmd/
 ├── docs/
 │   ├── MagicMD-v0.1-design.md
 │   ├── MagicMD-v0.1-implementation-plan.md
+│   ├── supported-sites.md
 │   └── wechat-regression-corpus.md
 ├── src/
 │   └── magicmd/
@@ -122,7 +130,7 @@ magicmd/
 │       └── templates/
 │           └── magicmd.example.toml # wheel 内置配置模板
 └── tests/
-    ├── fixtures/             # 各平台 HTML 测试样例和微信回归样本清单
+    ├── fixtures/             # 各平台 HTML 测试样例、微信回归样本清单和站点验证清单
     └── test_*.py             # 单元测试和 CLI 测试
 ```
 
@@ -133,8 +141,8 @@ magicmd/
 | `src/magicmd/cli.py` | 定义 `magicmd`、`convert`、`batch`、`config init`、`doctor` 命令，并控制动态进度状态。 |
 | `src/magicmd/config.py` | 读取 `.magicmd.toml`，合并默认配置和用户配置。 |
 | `src/magicmd/detect.py` | 根据 URL 自动识别 `wechat`、`juejin`、`csdn` 或 `generic`。 |
-| `src/magicmd/fetchers/browser.py` | 使用 Camoufox 抓取需要浏览器渲染的页面，当前主要用于微信公众号。 |
-| `src/magicmd/fetchers/http.py` | 使用 HTTP 抓取普通网页，当前用于掘金、CSDN 和通用页面。 |
+| `src/magicmd/fetchers/browser.py` | 使用 Camoufox 抓取需要浏览器渲染的页面，当前用于微信公众号、掘金和 CSDN。 |
+| `src/magicmd/fetchers/http.py` | 使用 HTTP 抓取普通网页，当前用于通用页面和可静态访问的页面。 |
 | `src/magicmd/platforms/wechat.py` | 提取微信公众号标题、作者、发布时间、正文、图片和代码块。 |
 | `src/magicmd/platforms/base.py` | 提供跨平台正文清洗、图片收集、代码块保留、HTML 转 Markdown 的通用能力。 |
 | `src/magicmd/renderers/markdown.py` | 控制最终 `article.md` 的整体格式，包括 front matter、标题、来源信息和正文插入位置。 |
@@ -145,7 +153,7 @@ magicmd/
 
 ## v0.1 质量基线
 
-当前 v0.1 基线记录在 [CHANGELOG.md](./CHANGELOG.md)。微信公众号真实样本回归说明在 [docs/wechat-regression-corpus.md](./docs/wechat-regression-corpus.md)，样本清单位于 [tests/fixtures/wechat_regression_manifest.json](./tests/fixtures/wechat_regression_manifest.json)。
+当前 v0.1 基线记录在 [CHANGELOG.md](./CHANGELOG.md)。微信公众号真实样本回归说明在 [docs/wechat-regression-corpus.md](./docs/wechat-regression-corpus.md)，样本清单位于 [tests/fixtures/wechat_regression_manifest.json](./tests/fixtures/wechat_regression_manifest.json)。站点支持状态说明在 [docs/supported-sites.md](./docs/supported-sites.md)，真实站点验证清单位于 [tests/fixtures/site_validation_manifest.json](./tests/fixtures/site_validation_manifest.json)。
 
 建议每次修改微信公众号解析逻辑后执行：
 
@@ -156,6 +164,17 @@ uv run magicmd batch urls-regression.txt -o output/wechat-regression-check
 ```
 
 然后检查 `output/wechat-regression-check/batch-report.md`。
+
+## 支持站点状态
+
+| 站点 | 当前状态 | 默认抓取模式 |
+| --- | --- | --- |
+| 微信公众号 `mp.weixin.qq.com` | 稳定主目标 | `camoufox` |
+| CSDN `blog.csdn.net` | 实验支持，真实样本可转换 | `camoufox` |
+| 掘金 `juejin.cn` | 实验支持，首页真实样本可转换 | `camoufox` |
+| 通用网页 | 尽力支持 | `http` |
+
+详细说明见 [docs/supported-sites.md](./docs/supported-sites.md)。
 
 ## 转换流程
 
@@ -198,6 +217,16 @@ download = true
 directory = "images"
 filename_pattern = "img_{index:03d}.{ext}"
 concurrency = 5
+
+[platforms.csdn]
+enabled = true
+browser = "camoufox"
+wait_selector = "#content_views"
+
+[platforms.juejin]
+enabled = true
+browser = "camoufox"
+wait_selector = "article"
 ```
 
 当前已生效的配置：
@@ -234,7 +263,8 @@ MagicMD 只处理公开文章页面。它不会绕过登录、付费墙、私有
 
 - 增强微信公众号真实页面解析稳定性。
 - 扩充微信公众号回归样本并持续降低 `batch-report.md` 中的质量疑点。
-- 增强掘金、CSDN 真实页面解析质量。
+- 继续扩大 CSDN 真实样本并清理代码块、站内组件等噪声。
+- 扩大掘金真实样本集，继续验证浏览器模式下的正文、代码块、图片和元数据提取质量。
 - 增加 Markdown 模板系统。
 - 增加 GitHub 发布能力。
 - 增加 HaoGit 导入能力。
