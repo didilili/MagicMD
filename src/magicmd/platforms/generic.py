@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from bs4 import BeautifulSoup
 
-from pagemd.models import Article, ExtractionInfo
-from pagemd.platforms.base import clean_content_element, html_to_markdown, meta_content, normalize_text
+from magicmd.models import Article, ExtractionInfo
+from magicmd.platforms.base import clean_content_element, html_to_markdown, meta_content, normalize_text
 
 
 def parse_generic_html(html: str, url: str) -> Article:

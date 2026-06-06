@@ -2,9 +2,9 @@
 
 ## 目的
 
-这份回归测试集用于沉淀真实微信公众号文章转换中出现过的格式问题。每当 PageMD 修改微信公众号解析、Markdown 清洗、图片下载或批量转换逻辑时，都应该用这批样本重新转换，并结合 `batch-report.md` 做人工抽查。
+这份回归测试集用于沉淀真实微信公众号文章转换中出现过的格式问题。每当 MagicMD 修改微信公众号解析、Markdown 清洗、图片下载或批量转换逻辑时，都应该用这批样本重新转换，并结合 `batch-report.md` 做人工抽查。
 
-The corpus records real WeChat formatting issues observed during PageMD conversion. Re-run it after parser, Markdown cleanup, media download, or batch conversion changes, then review `batch-report.md` together with manual spot checks.
+The corpus records real WeChat formatting issues observed during MagicMD conversion. Re-run it after parser, Markdown cleanup, media download, or batch conversion changes, then review `batch-report.md` together with manual spot checks.
 
 ## 文件
 
@@ -17,7 +17,7 @@ The corpus records real WeChat formatting issues observed during PageMD conversi
 把 manifest 中的 URL 复制到一个临时 URL 文件，或维护一个本地不提交的 `urls-regression.txt`：
 
 ```bash
-uv run pagemd batch urls-regression.txt -o output/wechat-regression-v0.1
+uv run magicmd batch urls-regression.txt -o output/wechat-regression-v0.1
 ```
 
 转换完成后优先查看：

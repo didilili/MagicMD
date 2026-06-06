@@ -1,10 +1,10 @@
-# PageMD v0.1 Implementation Plan
+# MagicMD v0.1 Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Build PageMD as an independent Python CLI that converts public article URLs into configurable Markdown packages with metadata, images, and debug artifacts.
+**Goal:** Build MagicMD as an independent Python CLI that converts public article URLs into configurable Markdown packages with metadata, images, and debug artifacts.
 
-**Architecture:** PageMD is not a fork-shaped rewrite of `wechat-article-to-markdown`; it is a modular CLI with platform adapters. The WeChat adapter should reuse the reference project's proven ideas: browser rendering, `#js_content` extraction, `data-src` image handling, code block preservation, and image URL rewriting. Core workflows should stay platform-neutral so Juejin, generic HTML, future CSDN, GitHub publishing, and HaoGit integration can be added without rewriting the CLI.
+**Architecture:** MagicMD is not a fork-shaped rewrite of `wechat-article-to-markdown`; it is a modular CLI with platform adapters. The WeChat adapter should reuse the reference project's proven ideas: browser rendering, `#js_content` extraction, `data-src` image handling, code block preservation, and image URL rewriting. Core workflows should stay platform-neutral so Juejin, generic HTML, future CSDN, GitHub publishing, and HaoGit integration can be added without rewriting the CLI.
 
 **Tech Stack:** Python 3.11+, Typer, Pydantic, BeautifulSoup, markdownify, httpx, Camoufox, pytest, ruff.
 
@@ -15,23 +15,23 @@
 Create the repository at:
 
 ```text
-/Users/tools/Desktop/pagemd
+/Users/tools/Desktop/magicmd
 ```
 
 Initial files:
 
 ```text
-pagemd/
+magicmd/
 ├── .gitignore
-├── .pagemd.example.toml
+├── .magicmd.example.toml
 ├── README.md
 ├── SKILL.md
 ├── pyproject.toml
 ├── docs/
-│   ├── PageMD-v0.1-design.md
-│   └── PageMD-v0.1-implementation-plan.md
+│   ├── MagicMD-v0.1-design.md
+│   └── MagicMD-v0.1-implementation-plan.md
 ├── src/
-│   └── pagemd/
+│   └── magicmd/
 │       ├── __init__.py
 │       ├── assets.py
 │       ├── cli.py
@@ -70,9 +70,9 @@ pagemd/
 ## Task 1: Scaffold Repository and Package
 
 **Files:**
-- Create: `/Users/tools/Desktop/pagemd/pyproject.toml`
-- Create: `/Users/tools/Desktop/pagemd/.gitignore`
-- Create: `/Users/tools/Desktop/pagemd/src/pagemd/__init__.py`
+- Create: `/Users/tools/Desktop/magicmd/pyproject.toml`
+- Create: `/Users/tools/Desktop/magicmd/.gitignore`
+- Create: `/Users/tools/Desktop/magicmd/src/magicmd/__init__.py`
 - Create package directories listed above.
 
 - [ ] Create the repository directory and initialize git.
@@ -80,12 +80,12 @@ pagemd/
 Run:
 
 ```bash
-mkdir -p /Users/tools/Desktop/pagemd
-cd /Users/tools/Desktop/pagemd
+mkdir -p /Users/tools/Desktop/magicmd
+cd /Users/tools/Desktop/magicmd
 git init
 ```
 
-Expected: a new git repository exists at `/Users/tools/Desktop/pagemd`.
+Expected: a new git repository exists at `/Users/tools/Desktop/magicmd`.
 
 - [ ] Create `pyproject.toml`.
 
@@ -97,13 +97,13 @@ requires = ["hatchling>=1.25"]
 build-backend = "hatchling.build"
 
 [project]
-name = "pagemd"
+name = "magicmd"
 version = "0.1.0"
 description = "Convert public article links into configurable Markdown packages."
 readme = "README.md"
 requires-python = ">=3.11"
 license = "MIT"
-authors = [{ name = "PageMD Contributors" }]
+authors = [{ name = "MagicMD Contributors" }]
 dependencies = [
   "beautifulsoup4>=4.12",
   "camoufox[geoip]>=0.4",
@@ -115,7 +115,7 @@ dependencies = [
 keywords = ["markdown", "article", "wechat", "juejin", "crawler"]
 
 [project.scripts]
-pagemd = "pagemd.cli:app"
+magicmd = "magicmd.cli:app"
 
 [project.optional-dependencies]
 dev = [
@@ -125,7 +125,7 @@ dev = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/pagemd"]
+packages = ["src/magicmd"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -153,7 +153,7 @@ build/
 *.egg-info/
 output/
 debug.html
-.pagemd.toml
+.magicmd.toml
 ```
 
 - [ ] Create package directories and `__init__.py` files.
@@ -161,8 +161,8 @@ debug.html
 Run:
 
 ```bash
-mkdir -p src/pagemd/{fetchers,platforms,renderers} tests/fixtures/{wechat,juejin,generic} docs
-touch src/pagemd/__init__.py src/pagemd/fetchers/__init__.py src/pagemd/platforms/__init__.py src/pagemd/renderers/__init__.py
+mkdir -p src/magicmd/{fetchers,platforms,renderers} tests/fixtures/{wechat,juejin,generic} docs
+touch src/magicmd/__init__.py src/magicmd/fetchers/__init__.py src/magicmd/platforms/__init__.py src/magicmd/renderers/__init__.py
 ```
 
 - [ ] Install and run an empty test command.
@@ -179,15 +179,15 @@ Expected: pytest reports no tests collected or all current tests pass.
 ## Task 2: Data Models
 
 **Files:**
-- Create: `/Users/tools/Desktop/pagemd/src/pagemd/models.py`
-- Test: `/Users/tools/Desktop/pagemd/tests/test_models.py`
+- Create: `/Users/tools/Desktop/magicmd/src/magicmd/models.py`
+- Test: `/Users/tools/Desktop/magicmd/tests/test_models.py`
 
 - [ ] Write tests for normalized article and metadata serialization.
 
 Create `tests/test_models.py`:
 
 ```python
-from pagemd.models import Article, ExtractionInfo, ImageAsset
+from magicmd.models import Article, ExtractionInfo, ImageAsset
 
 
 def test_article_metadata_dump_uses_stable_keys():
@@ -229,7 +229,7 @@ Run:
 uv run pytest tests/test_models.py -q
 ```
 
-Expected: FAIL because `pagemd.models` does not exist yet.
+Expected: FAIL because `magicmd.models` does not exist yet.
 
 - [ ] Implement `models.py`.
 
@@ -298,11 +298,11 @@ Expected: PASS.
 ## Task 3: Platform Detection and Config
 
 **Files:**
-- Create: `/Users/tools/Desktop/pagemd/src/pagemd/detect.py`
-- Create: `/Users/tools/Desktop/pagemd/src/pagemd/config.py`
-- Create: `/Users/tools/Desktop/pagemd/.pagemd.example.toml`
-- Test: `/Users/tools/Desktop/pagemd/tests/test_detect.py`
-- Test: `/Users/tools/Desktop/pagemd/tests/test_config.py`
+- Create: `/Users/tools/Desktop/magicmd/src/magicmd/detect.py`
+- Create: `/Users/tools/Desktop/magicmd/src/magicmd/config.py`
+- Create: `/Users/tools/Desktop/magicmd/.magicmd.example.toml`
+- Test: `/Users/tools/Desktop/magicmd/tests/test_detect.py`
+- Test: `/Users/tools/Desktop/magicmd/tests/test_config.py`
 
 - [ ] Add detection tests.
 
@@ -311,7 +311,7 @@ Create `tests/test_detect.py`:
 ```python
 import pytest
 
-from pagemd.detect import detect_platform
+from magicmd.detect import detect_platform
 
 
 @pytest.mark.parametrize(
@@ -333,11 +333,11 @@ Create `tests/test_config.py`:
 ```python
 from pathlib import Path
 
-from pagemd.config import load_config
+from magicmd.config import load_config
 
 
 def test_load_config_merges_toml_file(tmp_path: Path):
-    config_path = tmp_path / ".pagemd.toml"
+    config_path = tmp_path / ".magicmd.toml"
     config_path.write_text(
         """
         [output]
@@ -417,7 +417,7 @@ class PlatformConfig(BaseModel):
     wait_selector: str = ""
 
 
-class PageMDConfig(BaseModel):
+class MagicMDConfig(BaseModel):
     output: OutputConfig = OutputConfig()
     markdown: MarkdownConfig = MarkdownConfig()
     images: ImagesConfig = ImagesConfig()
@@ -439,15 +439,15 @@ def _deep_merge(base: dict, override: dict) -> dict:
     return merged
 
 
-def load_config(path: str | Path | None = None) -> PageMDConfig:
-    default = PageMDConfig().model_dump()
+def load_config(path: str | Path | None = None) -> MagicMDConfig:
+    default = MagicMDConfig().model_dump()
     if not path:
-        return PageMDConfig.model_validate(default)
+        return MagicMDConfig.model_validate(default)
     config_path = Path(path)
     if not config_path.exists():
-        return PageMDConfig.model_validate(default)
+        return MagicMDConfig.model_validate(default)
     loaded = tomllib.loads(config_path.read_text(encoding="utf-8"))
-    return PageMDConfig.model_validate(_deep_merge(default, loaded))
+    return MagicMDConfig.model_validate(_deep_merge(default, loaded))
 ```
 
 - [ ] Run focused tests.
@@ -463,18 +463,18 @@ Expected: PASS.
 ## Task 4: Markdown Renderer and Output Writer
 
 **Files:**
-- Create: `/Users/tools/Desktop/pagemd/src/pagemd/renderers/markdown.py`
-- Create: `/Users/tools/Desktop/pagemd/src/pagemd/output.py`
-- Test: `/Users/tools/Desktop/pagemd/tests/test_markdown.py`
-- Test: `/Users/tools/Desktop/pagemd/tests/test_output.py`
+- Create: `/Users/tools/Desktop/magicmd/src/magicmd/renderers/markdown.py`
+- Create: `/Users/tools/Desktop/magicmd/src/magicmd/output.py`
+- Test: `/Users/tools/Desktop/magicmd/tests/test_markdown.py`
+- Test: `/Users/tools/Desktop/magicmd/tests/test_output.py`
 
 - [ ] Test Markdown rendering.
 
 Create `tests/test_markdown.py`:
 
 ```python
-from pagemd.models import Article, ExtractionInfo
-from pagemd.renderers.markdown import render_markdown
+from magicmd.models import Article, ExtractionInfo
+from magicmd.renderers.markdown import render_markdown
 
 
 def test_render_markdown_includes_front_matter_and_source_block():
@@ -505,8 +505,8 @@ Create `tests/test_output.py`:
 import json
 from pathlib import Path
 
-from pagemd.models import Article, ExtractionInfo
-from pagemd.output import write_article_package
+from magicmd.models import Article, ExtractionInfo
+from magicmd.output import write_article_package
 
 
 def test_write_article_package_creates_markdown_and_metadata(tmp_path: Path):
@@ -532,7 +532,7 @@ Use:
 ```python
 from __future__ import annotations
 
-from pagemd.models import Article
+from magicmd.models import Article
 
 
 def _quote(value: str) -> str:
@@ -579,8 +579,8 @@ import re
 from hashlib import sha256
 from pathlib import Path
 
-from pagemd.models import Article
-from pagemd.renderers.markdown import render_markdown
+from magicmd.models import Article
+from magicmd.renderers.markdown import render_markdown
 
 
 def slugify_title(title: str) -> str:
@@ -625,11 +625,11 @@ Expected: PASS.
 ## Task 5: Platform Parsers
 
 **Files:**
-- Create: `/Users/tools/Desktop/pagemd/src/pagemd/platforms/wechat.py`
-- Create: `/Users/tools/Desktop/pagemd/src/pagemd/platforms/juejin.py`
-- Create: `/Users/tools/Desktop/pagemd/src/pagemd/platforms/generic.py`
-- Create: fixture files under `/Users/tools/Desktop/pagemd/tests/fixtures/`
-- Test: `/Users/tools/Desktop/pagemd/tests/test_platforms.py`
+- Create: `/Users/tools/Desktop/magicmd/src/magicmd/platforms/wechat.py`
+- Create: `/Users/tools/Desktop/magicmd/src/magicmd/platforms/juejin.py`
+- Create: `/Users/tools/Desktop/magicmd/src/magicmd/platforms/generic.py`
+- Create: fixture files under `/Users/tools/Desktop/magicmd/tests/fixtures/`
+- Test: `/Users/tools/Desktop/magicmd/tests/test_platforms.py`
 
 - [ ] Add fixture-driven parser tests.
 
@@ -638,9 +638,9 @@ Create `tests/test_platforms.py`:
 ```python
 from pathlib import Path
 
-from pagemd.platforms.generic import parse_generic_html
-from pagemd.platforms.juejin import parse_juejin_html
-from pagemd.platforms.wechat import parse_wechat_html
+from magicmd.platforms.generic import parse_generic_html
+from magicmd.platforms.juejin import parse_juejin_html
+from magicmd.platforms.wechat import parse_wechat_html
 
 
 FIXTURES = Path(__file__).parent / "fixtures"
@@ -652,7 +652,7 @@ def test_parse_wechat_html_extracts_title_author_body_and_images():
     article = parse_wechat_html(html, "https://mp.weixin.qq.com/s/demo")
 
     assert article.title == "微信文章标题"
-    assert article.author == "PageMD"
+    assert article.author == "MagicMD"
     assert article.platform == "wechat"
     assert "第一段正文" in article.content_markdown
     assert article.images[0].source_url == "https://example.com/wechat.png"
@@ -689,7 +689,7 @@ Use:
   </head>
   <body>
     <h1 id="activity-name">微信文章标题</h1>
-    <a id="js_name">PageMD</a>
+    <a id="js_name">MagicMD</a>
     <div id="js_content">
       <p>第一段正文</p>
       <img data-src="https://example.com/wechat.png" alt="图示" />
@@ -727,13 +727,13 @@ Expected: PASS.
 ## Task 6: Fetchers, Image Assets, and CLI
 
 **Files:**
-- Create: `/Users/tools/Desktop/pagemd/src/pagemd/fetchers/http.py`
-- Create: `/Users/tools/Desktop/pagemd/src/pagemd/fetchers/browser.py`
-- Create: `/Users/tools/Desktop/pagemd/src/pagemd/assets.py`
-- Create: `/Users/tools/Desktop/pagemd/src/pagemd/diagnostics.py`
-- Create: `/Users/tools/Desktop/pagemd/src/pagemd/cli.py`
-- Test: `/Users/tools/Desktop/pagemd/tests/test_assets.py`
-- Test: `/Users/tools/Desktop/pagemd/tests/test_cli.py`
+- Create: `/Users/tools/Desktop/magicmd/src/magicmd/fetchers/http.py`
+- Create: `/Users/tools/Desktop/magicmd/src/magicmd/fetchers/browser.py`
+- Create: `/Users/tools/Desktop/magicmd/src/magicmd/assets.py`
+- Create: `/Users/tools/Desktop/magicmd/src/magicmd/diagnostics.py`
+- Create: `/Users/tools/Desktop/magicmd/src/magicmd/cli.py`
+- Test: `/Users/tools/Desktop/magicmd/tests/test_assets.py`
+- Test: `/Users/tools/Desktop/magicmd/tests/test_cli.py`
 
 - [ ] Add tests for image URL rewriting and CLI command success with mocked fetch.
 
@@ -758,10 +758,10 @@ Expected: PASS.
 ## Task 7: Documentation and Skill
 
 **Files:**
-- Create: `/Users/tools/Desktop/pagemd/README.md`
-- Create: `/Users/tools/Desktop/pagemd/SKILL.md`
-- Copy: `/Users/tools/Desktop/PageMD-v0.1-design.md` to `/Users/tools/Desktop/pagemd/docs/PageMD-v0.1-design.md`
-- Copy: `/Users/tools/Desktop/PageMD-v0.1-implementation-plan.md` to `/Users/tools/Desktop/pagemd/docs/PageMD-v0.1-implementation-plan.md`
+- Create: `/Users/tools/Desktop/magicmd/README.md`
+- Create: `/Users/tools/Desktop/magicmd/SKILL.md`
+- Copy: `/Users/tools/Desktop/MagicMD-v0.1-design.md` to `/Users/tools/Desktop/magicmd/docs/MagicMD-v0.1-design.md`
+- Copy: `/Users/tools/Desktop/MagicMD-v0.1-implementation-plan.md` to `/Users/tools/Desktop/magicmd/docs/MagicMD-v0.1-implementation-plan.md`
 
 - [ ] Create README with installation, examples, output structure, config, and safety boundaries.
 
@@ -771,17 +771,17 @@ Use:
 
 ```markdown
 ---
-name: pagemd
+name: magicmd
 description: Use when converting public article URLs such as WeChat, Juejin, CSDN, RSS, or technical blog pages into clean Markdown with metadata and local images.
 ---
 
-# PageMD
+# MagicMD
 
-Use PageMD when the user wants a public article URL converted into Markdown.
+Use MagicMD when the user wants a public article URL converted into Markdown.
 
 ## Workflow
 
-1. Run `pagemd "<url>" -o <output_dir>`.
+1. Run `magicmd "<url>" -o <output_dir>`.
 2. Check that `article.md` and `metadata.json` exist.
 3. Check `images/` when image downloading is enabled.
 4. If extraction fails, inspect `debug.html` or the extraction report.
@@ -790,9 +790,9 @@ Use PageMD when the user wants a public article URL converted into Markdown.
 ## Common Commands
 
 ```bash
-pagemd "https://mp.weixin.qq.com/s/example" -o output/
-pagemd batch urls.txt -o output/
-pagemd config init
+magicmd "https://mp.weixin.qq.com/s/example" -o output/
+magicmd batch urls.txt -o output/
+magicmd config init
 ```
 ```
 
@@ -803,7 +803,7 @@ Run:
 ```bash
 uv run pytest -q
 uv run ruff check .
-uv run pagemd doctor
+uv run magicmd doctor
 ```
 
 Expected: all commands pass.
@@ -818,7 +818,7 @@ Expected: all commands pass.
 Run:
 
 ```bash
-uv run pagemd "<public-wechat-url>" -o output --debug
+uv run magicmd "<public-wechat-url>" -o output --debug
 ```
 
 Expected:
@@ -843,4 +843,4 @@ Expected: `article.md`, `metadata.json`, and downloaded images or a controlled w
 
 - Spec coverage: v0.1 CLI, local Markdown package, metadata, images, debug artifacts, config, WeChat, Juejin, generic fallback, batch mode, and Skill packaging are covered.
 - Deliberately deferred: GitHub publishing, HaoGit integration, AI extraction, account-level crawling, login-cookie crawling, scheduler.
-- Architectural standard: PageMD should be stronger than the reference project by being modular, testable, configurable, multi-platform, and ready for future publishing.
+- Architectural standard: MagicMD should be stronger than the reference project by being modular, testable, configurable, multi-platform, and ready for future publishing.

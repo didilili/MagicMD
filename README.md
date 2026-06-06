@@ -1,8 +1,8 @@
-# PageMD
+# MagicMD
 
 中文 | [English](./README_EN.md)
 
-PageMD 是一个把公开文章链接一键转换为 Markdown 内容包的 CLI 工具。
+MagicMD 是一个把公开文章链接一键转换为 Markdown 内容包的 CLI 工具。
 
 它参考了单平台文章转换工具的有效经验，但目标更完整：更好的架构、更强的配置能力、多平台适配、标准化元数据，以及后续发布到 GitHub 或接入 HaoGit 的扩展空间。
 
@@ -29,19 +29,19 @@ uv sync --extra dev
 单篇文章转换：
 
 ```bash
-uv run pagemd "https://mp.weixin.qq.com/s/example"
+uv run magicmd "https://mp.weixin.qq.com/s/example"
 ```
 
 显式使用 `convert` 命令：
 
 ```bash
-uv run pagemd convert "https://juejin.cn/post/example" -o output/
+uv run magicmd convert "https://juejin.cn/post/example" -o output/
 ```
 
 批量转换：
 
 ```bash
-uv run pagemd batch urls.txt -o output/
+uv run magicmd batch urls.txt -o output/
 ```
 
 批量转换结束后，会在输出目录生成：
@@ -55,13 +55,13 @@ output/
 初始化配置：
 
 ```bash
-uv run pagemd config init
+uv run magicmd config init
 ```
 
 检查运行环境：
 
 ```bash
-uv run pagemd doctor
+uv run magicmd doctor
 ```
 
 ## 输出结构
@@ -82,24 +82,24 @@ output/
 ## 项目目录结构
 
 ```text
-pagemd/
+magicmd/
 ├── README.md                 # 中文说明文档
 ├── README_EN.md              # English documentation
 ├── CHANGELOG.md              # 中英文版本变更记录
 ├── LICENSE                   # MIT 开源许可证
 ├── SKILL.md                  # Agent Skill 使用说明
-├── .pagemd.example.toml      # PageMD 配置示例
+├── .magicmd.example.toml      # MagicMD 配置示例
 ├── pyproject.toml            # Python 包配置、依赖和 CLI 入口
 ├── uv.lock                   # uv 锁定依赖版本
 ├── .github/
 │   └── workflows/
 │       └── ci.yml            # GitHub Actions：测试、lint 和构建
 ├── docs/
-│   ├── PageMD-v0.1-design.md
-│   ├── PageMD-v0.1-implementation-plan.md
+│   ├── MagicMD-v0.1-design.md
+│   ├── MagicMD-v0.1-implementation-plan.md
 │   └── wechat-regression-corpus.md
 ├── src/
-│   └── pagemd/
+│   └── magicmd/
 │       ├── cli.py            # CLI 命令入口和转换编排
 │       ├── config.py         # 配置文件加载与默认配置
 │       ├── detect.py         # 根据 URL 判断平台
@@ -120,7 +120,7 @@ pagemd/
 │       ├── renderers/
 │       │   └── markdown.py   # 最终 Markdown 文件模板
 │       └── templates/
-│           └── pagemd.example.toml # wheel 内置配置模板
+│           └── magicmd.example.toml # wheel 内置配置模板
 └── tests/
     ├── fixtures/             # 各平台 HTML 测试样例和微信回归样本清单
     └── test_*.py             # 单元测试和 CLI 测试
@@ -130,18 +130,18 @@ pagemd/
 
 | 文件 | 作用 |
 | --- | --- |
-| `src/pagemd/cli.py` | 定义 `pagemd`、`convert`、`batch`、`config init`、`doctor` 命令，并控制动态进度状态。 |
-| `src/pagemd/config.py` | 读取 `.pagemd.toml`，合并默认配置和用户配置。 |
-| `src/pagemd/detect.py` | 根据 URL 自动识别 `wechat`、`juejin`、`csdn` 或 `generic`。 |
-| `src/pagemd/fetchers/browser.py` | 使用 Camoufox 抓取需要浏览器渲染的页面，当前主要用于微信公众号。 |
-| `src/pagemd/fetchers/http.py` | 使用 HTTP 抓取普通网页，当前用于掘金、CSDN 和通用页面。 |
-| `src/pagemd/platforms/wechat.py` | 提取微信公众号标题、作者、发布时间、正文、图片和代码块。 |
-| `src/pagemd/platforms/base.py` | 提供跨平台正文清洗、图片收集、代码块保留、HTML 转 Markdown 的通用能力。 |
-| `src/pagemd/renderers/markdown.py` | 控制最终 `article.md` 的整体格式，包括 front matter、标题、来源信息和正文插入位置。 |
-| `src/pagemd/output.py` | 控制输出目录命名、`article.md`、`metadata.json` 写入和内容 hash。 |
-| `src/pagemd/quality.py` | 扫描 Markdown 质量疑点，并为 batch 命令生成 `batch-report.json`、`batch-report.md`。 |
-| `src/pagemd/assets.py` | 下载图片到本地 `images/`，并把 Markdown 里的远程图片链接改成本地路径。 |
-| `src/pagemd/models.py` | 定义标准文章结构，是未来 GitHub 发布和 HaoGit 导入的基础。 |
+| `src/magicmd/cli.py` | 定义 `magicmd`、`convert`、`batch`、`config init`、`doctor` 命令，并控制动态进度状态。 |
+| `src/magicmd/config.py` | 读取 `.magicmd.toml`，合并默认配置和用户配置。 |
+| `src/magicmd/detect.py` | 根据 URL 自动识别 `wechat`、`juejin`、`csdn` 或 `generic`。 |
+| `src/magicmd/fetchers/browser.py` | 使用 Camoufox 抓取需要浏览器渲染的页面，当前主要用于微信公众号。 |
+| `src/magicmd/fetchers/http.py` | 使用 HTTP 抓取普通网页，当前用于掘金、CSDN 和通用页面。 |
+| `src/magicmd/platforms/wechat.py` | 提取微信公众号标题、作者、发布时间、正文、图片和代码块。 |
+| `src/magicmd/platforms/base.py` | 提供跨平台正文清洗、图片收集、代码块保留、HTML 转 Markdown 的通用能力。 |
+| `src/magicmd/renderers/markdown.py` | 控制最终 `article.md` 的整体格式，包括 front matter、标题、来源信息和正文插入位置。 |
+| `src/magicmd/output.py` | 控制输出目录命名、`article.md`、`metadata.json` 写入和内容 hash。 |
+| `src/magicmd/quality.py` | 扫描 Markdown 质量疑点，并为 batch 命令生成 `batch-report.json`、`batch-report.md`。 |
+| `src/magicmd/assets.py` | 下载图片到本地 `images/`，并把 Markdown 里的远程图片链接改成本地路径。 |
+| `src/magicmd/models.py` | 定义标准文章结构，是未来 GitHub 发布和 HaoGit 导入的基础。 |
 
 ## v0.1 质量基线
 
@@ -152,7 +152,7 @@ pagemd/
 ```bash
 uv run pytest -q
 uv run ruff check .
-uv run pagemd batch urls-regression.txt -o output/wechat-regression-check
+uv run magicmd batch urls-regression.txt -o output/wechat-regression-check
 ```
 
 然后检查 `output/wechat-regression-check/batch-report.md`。
@@ -179,7 +179,7 @@ output.py 写入 article.md、metadata.json、extraction-report.json
 
 ## 配置
 
-示例配置文件：[.pagemd.example.toml](./.pagemd.example.toml)
+示例配置文件：[.magicmd.example.toml](./.magicmd.example.toml)
 
 ```toml
 [output]
@@ -224,11 +224,11 @@ concurrency = 5
 
 ## Agent Skill
 
-仓库内置 [SKILL.md](./SKILL.md)。支持 Skill 的 Agent 可以根据这份说明调用 PageMD，把公开文章链接转换为 Markdown 内容包。
+仓库内置 [SKILL.md](./SKILL.md)。支持 Skill 的 Agent 可以根据这份说明调用 MagicMD，把公开文章链接转换为 Markdown 内容包。
 
 ## 安全边界
 
-PageMD 只处理公开文章页面。它不会绕过登录、付费墙、私有内容、验证码或平台访问限制。
+MagicMD 只处理公开文章页面。它不会绕过登录、付费墙、私有内容、验证码或平台访问限制。
 
 ## 路线图
 

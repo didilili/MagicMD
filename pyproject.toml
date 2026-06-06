@@ -3,13 +3,13 @@ requires = ["hatchling>=1.25"]
 build-backend = "hatchling.build"
 
 [project]
-name = "pagemd"
+name = "magicmd"
 version = "0.1.0"
 description = "Convert public article links into configurable Markdown packages."
 readme = "README.md"
 requires-python = ">=3.11"
 license = "MIT"
-authors = [{ name = "PageMD Contributors" }]
+authors = [{ name = "MagicMD Contributors" }]
 dependencies = [
   "beautifulsoup4>=4.12",
   "camoufox[geoip]>=0.4",
@@ -22,7 +22,7 @@ dependencies = [
 keywords = ["markdown", "article", "wechat", "juejin", "crawler"]
 
 [project.scripts]
-pagemd = "pagemd.cli:entrypoint"
+magicmd = "magicmd.cli:entrypoint"
 
 [project.optional-dependencies]
 dev = [
@@ -32,10 +32,10 @@ dev = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/pagemd"]
+packages = ["src/magicmd"]
 
 [tool.hatch.build.targets.wheel.force-include]
-"src/pagemd/templates/pagemd.example.toml" = "pagemd/templates/pagemd.example.toml"
+"src/magicmd/templates/magicmd.example.toml" = "magicmd/templates/magicmd.example.toml"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

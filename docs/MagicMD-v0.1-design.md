@@ -1,14 +1,14 @@
-# PageMD v0.1 Design
+# MagicMD v0.1 Design
 
 ## 1. Positioning
 
-PageMD is an independent CLI tool that converts public article URLs into clean, configurable Markdown packages.
+MagicMD is an independent CLI tool that converts public article URLs into clean, configurable Markdown packages.
 
 The first goal is not to crawl the whole web. The first goal is:
 
-> Given a public article URL, PageMD creates a local Markdown article package with normalized metadata, downloaded images, and debug artifacts when extraction fails.
+> Given a public article URL, MagicMD creates a local Markdown article package with normalized metadata, downloaded images, and debug artifacts when extraction fails.
 
-PageMD should be useful on its own, and later become the ingestion pre-layer for HaoGit or any other content site.
+MagicMD should be useful on its own, and later become the ingestion pre-layer for HaoGit or any other content site.
 
 ## 2. v0.1 Scope
 
@@ -25,7 +25,7 @@ PageMD should be useful on its own, and later become the ingestion pre-layer for
 - Rewrite Markdown image links to local image paths.
 - Save `debug.html` when extraction fails or when `--debug` is enabled.
 - Support configurable Markdown front matter and body template.
-- Provide a `SKILL.md` so AI agents can use PageMD as a skill-backed tool.
+- Provide a `SKILL.md` so AI agents can use MagicMD as a skill-backed tool.
 
 ### Out of Scope for v0.1
 
@@ -42,7 +42,7 @@ PageMD should be useful on its own, and later become the ingestion pre-layer for
 ### Single URL
 
 ```bash
-pagemd "https://mp.weixin.qq.com/s/xxx"
+magicmd "https://mp.weixin.qq.com/s/xxx"
 ```
 
 Expected output:
@@ -60,14 +60,14 @@ output/
 ### Explicit Platform
 
 ```bash
-pagemd "https://mp.weixin.qq.com/s/xxx" --platform wechat
-pagemd "https://juejin.cn/post/xxx" --platform juejin
+magicmd "https://mp.weixin.qq.com/s/xxx" --platform wechat
+magicmd "https://juejin.cn/post/xxx" --platform juejin
 ```
 
 ### Batch URLs
 
 ```bash
-pagemd batch urls.txt -o output/
+magicmd batch urls.txt -o output/
 ```
 
 `urls.txt` format:
@@ -82,13 +82,13 @@ Blank lines and lines beginning with `#` are ignored.
 ### Initialize Config
 
 ```bash
-pagemd config init
+magicmd config init
 ```
 
 Creates:
 
 ```text
-.pagemd.toml
+.magicmd.toml
 ```
 
 ## 4. CLI Design
@@ -96,14 +96,14 @@ Creates:
 ### Commands
 
 ```bash
-pagemd <url> [options]
-pagemd convert <url> [options]
-pagemd batch <file> [options]
-pagemd config init [options]
-pagemd doctor
+magicmd <url> [options]
+magicmd convert <url> [options]
+magicmd batch <file> [options]
+magicmd config init [options]
+magicmd doctor
 ```
 
-`pagemd <url>` is an alias for `pagemd convert <url>`.
+`magicmd <url>` is an alias for `magicmd convert <url>`.
 
 ### Common Options
 
@@ -134,7 +134,7 @@ Fallback when publish date is unknown:
 undated-title-slug
 ```
 
-If the slug already exists, PageMD appends a short content hash:
+If the slug already exists, MagicMD appends a short content hash:
 
 ```text
 2026-06-06-title-slug-a1b2c3
@@ -195,7 +195,7 @@ Article body...
 
 ## 6. Config Design
 
-`.pagemd.toml`:
+`.magicmd.toml`:
 
 ```toml
 [output]
@@ -232,7 +232,7 @@ browser = "http"
 ## 7. Internal Architecture
 
 ```text
-pagemd/
+magicmd/
 ├── cli.py
 ├── config.py
 ├── models.py
@@ -305,7 +305,7 @@ Use a conservative fallback:
 
 ## 9. Error Handling
 
-PageMD should fail loudly but leave useful artifacts.
+MagicMD should fail loudly but leave useful artifacts.
 
 | Case | Behavior |
 | --- | --- |
@@ -322,7 +322,7 @@ The same repository should include a lightweight `SKILL.md`.
 
 The skill should not contain the crawler logic. It should teach the agent how to use the CLI:
 
-- When to use PageMD.
+- When to use MagicMD.
 - Which command to run.
 - How to inspect output.
 - How to report failures.
@@ -332,7 +332,7 @@ Minimal skill trigger:
 
 ```yaml
 ---
-name: pagemd
+name: magicmd
 description: Use when converting public article URLs such as WeChat, Juejin, CSDN, RSS, or technical blog pages into clean Markdown with metadata and local images.
 ---
 ```
@@ -344,8 +344,8 @@ GitHub publishing should be added after local conversion is stable.
 Possible command:
 
 ```bash
-pagemd publish ./output/article-slug --github
-pagemd "https://example.com/article" --publish github
+magicmd publish ./output/article-slug --github
+magicmd "https://example.com/article" --publish github
 ```
 
 Future config:
@@ -398,7 +398,7 @@ Tests should not depend on live websites by default.
 Live tests are optional and explicitly marked:
 
 ```bash
-PAGEMD_E2E_URLS="https://..." pytest -m e2e
+MAGICMD_E2E_URLS="https://..." pytest -m e2e
 ```
 
 ## 13. v0.1 Milestones
@@ -415,7 +415,7 @@ PAGEMD_E2E_URLS="https://..." pytest -m e2e
 
 ## 14. Success Criteria
 
-PageMD v0.1 is successful when:
+MagicMD v0.1 is successful when:
 
 - A public WeChat article can be converted into `article.md`, `metadata.json`, and local images.
 - A public Juejin article can be converted into the same package shape.

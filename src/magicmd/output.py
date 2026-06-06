@@ -5,9 +5,9 @@ import re
 from hashlib import sha256
 from pathlib import Path
 
-from pagemd.config import MarkdownConfig
-from pagemd.models import Article
-from pagemd.renderers.markdown import render_markdown
+from magicmd.config import MarkdownConfig
+from magicmd.models import Article
+from magicmd.renderers.markdown import render_markdown
 
 
 def slugify_title(title: str) -> str:

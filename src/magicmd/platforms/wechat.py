@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from bs4 import BeautifulSoup
 
-from pagemd.models import Article, ExtractionInfo
-from pagemd.platforms.base import (
+from magicmd.models import Article, ExtractionInfo
+from magicmd.platforms.base import (
     clean_content_element,
     extract_script_value,
     html_to_markdown,

@@ -5,7 +5,7 @@ from pathlib import Path
 
 import httpx
 
-from pagemd.models import Article, ImageAsset
+from magicmd.models import Article, ImageAsset
 
 
 def infer_image_extension(url: str, content_type: str = "") -> str:
@@ -92,7 +92,7 @@ def download_videos(article: Article, package_dir: Path, video_dir_name: str = "
                         url,
                         headers={
                             "Referer": article.source_url,
-                            "User-Agent": "Mozilla/5.0 PageMD",
+                            "User-Agent": "Mozilla/5.0 MagicMD",
                             "Accept": "video/mp4,video/*,*/*",
                         },
                     )

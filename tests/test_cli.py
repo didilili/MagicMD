@@ -8,8 +8,8 @@ import pytest
 from rich.console import Console
 from typer.testing import CliRunner
 
-from pagemd.cli import ProgressReporter, app, entrypoint
-from pagemd.cli import convert_url
+from magicmd.cli import ProgressReporter, app, entrypoint
+from magicmd.cli import convert_url
 
 
 runner = CliRunner()
@@ -30,7 +30,7 @@ def test_convert_command_writes_package(monkeypatch, tmp_path: Path):
     </html>
     """
 
-    monkeypatch.setattr("pagemd.cli.fetch_for_platform", lambda url, platform, config_path: html)
+    monkeypatch.setattr("magicmd.cli.fetch_for_platform", lambda url, platform, config_path: html)
 
     result = runner.invoke(
         app,
@@ -50,7 +50,7 @@ def test_convert_command_writes_package(monkeypatch, tmp_path: Path):
 
 
 def test_entrypoint_reports_cli_errors_without_traceback(monkeypatch, capsys):
-    monkeypatch.setattr(sys, "argv", ["pagemd", "convert", "--bad-option"])
+    monkeypatch.setattr(sys, "argv", ["magicmd", "convert", "--bad-option"])
 
     with pytest.raises(SystemExit) as exc_info:
         entrypoint()
@@ -69,7 +69,7 @@ def test_convert_command_uses_configured_output_directory(monkeypatch, tmp_path:
       <body><article><p>正文</p></article></body>
     </html>
     """
-    config_path = tmp_path / ".pagemd.toml"
+    config_path = tmp_path / ".magicmd.toml"
     config_path.write_text(
         """
         [output]
@@ -78,7 +78,7 @@ def test_convert_command_uses_configured_output_directory(monkeypatch, tmp_path:
         encoding="utf-8",
     )
     monkeypatch.chdir(tmp_path)
-    monkeypatch.setattr("pagemd.cli.fetch_for_platform", lambda url, platform, config_path: html)
+    monkeypatch.setattr("magicmd.cli.fetch_for_platform", lambda url, platform, config_path: html)
 
     result = runner.invoke(
         app,
@@ -102,7 +102,7 @@ def test_convert_command_honors_markdown_config(monkeypatch, tmp_path: Path):
       <body><article><h2>小标题</h2><p>正文</p></article></body>
     </html>
     """
-    config_path = tmp_path / ".pagemd.toml"
+    config_path = tmp_path / ".magicmd.toml"
     config_path.write_text(
         """
         [markdown]
@@ -112,7 +112,7 @@ def test_convert_command_honors_markdown_config(monkeypatch, tmp_path: Path):
         """,
         encoding="utf-8",
     )
-    monkeypatch.setattr("pagemd.cli.fetch_for_platform", lambda url, platform, config_path: html)
+    monkeypatch.setattr("magicmd.cli.fetch_for_platform", lambda url, platform, config_path: html)
 
     result = runner.invoke(
         app,
@@ -142,7 +142,7 @@ def test_convert_command_saves_debug_html_from_config(monkeypatch, tmp_path: Pat
       <body><article><p>正文</p></article></body>
     </html>
     """
-    config_path = tmp_path / ".pagemd.toml"
+    config_path = tmp_path / ".magicmd.toml"
     config_path.write_text(
         """
         [output]
@@ -150,7 +150,7 @@ def test_convert_command_saves_debug_html_from_config(monkeypatch, tmp_path: Pat
         """,
         encoding="utf-8",
     )
-    monkeypatch.setattr("pagemd.cli.fetch_for_platform", lambda url, platform, config_path: html)
+    monkeypatch.setattr("magicmd.cli.fetch_for_platform", lambda url, platform, config_path: html)
 
     result = runner.invoke(
         app,
@@ -170,7 +170,7 @@ def test_convert_command_saves_debug_html_from_config(monkeypatch, tmp_path: Pat
 
 
 def test_convert_command_rejects_disabled_platform(monkeypatch, tmp_path: Path):
-    config_path = tmp_path / ".pagemd.toml"
+    config_path = tmp_path / ".magicmd.toml"
     config_path.write_text(
         """
         [platforms.juejin]
@@ -179,7 +179,7 @@ def test_convert_command_rejects_disabled_platform(monkeypatch, tmp_path: Path):
         encoding="utf-8",
     )
     monkeypatch.setattr(
-        "pagemd.cli.fetch_for_platform",
+        "magicmd.cli.fetch_for_platform",
         lambda url, platform, config_path: pytest.fail("disabled platform should not fetch"),
     )
 
@@ -205,7 +205,7 @@ def test_convert_command_prints_progress_steps(monkeypatch, tmp_path: Path):
       <body><article><p>正文</p></article></body>
     </html>
     """
-    monkeypatch.setattr("pagemd.cli.fetch_for_platform", lambda url, platform, config_path: html)
+    monkeypatch.setattr("magicmd.cli.fetch_for_platform", lambda url, platform, config_path: html)
 
     result = runner.invoke(
         app,
@@ -254,8 +254,8 @@ def test_root_url_alias_converts_with_default_output(monkeypatch, tmp_path: Path
     </html>
     """
     monkeypatch.chdir(tmp_path)
-    monkeypatch.setattr("pagemd.cli.fetch_for_platform", lambda url, platform, config_path: html)
-    monkeypatch.setattr(sys, "argv", ["pagemd", "https://juejin.cn/post/demo"])
+    monkeypatch.setattr("magicmd.cli.fetch_for_platform", lambda url, platform, config_path: html)
+    monkeypatch.setattr(sys, "argv", ["magicmd", "https://juejin.cn/post/demo"])
 
     entrypoint()
 
@@ -270,12 +270,12 @@ def test_root_url_alias_honors_output_debug_and_no_images_options(monkeypatch, t
     </html>
     """
     monkeypatch.chdir(tmp_path)
-    monkeypatch.setattr("pagemd.cli.fetch_for_platform", lambda url, platform, config_path: html)
+    monkeypatch.setattr("magicmd.cli.fetch_for_platform", lambda url, platform, config_path: html)
     monkeypatch.setattr(
         sys,
         "argv",
         [
-            "pagemd",
+            "magicmd",
             "https://juejin.cn/post/demo",
             "--output",
             str(tmp_path / "custom"),
@@ -306,7 +306,7 @@ def test_batch_command_ignores_comments(monkeypatch, tmp_path: Path):
         package.mkdir(exist_ok=True)
         return package
 
-    monkeypatch.setattr("pagemd.cli.convert_url", fake_convert_url)
+    monkeypatch.setattr("magicmd.cli.convert_url", fake_convert_url)
 
     result = runner.invoke(app, ["batch", str(urls), "--output", str(tmp_path)])
 
@@ -341,7 +341,7 @@ def test_batch_command_writes_quality_report(monkeypatch, tmp_path: Path):
         )
         return package
 
-    monkeypatch.setattr("pagemd.cli.convert_url", fake_convert_url)
+    monkeypatch.setattr("magicmd.cli.convert_url", fake_convert_url)
 
     result = runner.invoke(app, ["batch", str(urls), "--output", str(tmp_path)])
 
@@ -365,7 +365,7 @@ def test_duplicate_url_with_image_download_does_not_overwrite_first_package(
     """
     download_calls = 0
 
-    monkeypatch.setattr("pagemd.cli.fetch_for_platform", lambda url, platform, config_path: html)
+    monkeypatch.setattr("magicmd.cli.fetch_for_platform", lambda url, platform, config_path: html)
 
     def fake_download_images(article, package_dir, image_dir_name, filename_pattern="img_{index:03d}.{ext}"):
         nonlocal download_calls
@@ -374,7 +374,7 @@ def test_duplicate_url_with_image_download_does_not_overwrite_first_package(
             update={"content_markdown": f"{article.content_markdown}\ndownloaded-{download_calls}"}
         )
 
-    monkeypatch.setattr("pagemd.assets.download_images", fake_download_images)
+    monkeypatch.setattr("magicmd.assets.download_images", fake_download_images)
 
     first_dir = convert_url("https://juejin.cn/post/demo", tmp_path)
     second_dir = convert_url("https://juejin.cn/post/demo", tmp_path)
@@ -394,16 +394,16 @@ def test_convert_url_downloads_videos_in_media_step(monkeypatch, tmp_path: Path)
       </body>
     </html>
     """
-    monkeypatch.setattr("pagemd.cli.fetch_for_platform", lambda url, platform, config_path: html)
+    monkeypatch.setattr("magicmd.cli.fetch_for_platform", lambda url, platform, config_path: html)
     monkeypatch.setattr(
-        "pagemd.assets.download_images",
+        "magicmd.assets.download_images",
         lambda article, package_dir, image_dir_name, filename_pattern="img_{index:03d}.{ext}": article,
     )
 
     def fake_download_videos(article, package_dir):
         return article.model_copy(update={"content_markdown": article.content_markdown + "\nvideo-downloaded"})
 
-    monkeypatch.setattr("pagemd.assets.download_videos", fake_download_videos)
+    monkeypatch.setattr("magicmd.assets.download_videos", fake_download_videos)
 
     package_dir = convert_url("https://mp.weixin.qq.com/s/demo", tmp_path)
 

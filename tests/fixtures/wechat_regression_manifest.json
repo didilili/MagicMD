@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "description": "Live WeChat regression corpus for PageMD v0.1 formatting checks.",
+  "description": "Live WeChat regression corpus for MagicMD v0.1 formatting checks.",
   "articles": [
     {
       "url": "https://mp.weixin.qq.com/s/6-jhXO9nNa__JsUxfzhzjQ",

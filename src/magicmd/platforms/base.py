@@ -6,7 +6,7 @@ from datetime import datetime, timedelta, timezone
 import markdownify
 from bs4 import BeautifulSoup, NavigableString, Tag
 
-from pagemd.models import ImageAsset
+from magicmd.models import ImageAsset
 
 
 def normalize_text(value: str) -> str:
@@ -323,7 +323,7 @@ def clean_content_element(content_el: Tag) -> tuple[str, list[ImageAsset], list[
                 continue
             lines.append(text)
         code = "\n".join(lines) or el.get_text()
-        placeholder = f"PAGEMDCODEBLOCK{index}"
+        placeholder = f"MAGICMDCODEBLOCK{index}"
         code_blocks.append({"placeholder": placeholder, "lang": lang, "code": code})
         el.replace_with(placeholder)
 
