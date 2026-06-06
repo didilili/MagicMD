@@ -86,10 +86,14 @@ pagemd/
 ├── README.md                 # 中文说明文档
 ├── README_EN.md              # English documentation
 ├── CHANGELOG.md              # 中英文版本变更记录
+├── LICENSE                   # MIT 开源许可证
 ├── SKILL.md                  # Agent Skill 使用说明
 ├── .pagemd.example.toml      # PageMD 配置示例
 ├── pyproject.toml            # Python 包配置、依赖和 CLI 入口
 ├── uv.lock                   # uv 锁定依赖版本
+├── .github/
+│   └── workflows/
+│       └── ci.yml            # GitHub Actions：测试、lint 和构建
 ├── docs/
 │   ├── PageMD-v0.1-design.md
 │   ├── PageMD-v0.1-implementation-plan.md
@@ -113,8 +117,10 @@ pagemd/
 │       │   ├── juejin.py     # 掘金解析器
 │       │   ├── csdn.py       # CSDN 解析器
 │       │   └── generic.py    # 通用网页解析器
-│       └── renderers/
-│           └── markdown.py   # 最终 Markdown 文件模板
+│       ├── renderers/
+│       │   └── markdown.py   # 最终 Markdown 文件模板
+│       └── templates/
+│           └── pagemd.example.toml # wheel 内置配置模板
 └── tests/
     ├── fixtures/             # 各平台 HTML 测试样例和微信回归样本清单
     └── test_*.py             # 单元测试和 CLI 测试
@@ -193,6 +199,28 @@ directory = "images"
 filename_pattern = "img_{index:03d}.{ext}"
 concurrency = 5
 ```
+
+当前已生效的配置：
+
+| 配置 | 说明 |
+| --- | --- |
+| `output.directory` | 未传 `--output` 时使用的默认输出目录。 |
+| `output.overwrite` | 是否覆盖同名输出包。 |
+| `output.save_debug_html` | `always`、`on_failure`、`never`，控制是否保存 `debug.html`。 |
+| `markdown.front_matter` | `yaml` 或 `none`，控制是否输出 YAML front matter。 |
+| `markdown.include_source_block` | 控制标题下方的来源信息块。 |
+| `markdown.heading_offset` | 统一调整 Markdown 标题层级。 |
+| `markdown.template` | `default` 或 `clean`；`clean` 会省略来源信息块。 |
+| `images.download` | 是否下载图片。 |
+| `images.directory` | 图片保存目录。 |
+| `images.filename_pattern` | 图片文件命名格式。 |
+| `fetch.timeout_seconds` | HTTP 抓取超时时间。 |
+| `fetch.user_agent` | HTTP 抓取 User-Agent。 |
+| `platforms.<name>.enabled` | 是否启用某个平台。 |
+| `platforms.<name>.browser` | 使用 `http` 或 `camoufox` 抓取。 |
+| `platforms.<name>.wait_selector` | 浏览器抓取时等待的选择器。 |
+
+`images.concurrency` 目前保留为后续并发下载配置，当前下载仍按顺序执行。
 
 ## Agent Skill
 

@@ -4,6 +4,7 @@ import json
 import io
 import sys
 
+import pytest
 from rich.console import Console
 from typer.testing import CliRunner
 
@@ -46,6 +47,155 @@ def test_convert_command_writes_package(monkeypatch, tmp_path: Path):
     assert "Created output package" in result.stdout
     assert list(tmp_path.glob("*/article.md"))
     assert list(tmp_path.glob("*/metadata.json"))
+
+
+def test_entrypoint_reports_cli_errors_without_traceback(monkeypatch, capsys):
+    monkeypatch.setattr(sys, "argv", ["pagemd", "convert", "--bad-option"])
+
+    with pytest.raises(SystemExit) as exc_info:
+        entrypoint()
+
+    captured = capsys.readouterr()
+    rendered = captured.out + captured.err
+    assert exc_info.value.code != 0
+    assert "No such option" in rendered
+    assert "Traceback" not in rendered
+
+
+def test_convert_command_uses_configured_output_directory(monkeypatch, tmp_path: Path):
+    html = """
+    <html>
+      <head><meta property="og:title" content="配置输出文章"></head>
+      <body><article><p>正文</p></article></body>
+    </html>
+    """
+    config_path = tmp_path / ".pagemd.toml"
+    config_path.write_text(
+        """
+        [output]
+        directory = "configured-output"
+        """,
+        encoding="utf-8",
+    )
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr("pagemd.cli.fetch_for_platform", lambda url, platform, config_path: html)
+
+    result = runner.invoke(
+        app,
+        [
+            "convert",
+            "https://juejin.cn/post/demo",
+            "--config",
+            str(config_path),
+            "--no-images",
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert list((tmp_path / "configured-output").glob("*/article.md"))
+
+
+def test_convert_command_honors_markdown_config(monkeypatch, tmp_path: Path):
+    html = """
+    <html>
+      <head><meta property="og:title" content="Markdown 配置文章"></head>
+      <body><article><h2>小标题</h2><p>正文</p></article></body>
+    </html>
+    """
+    config_path = tmp_path / ".pagemd.toml"
+    config_path.write_text(
+        """
+        [markdown]
+        front_matter = "none"
+        include_source_block = false
+        heading_offset = 1
+        """,
+        encoding="utf-8",
+    )
+    monkeypatch.setattr("pagemd.cli.fetch_for_platform", lambda url, platform, config_path: html)
+
+    result = runner.invoke(
+        app,
+        [
+            "convert",
+            "https://juejin.cn/post/demo",
+            "--output",
+            str(tmp_path),
+            "--config",
+            str(config_path),
+            "--no-images",
+        ],
+    )
+
+    assert result.exit_code == 0
+    article_md = next(tmp_path.glob("*/article.md")).read_text(encoding="utf-8")
+    assert not article_md.startswith("---")
+    assert "> Original:" not in article_md
+    assert "## Markdown 配置文章" in article_md
+    assert "### 小标题" in article_md
+
+
+def test_convert_command_saves_debug_html_from_config(monkeypatch, tmp_path: Path):
+    html = """
+    <html>
+      <head><meta property="og:title" content="调试文章"></head>
+      <body><article><p>正文</p></article></body>
+    </html>
+    """
+    config_path = tmp_path / ".pagemd.toml"
+    config_path.write_text(
+        """
+        [output]
+        save_debug_html = "always"
+        """,
+        encoding="utf-8",
+    )
+    monkeypatch.setattr("pagemd.cli.fetch_for_platform", lambda url, platform, config_path: html)
+
+    result = runner.invoke(
+        app,
+        [
+            "convert",
+            "https://juejin.cn/post/demo",
+            "--output",
+            str(tmp_path),
+            "--config",
+            str(config_path),
+            "--no-images",
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert next(tmp_path.glob("*/debug.html")).read_text(encoding="utf-8") == html
+
+
+def test_convert_command_rejects_disabled_platform(monkeypatch, tmp_path: Path):
+    config_path = tmp_path / ".pagemd.toml"
+    config_path.write_text(
+        """
+        [platforms.juejin]
+        enabled = false
+        """,
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(
+        "pagemd.cli.fetch_for_platform",
+        lambda url, platform, config_path: pytest.fail("disabled platform should not fetch"),
+    )
+
+    result = runner.invoke(
+        app,
+        [
+            "convert",
+            "https://juejin.cn/post/demo",
+            "--config",
+            str(config_path),
+        ],
+    )
+
+    assert result.exit_code != 0
+    assert result.exception is not None
+    assert "Platform disabled: juejin" in str(result.exception)
 
 
 def test_convert_command_prints_progress_steps(monkeypatch, tmp_path: Path):
@@ -217,7 +367,7 @@ def test_duplicate_url_with_image_download_does_not_overwrite_first_package(
 
     monkeypatch.setattr("pagemd.cli.fetch_for_platform", lambda url, platform, config_path: html)
 
-    def fake_download_images(article, package_dir, image_dir_name):
+    def fake_download_images(article, package_dir, image_dir_name, filename_pattern="img_{index:03d}.{ext}"):
         nonlocal download_calls
         download_calls += 1
         return article.model_copy(
@@ -245,7 +395,10 @@ def test_convert_url_downloads_videos_in_media_step(monkeypatch, tmp_path: Path)
     </html>
     """
     monkeypatch.setattr("pagemd.cli.fetch_for_platform", lambda url, platform, config_path: html)
-    monkeypatch.setattr("pagemd.assets.download_images", lambda article, package_dir, image_dir_name: article)
+    monkeypatch.setattr(
+        "pagemd.assets.download_images",
+        lambda article, package_dir, image_dir_name, filename_pattern="img_{index:03d}.{ext}": article,
+    )
 
     def fake_download_videos(article, package_dir):
         return article.model_copy(update={"content_markdown": article.content_markdown + "\nvideo-downloaded"})

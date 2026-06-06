@@ -5,6 +5,7 @@ import re
 from hashlib import sha256
 from pathlib import Path
 
+from pagemd.config import MarkdownConfig
 from pagemd.models import Article
 from pagemd.renderers.markdown import render_markdown
 
@@ -21,7 +22,12 @@ def ensure_content_hash(article: Article) -> Article:
     return article.model_copy(update={"content_hash": digest})
 
 
-def write_article_package(article: Article, output_dir: str | Path, overwrite: bool = False) -> Path:
+def write_article_package(
+    article: Article,
+    output_dir: str | Path,
+    overwrite: bool = False,
+    markdown_config: MarkdownConfig | None = None,
+) -> Path:
     article = ensure_content_hash(article)
     base = Path(output_dir)
     slug = slugify_title(article.title)
@@ -30,15 +36,22 @@ def write_article_package(article: Article, output_dir: str | Path, overwrite: b
     if package_dir.exists() and not overwrite:
         package_dir = base / f"{prefix}-{slug}-{article.content_hash[:6]}"
     package_dir.mkdir(parents=True, exist_ok=overwrite)
-    write_article_files(article, package_dir)
+    write_article_files(article, package_dir, markdown_config=markdown_config)
     return package_dir
 
 
-def write_article_files(article: Article, package_dir: str | Path) -> None:
+def write_article_files(
+    article: Article,
+    package_dir: str | Path,
+    markdown_config: MarkdownConfig | None = None,
+) -> None:
     package_path = Path(package_dir)
     package_path.mkdir(parents=True, exist_ok=True)
     article = ensure_content_hash(article)
-    (package_path / "article.md").write_text(render_markdown(article), encoding="utf-8")
+    (package_path / "article.md").write_text(
+        render_markdown(article, markdown_config=markdown_config),
+        encoding="utf-8",
+    )
     (package_path / "metadata.json").write_text(
         json.dumps(article.to_metadata(), ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
