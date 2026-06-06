@@ -21,6 +21,15 @@ from pagemd.platforms.wechat import parse_wechat_html
 app = typer.Typer(help="Convert public article links into Markdown packages.", no_args_is_help=True)
 
 
+class ProgressReporter:
+    def __init__(self, enabled: bool = False):
+        self.enabled = enabled
+
+    def step(self, index: int, total: int, message: str):
+        if self.enabled:
+            typer.echo(f"[{index}/{total}] {message}")
+
+
 def parse_article(platform: str, html: str, url: str):
     if platform == "wechat":
         return parse_wechat_html(html, url)
@@ -41,7 +50,7 @@ def fetch_for_platform(url: str, platform: str, config_path: Optional[Path] = No
 
 def entrypoint():
     if len(sys.argv) > 1 and sys.argv[1].startswith(("http://", "https://")):
-        package_dir = convert_url(sys.argv[1], Path("output"))
+        package_dir = convert_url(sys.argv[1], Path("output"), show_progress=True)
         typer.echo(f"Created output package: {package_dir}")
         return
     app()
@@ -55,11 +64,17 @@ def convert_url(
     debug: bool = False,
     overwrite: bool = False,
     download_images_enabled: bool = True,
+    show_progress: bool = False,
 ) -> Path:
+    progress = ProgressReporter(show_progress)
     config = load_config(config_path)
+    progress.step(1, 5, "Detecting platform")
     resolved_platform = detect_platform(url) if platform == "auto" else platform
+    progress.step(2, 5, f"Fetching article ({resolved_platform})")
     html = fetch_for_platform(url, resolved_platform, config_path)
+    progress.step(3, 5, "Parsing article")
     article = parse_article(resolved_platform, html, url)
+    progress.step(4, 5, "Writing Markdown package")
     package_dir = write_article_package(article, output, overwrite=overwrite or config.output.overwrite)
     if debug:
         save_debug_html(package_dir, html)
@@ -68,6 +83,7 @@ def convert_url(
 
         article = download_images(article, package_dir, config.images.directory)
         write_article_package(article, output, overwrite=True)
+    progress.step(5, 5, "Saving extraction report")
     save_extraction_report(package_dir, article.to_metadata()["extraction"])
     return package_dir
 
@@ -90,6 +106,7 @@ def convert(
         debug=debug,
         overwrite=overwrite,
         download_images_enabled=not no_images,
+        show_progress=True,
     )
     typer.echo(f"Created output package: {package_dir}")
 
@@ -117,6 +134,7 @@ def batch(
                 config_path=config_path,
                 debug=debug,
                 download_images_enabled=not no_images,
+                show_progress=True,
             )
             typer.echo(f"OK {url} -> {package_dir}")
         except Exception as exc:
