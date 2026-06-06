@@ -17,6 +17,8 @@ concurrency = 5
 
 [fetch]
 timeout_seconds = 20
+browser_timeout_seconds = 15
+browser_attempts = 2
 user_agent = "default"
 
 [platforms.wechat]

@@ -127,7 +127,8 @@ magicmd/
 │       │   ├── wechat.py     # WeChat public account parser
 │       │   ├── juejin.py     # Juejin parser
 │       │   ├── csdn.py       # CSDN parser
-│       │   └── generic.py    # Generic web page parser
+│       │   ├── generic.py    # Generic web page parser
+│       │   └── registry.py   # Platform registry, default fetch modes, and parser mapping
 │       ├── renderers/
 │       │   └── markdown.py   # Final Markdown file template
 │       └── templates/
@@ -147,6 +148,7 @@ magicmd/
 | `src/magicmd/fetchers/browser.py` | Uses Camoufox for browser-rendered pages, currently WeChat public account articles, Juejin, and CSDN. |
 | `src/magicmd/fetchers/http.py` | Uses HTTP for regular pages, currently generic pages and statically accessible pages. |
 | `src/magicmd/platforms/wechat.py` | Extracts WeChat title, author, publish time, body, images, and code blocks. |
+| `src/magicmd/platforms/registry.py` | Centralizes supported platforms, URL matching rules, default fetch modes, and parser entrypoints. |
 | `src/magicmd/platforms/base.py` | Provides shared body cleanup, image collection, code block preservation, and HTML-to-Markdown conversion. |
 | `src/magicmd/renderers/markdown.py` | Controls the final `article.md` format, including front matter, title, source block, and body placement. |
 | `src/magicmd/output.py` | Controls output folder naming, `article.md`, `metadata.json`, and content hash writing. |
@@ -227,6 +229,12 @@ directory = "images"
 filename_pattern = "img_{index:03d}.{ext}"
 concurrency = 5
 
+[fetch]
+timeout_seconds = 20
+browser_timeout_seconds = 15
+browser_attempts = 2
+user_agent = "default"
+
 [platforms.csdn]
 enabled = true
 browser = "camoufox"
@@ -253,6 +261,8 @@ Currently active configuration fields:
 | `images.directory` | Directory used for downloaded images. |
 | `images.filename_pattern` | Filename pattern for downloaded images. |
 | `fetch.timeout_seconds` | HTTP fetch timeout. |
+| `fetch.browser_timeout_seconds` | Timeout for waiting on selectors during Camoufox browser fetching. |
+| `fetch.browser_attempts` | Total attempts after Camoufox browser fetch failures. |
 | `fetch.user_agent` | HTTP fetch User-Agent. |
 | `platforms.<name>.enabled` | Whether a platform is enabled. |
 | `platforms.<name>.browser` | Uses `http` or `camoufox` fetching. |

@@ -17,10 +17,7 @@ from magicmd.diagnostics import save_debug_html, save_extraction_report
 from magicmd.fetchers.browser import fetch_browser
 from magicmd.fetchers.http import fetch_http
 from magicmd.output import write_article_files, write_article_package
-from magicmd.platforms.generic import parse_generic_html
-from magicmd.platforms.csdn import parse_csdn_html
-from magicmd.platforms.juejin import parse_juejin_html
-from magicmd.platforms.wechat import parse_wechat_html
+from magicmd.platforms.registry import get_platform_adapter
 from magicmd.quality import build_failure_quality, build_package_quality, write_batch_report
 
 app = typer.Typer(help="Convert public article links into Markdown packages.", no_args_is_help=True)
@@ -45,20 +42,23 @@ class ProgressReporter:
 
 
 def parse_article(platform: str, html: str, url: str):
-    if platform == "wechat":
-        return parse_wechat_html(html, url)
-    if platform == "juejin":
-        return parse_juejin_html(html, url)
-    if platform == "csdn":
-        return parse_csdn_html(html, url)
-    return parse_generic_html(html, url)
+    try:
+        adapter = get_platform_adapter(platform)
+    except KeyError:
+        adapter = get_platform_adapter("generic")
+    return adapter.parser(html, url)
 
 
 def fetch_for_platform(url: str, platform: str, config_path: Optional[Path] = None) -> str:
     config = load_config(config_path)
     platform_config = config.platforms.get(platform)
     if platform_config and platform_config.browser == "camoufox":
-        return fetch_browser(url, wait_selector=platform_config.wait_selector)
+        return fetch_browser(
+            url,
+            wait_selector=platform_config.wait_selector,
+            timeout_ms=config.fetch.browser_timeout_seconds * 1000,
+            attempts=config.fetch.browser_attempts,
+        )
     return fetch_http(url, timeout_seconds=config.fetch.timeout_seconds, user_agent=config.fetch.user_agent)
 
 

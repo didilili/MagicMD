@@ -9,7 +9,7 @@ from rich.console import Console
 from typer.testing import CliRunner
 
 from magicmd.cli import ProgressReporter, app, entrypoint
-from magicmd.cli import convert_url
+from magicmd.cli import convert_url, fetch_for_platform
 
 
 runner = CliRunner()
@@ -221,6 +221,32 @@ def test_convert_command_rejects_disabled_platform(monkeypatch, tmp_path: Path):
     assert result.exit_code != 0
     assert result.exception is not None
     assert "Platform disabled: juejin" in str(result.exception)
+
+
+def test_fetch_for_platform_passes_browser_fetch_options(monkeypatch, tmp_path: Path):
+    config_path = tmp_path / ".magicmd.toml"
+    config_path.write_text(
+        """
+        [fetch]
+        browser_timeout_seconds = 7
+        browser_attempts = 4
+        """,
+        encoding="utf-8",
+    )
+
+    def fake_fetch_browser(url, wait_selector="", timeout_ms=0, attempts=0):
+        assert url == "https://juejin.cn/post/demo"
+        assert wait_selector == "article"
+        assert timeout_ms == 7000
+        assert attempts == 4
+        return "<html>ok</html>"
+
+    monkeypatch.setattr("magicmd.cli.fetch_browser", fake_fetch_browser)
+
+    assert (
+        fetch_for_platform("https://juejin.cn/post/demo", "juejin", config_path)
+        == "<html>ok</html>"
+    )
 
 
 def test_convert_command_prints_progress_steps(monkeypatch, tmp_path: Path):

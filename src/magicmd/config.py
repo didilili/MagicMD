@@ -5,6 +5,8 @@ from pathlib import Path
 
 from pydantic import BaseModel, Field
 
+from magicmd.platforms.registry import platform_adapters
+
 
 class OutputConfig(BaseModel):
     directory: str = "output"
@@ -28,6 +30,8 @@ class ImagesConfig(BaseModel):
 
 class FetchConfig(BaseModel):
     timeout_seconds: int = 20
+    browser_timeout_seconds: int = 15
+    browser_attempts: int = 2
     user_agent: str = "default"
 
 
@@ -44,10 +48,11 @@ class MagicMDConfig(BaseModel):
     fetch: FetchConfig = Field(default_factory=FetchConfig)
     platforms: dict[str, PlatformConfig] = Field(
         default_factory=lambda: {
-            "wechat": PlatformConfig(browser="camoufox", wait_selector="#js_content"),
-            "juejin": PlatformConfig(browser="camoufox", wait_selector="article"),
-            "csdn": PlatformConfig(browser="camoufox", wait_selector="#content_views"),
-            "generic": PlatformConfig(browser="http"),
+            adapter.name: PlatformConfig(
+                browser=adapter.default_browser,
+                wait_selector=adapter.default_wait_selector,
+            )
+            for adapter in platform_adapters()
         }
     )
 
