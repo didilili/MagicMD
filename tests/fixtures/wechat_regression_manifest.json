@@ -1,0 +1,56 @@
+{
+  "version": 1,
+  "description": "Live WeChat regression corpus for PageMD v0.1 formatting checks.",
+  "articles": [
+    {
+      "url": "https://mp.weixin.qq.com/s/6-jhXO9nNa__JsUxfzhzjQ",
+      "platform": "wechat",
+      "issue_tags": ["video_extraction", "local_video_download", "metadata"]
+    },
+    {
+      "url": "https://mp.weixin.qq.com/s/3-jNwjt01r9eR_PItIwy0g",
+      "platform": "wechat",
+      "issue_tags": ["linked_image", "album_link", "markdown_link_boundary"]
+    },
+    {
+      "url": "https://mp.weixin.qq.com/s/R7gH90Ql-uFyZt9DzGh37A",
+      "platform": "wechat",
+      "issue_tags": ["non_code_pre", "footer_recommendation", "bold_cleanup"]
+    },
+    {
+      "url": "https://mp.weixin.qq.com/s/YPapteXWJhGFC-BozW95hA",
+      "platform": "wechat",
+      "issue_tags": ["lazy_image", "heading_cleanup", "recommendation_block"]
+    },
+    {
+      "url": "https://mp.weixin.qq.com/s/b-6NuY3p_E2LdEZ-zm6fLg",
+      "platform": "wechat",
+      "issue_tags": ["high_image_count", "lazy_image", "layout_text"]
+    },
+    {
+      "url": "https://mp.weixin.qq.com/s/eFV-Bzyno5hKy7Bww8R-5w",
+      "platform": "wechat",
+      "issue_tags": ["layout_heading", "cover_image", "style_container"]
+    },
+    {
+      "url": "https://mp.weixin.qq.com/s/vd-9wkj-w5HtuQKlS1MrXg",
+      "platform": "wechat",
+      "issue_tags": ["layout_heading", "cover_image", "style_container"]
+    },
+    {
+      "url": "https://mp.weixin.qq.com/s/6t74LLuFKTRh1M_xa7td1A",
+      "platform": "wechat",
+      "issue_tags": ["fragmented_bold", "decorative_gif", "legal_article"]
+    },
+    {
+      "url": "https://mp.weixin.qq.com/s/Y-031EBzOsbbN2JAEcOGBQ",
+      "platform": "wechat",
+      "issue_tags": ["decorative_gif", "tiny_placeholder", "footer_media"]
+    },
+    {
+      "url": "https://mp.weixin.qq.com/s/bpYquVzmjFzY_IrmCsxniQ",
+      "platform": "wechat",
+      "issue_tags": ["wide_block_link", "inline_link_boundary", "ad_compliance"]
+    }
+  ]
+}

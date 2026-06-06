@@ -19,6 +19,7 @@ from pagemd.platforms.generic import parse_generic_html
 from pagemd.platforms.csdn import parse_csdn_html
 from pagemd.platforms.juejin import parse_juejin_html
 from pagemd.platforms.wechat import parse_wechat_html
+from pagemd.quality import build_failure_quality, build_package_quality, write_batch_report
 
 app = typer.Typer(help="Convert public article links into Markdown packages.", no_args_is_help=True)
 
@@ -61,10 +62,8 @@ def fetch_for_platform(url: str, platform: str, config_path: Optional[Path] = No
 
 def entrypoint():
     if len(sys.argv) > 1 and sys.argv[1].startswith(("http://", "https://")):
-        package_dir = convert_url(sys.argv[1], Path("output"), show_progress=True)
-        typer.echo(f"Created output package: {package_dir}")
-        return
-    app()
+        sys.argv.insert(1, "convert")
+    app(standalone_mode=False)
 
 
 def convert_url(
@@ -106,13 +105,16 @@ def convert_url(
     if debug:
         save_debug_html(package_dir, html)
     if download_images_enabled and config.images.download:
-        from pagemd.assets import download_images
+        from pagemd.assets import download_images, download_videos
 
         article = progress.run(
             5,
             6,
-            "Downloading images",
-            lambda: download_images(article, package_dir, config.images.directory),
+            "Downloading media",
+            lambda: download_videos(
+                download_images(article, package_dir, config.images.directory),
+                package_dir,
+            ),
         )
         write_article_files(article, package_dir)
     else:
@@ -163,6 +165,7 @@ def batch(
         for line in file.read_text(encoding="utf-8").splitlines()
         if line.strip() and not line.strip().startswith("#")
     ]
+    results = []
     for url in urls:
         try:
             package_dir = convert_url(
@@ -174,9 +177,13 @@ def batch(
                 download_images_enabled=not no_images,
                 show_progress=True,
             )
+            results.append(build_package_quality(url, package_dir))
             typer.echo(f"OK {url} -> {package_dir}")
         except Exception as exc:
+            results.append(build_failure_quality(url, exc))
             typer.echo(f"FAIL {url}: {exc}", err=True)
+    report_paths = write_batch_report(results, output)
+    typer.echo(f"Batch report: {report_paths['markdown']}")
 
 
 config_app = typer.Typer(help="Manage PageMD config.")
