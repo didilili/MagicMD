@@ -10,6 +10,8 @@ It borrows proven ideas from single-platform article converters, but aims to be 
 
 - Convert one article URL into a Markdown package.
 - Stable support for WeChat public account articles; experimental support for Juejin and CSDN, with browser mode enabled by default for these dynamic pages.
+- CSDN has been validated against ten complex live samples, with manual review for code blocks, Mermaid/SVG diagrams, generated table-of-contents links, and site-widget cleanup.
+- Juejin has been validated against homepage samples and complex technical articles, covering body content, images, code blocks, external links, and heading depth.
 - Best-effort extraction for generic public article pages.
 - Support batch URL conversion.
 - Support configurable Markdown front matter and output structure.
@@ -155,6 +157,12 @@ magicmd/
 
 The current v0.1 baseline is recorded in [CHANGELOG.md](./CHANGELOG.md). The live WeChat regression workflow is documented in [docs/wechat-regression-corpus.md](./docs/wechat-regression-corpus.md), and the corpus manifest lives at [tests/fixtures/wechat_regression_manifest.json](./tests/fixtures/wechat_regression_manifest.json). The site support status is documented in [docs/supported-sites.md](./docs/supported-sites.md), and the live site validation manifest lives at [tests/fixtures/site_validation_manifest.json](./tests/fixtures/site_validation_manifest.json).
 
+The manually reviewed live baselines currently include:
+
+- WeChat regression samples covering images, video placeholders, rich text, recommendation sections, code blocks, and links.
+- CSDN complex samples: ten live articles covering code-block collisions, Mermaid/SVG diagrams, generated table-of-contents links, and code-widget noise.
+- Juejin samples covering homepage articles and complex technical articles, with image download, code block, external link, and heading-depth checks.
+
 After changing the WeChat parser, run:
 
 ```bash
@@ -170,8 +178,8 @@ Then review `output/wechat-regression-check/batch-report.md`.
 | Site | Current status | Default fetch mode |
 | --- | --- | --- |
 | WeChat Official Account `mp.weixin.qq.com` | Stable primary target | `camoufox` |
-| CSDN `blog.csdn.net` | Experimental support, live samples converted | `camoufox` |
-| Juejin `juejin.cn` | Experimental support, live homepage samples converted | `camoufox` |
+| CSDN `blog.csdn.net` | Experimental support, ten complex samples manually reviewed | `camoufox` |
+| Juejin `juejin.cn` | Experimental support, homepage and complex samples validated | `camoufox` |
 | Generic pages | Best effort | `http` |
 
 See [docs/supported-sites.md](./docs/supported-sites.md) for details.
@@ -261,10 +269,9 @@ MagicMD only targets public article pages. It does not bypass login, paywalls, p
 
 ## Roadmap
 
-- Improve live WeChat article parsing stability.
-- Expand the WeChat regression corpus and keep reducing quality signals in `batch-report.md`.
-- Expand the live CSDN sample set and keep cleaning code block and site-widget noise.
-- Expand the live Juejin sample set and keep validating body content, code blocks, images, and metadata under browser-mode fetching.
+- Improve batch conversion resilience with browser-fetch retry, attempt records, and clearer failure reports.
+- Keep expanding WeChat, CSDN, and Juejin live samples as regression corpora rather than one-off manual checks.
+- Finish the v0.1 release wrap-up with a tag, release notes, and explicit support boundaries.
 - Add a Markdown template system.
 - Add GitHub publishing.
 - Add HaoGit import support.

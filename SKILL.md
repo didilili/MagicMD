@@ -1,11 +1,18 @@
 ---
 name: magicmd
-description: Use when converting public article URLs such as WeChat, Juejin, CSDN, RSS, or technical blog pages into clean Markdown with metadata and local images.
+description: Use when converting public article URLs such as WeChat, Juejin, CSDN, or generic technical blog pages into clean Markdown with metadata and local images.
 ---
 
 # MagicMD
 
 Use MagicMD when the user wants a public article URL converted into Markdown.
+
+Current support:
+
+- Stable primary target: WeChat Official Account articles.
+- Experimental browser-mode targets: Juejin and CSDN.
+- Best-effort target: generic public article pages.
+- Not currently implemented: RSS feed parsing, login-only pages, paywalls, CAPTCHA, or private content.
 
 ## Workflow
 
