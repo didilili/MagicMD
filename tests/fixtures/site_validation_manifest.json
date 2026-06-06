@@ -1,7 +1,7 @@
 {
   "version": 1,
   "description": "Live site validation baseline for MagicMD v0.1 beyond the WeChat regression corpus.",
-  "generated_from": "output/juejin-homepage-003-default-fixed/batch-report.md",
+  "generated_from": "output/csdn-complex-006-csdn-fixes/batch-report.md",
   "validated_at": "2026-06-06",
   "platform_status": {
     "wechat": "stable_primary",
@@ -47,17 +47,73 @@
     },
     {
       "platform": "csdn",
-      "url": "https://blog.csdn.net/yangyin007/article/details/154687653",
+      "url": "https://blog.csdn.net/mieleizhi0522/article/details/82142856",
       "fetch_mode": "camoufox",
-      "status": "converted_with_quality_warnings",
-      "notes": "Plain HTTP returned 521 in live validation; Camoufox converted the article but quality scan reported code/emphasis cleanup signals."
+      "status": "converted",
+      "notes": "Converted from the CSDN complex sample set with publish time extraction, code chrome cleanup, and no batch warnings."
     },
     {
       "platform": "csdn",
-      "url": "https://blog.csdn.net/musicml/article/details/154224227",
+      "url": "https://blog.csdn.net/thefg/article/details/128601410",
       "fetch_mode": "camoufox",
-      "status": "converted_with_quality_warnings",
-      "notes": "Plain HTTP returned 521 in live validation; Camoufox converted the article but quality scan reported code/emphasis cleanup signals."
+      "status": "converted",
+      "notes": "Converted from the CSDN complex sample set with publish time extraction, code chrome cleanup, and no batch warnings."
+    },
+    {
+      "platform": "csdn",
+      "url": "https://blog.csdn.net/weixin_62818371/article/details/143239485",
+      "fetch_mode": "camoufox",
+      "status": "converted",
+      "notes": "Converted from the CSDN complex sample set with publish time extraction, code chrome cleanup, and no batch warnings."
+    },
+    {
+      "platform": "csdn",
+      "url": "https://blog.csdn.net/zzuhkp/article/details/123518033",
+      "fetch_mode": "camoufox",
+      "status": "converted",
+      "notes": "Converted from the CSDN complex sample set with publish time extraction, code chrome cleanup, and no batch warnings."
+    },
+    {
+      "platform": "csdn",
+      "url": "https://blog.csdn.net/cold___play/article/details/160832978",
+      "fetch_mode": "camoufox",
+      "status": "converted",
+      "notes": "Converted from the CSDN complex sample set with publish time extraction, code chrome cleanup, and no batch warnings."
+    },
+    {
+      "platform": "csdn",
+      "url": "https://blog.csdn.net/ybg8912/article/details/148160958",
+      "fetch_mode": "camoufox",
+      "status": "converted",
+      "notes": "Converted from the CSDN complex sample set with publish time extraction, code chrome cleanup, and no batch warnings."
+    },
+    {
+      "platform": "csdn",
+      "url": "https://blog.csdn.net/weixin_52185313/article/details/159730884",
+      "fetch_mode": "camoufox",
+      "status": "converted",
+      "notes": "Converted from the CSDN complex sample set with publish time extraction, code chrome cleanup, and no batch warnings."
+    },
+    {
+      "platform": "csdn",
+      "url": "https://blog.csdn.net/qq_22097749/article/details/136258281",
+      "fetch_mode": "camoufox",
+      "status": "converted",
+      "notes": "Converted from the CSDN complex sample set with publish time extraction, code chrome cleanup, and no batch warnings."
+    },
+    {
+      "platform": "csdn",
+      "url": "https://blog.csdn.net/qq_41176800/article/details/161371607",
+      "fetch_mode": "camoufox",
+      "status": "converted",
+      "notes": "Converted from the CSDN complex sample set with publish time extraction, code chrome cleanup, and no batch warnings."
+    },
+    {
+      "platform": "csdn",
+      "url": "https://blog.csdn.net/weixin_43726381/article/details/160574650",
+      "fetch_mode": "camoufox",
+      "status": "converted",
+      "notes": "Converted from the CSDN complex sample set with publish time extraction, code chrome cleanup, and no batch warnings."
     }
   ]
 }
