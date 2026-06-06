@@ -54,6 +54,18 @@ uv run magicmd convert "https://blog.csdn.net/user/article/details/123" -o outpu
 uv run magicmd batch urls.txt -o output/
 ```
 
+跳过已转换过的链接，适合回归集反复运行：
+
+```bash
+uv run magicmd batch urls.txt -o output/ --skip-existing
+```
+
+覆盖同名输出包：
+
+```bash
+uv run magicmd batch urls.txt -o output/ --overwrite
+```
+
 批量转换结束后，会在输出目录生成：
 
 ```text
@@ -131,19 +143,27 @@ magicmd/
 │       │   ├── http.py       # 普通 HTTP 抓取
 │       │   └── browser.py    # Camoufox 浏览器渲染抓取
 │       ├── platforms/
-│       │   ├── base.py       # 平台通用正文清洗、图片识别、HTML 转 Markdown
+│       │   ├── base.py       # 兼容入口，导出平台通用清洗和 Markdown 转换能力
 │       │   ├── wechat.py     # 微信公众号解析器
 │       │   ├── juejin.py     # 掘金解析器
 │       │   ├── csdn.py       # CSDN 解析器
 │       │   ├── generic.py    # 通用网页解析器
-│       │   └── registry.py   # 平台注册表、默认抓取模式和解析器映射
+│       │   ├── registry.py   # 平台注册表、默认抓取模式和解析器映射
+│       │   └── shared/
+│       │       ├── content.py # 正文 DOM 清洗、图片识别、代码块保留
+│       │       ├── markdown.py# HTML 转 Markdown 和 Markdown 后处理
+│       │       └── metadata.py# 元数据、文本和时间提取工具
 │       ├── renderers/
 │       │   └── markdown.py   # 最终 Markdown 文件模板
 │       └── templates/
 │           └── magicmd.example.toml # wheel 内置配置模板
 └── tests/
     ├── fixtures/             # 各平台 HTML 测试样例、微信回归样本清单和站点验证清单
-    └── test_*.py             # 单元测试和 CLI 测试
+    ├── test_platform_wechat.py
+    ├── test_platform_juejin.py
+    ├── test_platform_csdn.py
+    ├── test_platform_generic.py
+    └── test_*.py             # 单元测试、CLI 测试和其它回归测试
 ```
 
 ## 核心文件说明
@@ -157,7 +177,10 @@ magicmd/
 | `src/magicmd/fetchers/http.py` | 使用 HTTP 抓取普通网页，当前用于通用页面和可静态访问的页面。 |
 | `src/magicmd/platforms/wechat.py` | 提取微信公众号标题、作者、发布时间、正文、图片和代码块。 |
 | `src/magicmd/platforms/registry.py` | 集中维护支持平台、URL 匹配规则、默认抓取模式和解析器入口。 |
-| `src/magicmd/platforms/base.py` | 提供跨平台正文清洗、图片收集、代码块保留、HTML 转 Markdown 的通用能力。 |
+| `src/magicmd/platforms/base.py` | 兼容入口，继续导出平台解析器使用的通用函数。 |
+| `src/magicmd/platforms/shared/content.py` | 提供正文 DOM 清洗、图片收集和代码块保留能力。 |
+| `src/magicmd/platforms/shared/markdown.py` | 提供 HTML 转 Markdown 和 Markdown 后处理能力。 |
+| `src/magicmd/platforms/shared/metadata.py` | 提供元数据、脚本变量、文本和时间提取工具。 |
 | `src/magicmd/renderers/markdown.py` | 控制最终 `article.md` 的整体格式，包括 front matter、标题、来源信息和正文插入位置。 |
 | `src/magicmd/output.py` | 控制输出目录命名、`article.md`、`metadata.json` 写入和内容 hash。 |
 | `src/magicmd/quality.py` | 扫描 Markdown 质量疑点，并为 batch 命令生成 `batch-report.json`、`batch-report.md`。 |

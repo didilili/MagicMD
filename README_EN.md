@@ -54,6 +54,18 @@ Batch conversion:
 uv run magicmd batch urls.txt -o output/
 ```
 
+Skip links that already have an output package, useful for repeated regression runs:
+
+```bash
+uv run magicmd batch urls.txt -o output/ --skip-existing
+```
+
+Overwrite matching output packages:
+
+```bash
+uv run magicmd batch urls.txt -o output/ --overwrite
+```
+
 After batch conversion, MagicMD writes:
 
 ```text
@@ -131,19 +143,27 @@ magicmd/
 │       │   ├── http.py       # Plain HTTP fetching
 │       │   └── browser.py    # Camoufox browser-rendered fetching
 │       ├── platforms/
-│       │   ├── base.py       # Shared cleanup, image detection, and HTML-to-Markdown helpers
+│       │   ├── base.py       # Compatibility entrypoint for shared cleanup and Markdown conversion
 │       │   ├── wechat.py     # WeChat public account parser
 │       │   ├── juejin.py     # Juejin parser
 │       │   ├── csdn.py       # CSDN parser
 │       │   ├── generic.py    # Generic web page parser
-│       │   └── registry.py   # Platform registry, default fetch modes, and parser mapping
+│       │   ├── registry.py   # Platform registry, default fetch modes, and parser mapping
+│       │   └── shared/
+│       │       ├── content.py # DOM cleanup, image detection, and code block preservation
+│       │       ├── markdown.py# HTML-to-Markdown conversion and Markdown post-processing
+│       │       └── metadata.py# Metadata, text, and timestamp extraction helpers
 │       ├── renderers/
 │       │   └── markdown.py   # Final Markdown file template
 │       └── templates/
 │           └── magicmd.example.toml # Config template bundled in the wheel
 └── tests/
     ├── fixtures/             # HTML fixtures, the WeChat regression manifest, and the site validation manifest
-    └── test_*.py             # Unit and CLI tests
+    ├── test_platform_wechat.py
+    ├── test_platform_juejin.py
+    ├── test_platform_csdn.py
+    ├── test_platform_generic.py
+    └── test_*.py             # Unit, CLI, and regression tests
 ```
 
 ## Core Files
@@ -157,7 +177,10 @@ magicmd/
 | `src/magicmd/fetchers/http.py` | Uses HTTP for regular pages, currently generic pages and statically accessible pages. |
 | `src/magicmd/platforms/wechat.py` | Extracts WeChat title, author, publish time, body, images, and code blocks. |
 | `src/magicmd/platforms/registry.py` | Centralizes supported platforms, URL matching rules, default fetch modes, and parser entrypoints. |
-| `src/magicmd/platforms/base.py` | Provides shared body cleanup, image collection, code block preservation, and HTML-to-Markdown conversion. |
+| `src/magicmd/platforms/base.py` | Compatibility entrypoint that keeps exporting shared helpers used by platform parsers. |
+| `src/magicmd/platforms/shared/content.py` | Provides DOM cleanup, image collection, and code block preservation. |
+| `src/magicmd/platforms/shared/markdown.py` | Provides HTML-to-Markdown conversion and Markdown post-processing. |
+| `src/magicmd/platforms/shared/metadata.py` | Provides metadata, script-variable, text, and timestamp extraction helpers. |
 | `src/magicmd/renderers/markdown.py` | Controls the final `article.md` format, including front matter, title, source block, and body placement. |
 | `src/magicmd/output.py` | Controls output folder naming, `article.md`, `metadata.json`, and content hash writing. |
 | `src/magicmd/quality.py` | Scans Markdown quality signals and generates `batch-report.json` and `batch-report.md` for the batch command. |

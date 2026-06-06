@@ -471,6 +471,78 @@ def test_batch_command_writes_quality_report(monkeypatch, tmp_path: Path):
     assert "Batch report" in result.stdout
 
 
+def test_batch_command_passes_overwrite_to_convert_url(monkeypatch, tmp_path: Path):
+    urls = tmp_path / "urls.txt"
+    urls.write_text("https://juejin.cn/post/demo\n", encoding="utf-8")
+    seen_kwargs = {}
+
+    def fake_convert_url(url, output, **kwargs):
+        seen_kwargs.update(kwargs)
+        package = tmp_path / "pkg"
+        package.mkdir(exist_ok=True)
+        (package / "article.md").write_text("# OK\n", encoding="utf-8")
+        (package / "metadata.json").write_text(
+            json.dumps(
+                {
+                    "title": "OK",
+                    "source_url": url,
+                    "platform": "juejin",
+                    "images": [],
+                    "extraction": {"warnings": []},
+                },
+                ensure_ascii=False,
+            ),
+            encoding="utf-8",
+        )
+        return package
+
+    monkeypatch.setattr("magicmd.cli.convert_url", fake_convert_url)
+
+    result = runner.invoke(app, ["batch", str(urls), "--output", str(tmp_path), "--overwrite"])
+
+    assert result.exit_code == 0
+    assert seen_kwargs["overwrite"] is True
+
+
+def test_batch_command_skip_existing_uses_existing_package(monkeypatch, tmp_path: Path):
+    url = "https://juejin.cn/post/existing"
+    urls = tmp_path / "urls.txt"
+    urls.write_text(url + "\n", encoding="utf-8")
+    package = tmp_path / "existing-package"
+    package.mkdir()
+    (package / "article.md").write_text("# Existing\n\n正文", encoding="utf-8")
+    (package / "metadata.json").write_text(
+        json.dumps(
+            {
+                "title": "Existing",
+                "source_url": url,
+                "canonical_url": url,
+                "platform": "juejin",
+                "images": [],
+                "extraction": {"warnings": []},
+            },
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+
+    def fail_convert_url(url, output, **kwargs):
+        raise AssertionError("existing package should be skipped")
+
+    monkeypatch.setattr("magicmd.cli.convert_url", fail_convert_url)
+
+    result = runner.invoke(app, ["batch", str(urls), "--output", str(tmp_path), "--skip-existing"])
+
+    assert result.exit_code == 0
+    assert f"SKIP {url} -> {package}" in result.stdout
+    report = json.loads((tmp_path / "batch-report.json").read_text(encoding="utf-8"))
+    assert report["summary"]["skipped"] == 1
+    item = report["items"][0]
+    assert item["status"] == "skipped"
+    assert item["stage"] == "skip"
+    assert item["package_dir"] == str(package)
+
+
 def test_batch_command_adds_diagnostic_fields_to_report(monkeypatch, tmp_path: Path):
     urls = tmp_path / "urls.txt"
     urls.write_text(
