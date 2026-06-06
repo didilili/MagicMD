@@ -7,6 +7,7 @@ from rich.console import Console
 from typer.testing import CliRunner
 
 from pagemd.cli import ProgressReporter, app, entrypoint
+from pagemd.cli import convert_url
 
 
 runner = CliRunner()
@@ -130,3 +131,34 @@ def test_batch_command_ignores_comments(monkeypatch, tmp_path: Path):
 
     assert result.exit_code == 0
     assert calls == ["https://juejin.cn/post/demo"]
+
+
+def test_duplicate_url_with_image_download_does_not_overwrite_first_package(
+    monkeypatch, tmp_path: Path
+):
+    html = """
+    <html>
+      <head><meta property="og:title" content="重复文章"></head>
+      <body><article><p>正文</p><img src="https://example.com/a.png" /></article></body>
+    </html>
+    """
+    download_calls = 0
+
+    monkeypatch.setattr("pagemd.cli.fetch_for_platform", lambda url, platform, config_path: html)
+
+    def fake_download_images(article, package_dir, image_dir_name):
+        nonlocal download_calls
+        download_calls += 1
+        return article.model_copy(
+            update={"content_markdown": f"{article.content_markdown}\ndownloaded-{download_calls}"}
+        )
+
+    monkeypatch.setattr("pagemd.assets.download_images", fake_download_images)
+
+    first_dir = convert_url("https://juejin.cn/post/demo", tmp_path)
+    second_dir = convert_url("https://juejin.cn/post/demo", tmp_path)
+
+    assert first_dir != second_dir
+    assert "downloaded-1" in (first_dir / "article.md").read_text(encoding="utf-8")
+    assert "downloaded-2" in (second_dir / "article.md").read_text(encoding="utf-8")
+    assert "downloaded-2" not in (first_dir / "article.md").read_text(encoding="utf-8")

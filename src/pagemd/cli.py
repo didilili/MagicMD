@@ -14,7 +14,7 @@ from pagemd.detect import detect_platform
 from pagemd.diagnostics import save_debug_html, save_extraction_report
 from pagemd.fetchers.browser import fetch_browser
 from pagemd.fetchers.http import fetch_http
-from pagemd.output import write_article_package
+from pagemd.output import write_article_files, write_article_package
 from pagemd.platforms.generic import parse_generic_html
 from pagemd.platforms.csdn import parse_csdn_html
 from pagemd.platforms.juejin import parse_juejin_html
@@ -114,7 +114,7 @@ def convert_url(
             "Downloading images",
             lambda: download_images(article, package_dir, config.images.directory),
         )
-        write_article_package(article, output, overwrite=True)
+        write_article_files(article, package_dir)
     else:
         progress.run(5, 6, "Skipping image download", lambda: article)
     progress.run(
