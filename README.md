@@ -76,6 +76,12 @@ uv run magicmd config init
 uv run magicmd doctor
 ```
 
+`doctor` 会检查 Python 版本、MagicMD 版本、配置文件解析、输出目录可写性、Camoufox 是否可用，以及当前平台的默认抓取方式。也可以指定配置和输出目录：
+
+```bash
+uv run magicmd doctor --config .magicmd.toml --output output/
+```
+
 ## 输出结构
 
 ```text
