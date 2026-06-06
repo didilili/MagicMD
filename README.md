@@ -10,6 +10,8 @@ MagicMD 是一个把公开文章链接一键转换为 Markdown 内容包的 CLI 
 
 - 输入一个文章 URL，输出 Markdown 内容包。
 - 稳定支持微信公众号文章；实验支持掘金和 CSDN，默认使用浏览器模式处理这些动态页面。
+- CSDN 已通过 10 篇复杂真实样本验证，并人工确认代码块、Mermaid/SVG、目录链接等重点格式问题。
+- 掘金已通过首页样本和复杂技术文章样本验证，覆盖正文、图片、代码块、链接和标题层级等常见场景。
 - 支持通用公开文章页面的基础提取。
 - 支持批量 URL 转换。
 - 支持可配置的 Markdown front matter 和输出结构。
@@ -155,6 +157,12 @@ magicmd/
 
 当前 v0.1 基线记录在 [CHANGELOG.md](./CHANGELOG.md)。微信公众号真实样本回归说明在 [docs/wechat-regression-corpus.md](./docs/wechat-regression-corpus.md)，样本清单位于 [tests/fixtures/wechat_regression_manifest.json](./tests/fixtures/wechat_regression_manifest.json)。站点支持状态说明在 [docs/supported-sites.md](./docs/supported-sites.md)，真实站点验证清单位于 [tests/fixtures/site_validation_manifest.json](./tests/fixtures/site_validation_manifest.json)。
 
+当前已人工确认的真实样本基线包括：
+
+- 微信公众号回归样本：覆盖图片、视频占位、富文本、推荐阅读区、代码块和链接等格式问题。
+- CSDN 复杂样本：10 篇真实文章，覆盖代码块错位、Mermaid/SVG 图、站内目录死链和代码控件噪声。
+- 掘金样本：覆盖首页文章和复杂技术文章，重点验证图片下载、代码块、外链和标题层级。
+
 建议每次修改微信公众号解析逻辑后执行：
 
 ```bash
@@ -170,8 +178,8 @@ uv run magicmd batch urls-regression.txt -o output/wechat-regression-check
 | 站点 | 当前状态 | 默认抓取模式 |
 | --- | --- | --- |
 | 微信公众号 `mp.weixin.qq.com` | 稳定主目标 | `camoufox` |
-| CSDN `blog.csdn.net` | 实验支持，真实样本可转换 | `camoufox` |
-| 掘金 `juejin.cn` | 实验支持，首页真实样本可转换 | `camoufox` |
+| CSDN `blog.csdn.net` | 实验支持，10 篇复杂样本已人工确认 | `camoufox` |
+| 掘金 `juejin.cn` | 实验支持，首页和复杂样本已验证 | `camoufox` |
 | 通用网页 | 尽力支持 | `http` |
 
 详细说明见 [docs/supported-sites.md](./docs/supported-sites.md)。
@@ -261,10 +269,9 @@ MagicMD 只处理公开文章页面。它不会绕过登录、付费墙、私有
 
 ## 路线图
 
-- 增强微信公众号真实页面解析稳定性。
-- 扩充微信公众号回归样本并持续降低 `batch-report.md` 中的质量疑点。
-- 继续扩大 CSDN 真实样本并清理代码块、站内组件等噪声。
-- 扩大掘金真实样本集，继续验证浏览器模式下的正文、代码块、图片和元数据提取质量。
+- 增强 batch 批量转换韧性：为浏览器抓取失败增加 retry、attempt 记录和更清晰的失败报告。
+- 继续扩充微信公众号、CSDN、掘金真实样本，作为回归集而不是临时人工验证。
+- 补齐 v0.1 发布收口：tag、发布说明和支持边界说明。
 - 增加 Markdown 模板系统。
 - 增加 GitHub 发布能力。
 - 增加 HaoGit 导入能力。
