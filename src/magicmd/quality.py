@@ -42,6 +42,7 @@ def build_package_quality(url: str, package_dir: str | Path) -> dict[str, Any]:
         "url": url,
         "status": "fail" if content_not_found else "ok",
         "title": str(metadata.get("title") or ""),
+        "platform": str(metadata.get("platform") or ""),
         "source_url": str(metadata.get("source_url") or url),
         "package_dir": str(package_path),
         "warnings": warnings,
@@ -57,6 +58,12 @@ def build_failure_quality(url: str, error: Exception) -> dict[str, Any]:
         "url": url,
         "status": "fail",
         "title": "",
+        "platform": "",
+        "fetcher": "",
+        "stage": "convert",
+        "elapsed_ms": 0,
+        "max_attempts": 1,
+        "retry_enabled": False,
         "source_url": url,
         "package_dir": "",
         "warnings": [],
@@ -104,8 +111,8 @@ def _render_markdown_report(payload: dict[str, Any]) -> str:
         f"- With warnings: {summary['with_warnings']}",
         f"- With quality issues: {summary['with_quality_issues']}",
         "",
-        "| Status | Title | Warnings | Quality issues | Images | Videos | Package / Error |",
-        "| --- | --- | --- | --- | ---: | ---: | --- |",
+        "| Status | Platform | Fetcher | Stage | Time | Title | Warnings | Quality issues | Images | Videos | Attempts | Package / Error |",
+        "| --- | --- | --- | --- | ---: | --- | --- | --- | ---: | ---: | ---: | --- |",
     ]
     for item in payload["items"]:
         package_or_error = item.get("package_dir") or item.get("error") or ""
@@ -114,11 +121,16 @@ def _render_markdown_report(payload: dict[str, Any]) -> str:
             + " | ".join(
                 [
                     _table_cell(str(item.get("status") or "")),
+                    _table_cell(str(item.get("platform") or "")),
+                    _table_cell(str(item.get("fetcher") or "")),
+                    _table_cell(str(item.get("stage") or "")),
+                    _table_cell(_format_elapsed_ms(item.get("elapsed_ms"))),
                     _table_cell(str(item.get("title") or item.get("url") or "")),
                     _table_cell(", ".join(item.get("warnings") or [])),
                     _table_cell(", ".join(item.get("quality_issues") or [])),
                     str(item.get("image_count") or 0),
                     str(item.get("video_count") or 0),
+                    str(item.get("max_attempts") or 1),
                     _table_cell(str(package_or_error)),
                 ]
             )
@@ -170,3 +182,9 @@ def _read_json(path: Path) -> dict[str, Any]:
 
 def _table_cell(value: str) -> str:
     return value.replace("|", "\\|").replace("\n", " ").strip()
+
+
+def _format_elapsed_ms(value: Any) -> str:
+    if isinstance(value, int | float):
+        return f"{int(value)} ms"
+    return ""

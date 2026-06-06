@@ -62,6 +62,8 @@ output/
 └── batch-report.md
 ```
 
+The report records `status`, `platform`, `fetcher`, `stage`, `elapsed_ms`, `max_attempts`, `retry_enabled`, media counts, warnings, and quality issues for each URL. `stage` helps locate whether a failure happened during `detect`, `fetch`, `parse`, `write`, `media`, `report`, or the broader `convert` step. `max_attempts` is the configured upper bound, not the actual attempt number that succeeded.
+
 Initialize config:
 
 ```bash

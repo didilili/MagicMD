@@ -2,9 +2,10 @@ from __future__ import annotations
 
 import shutil
 import sys
+from time import perf_counter
 from importlib import resources
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 import typer
 import click
@@ -23,6 +24,13 @@ from magicmd.quality import build_failure_quality, build_package_quality, write_
 app = typer.Typer(help="Convert public article links into Markdown packages.", no_args_is_help=True)
 
 
+class ConversionStageError(click.ClickException):
+    def __init__(self, stage: str, error: Exception):
+        self.stage = stage
+        self.original_error = error
+        super().__init__(f"{stage}: {error}")
+
+
 class ProgressReporter:
     def __init__(self, enabled: bool = False, console: Console | None = None):
         self.enabled = enabled
@@ -39,6 +47,22 @@ class ProgressReporter:
         line.append(f" [{index}/{total}] {message}")
         self.console.print(line)
         return result
+
+
+def _run_conversion_stage(
+    progress: ProgressReporter,
+    stage: str,
+    index: int,
+    total: int,
+    message: str,
+    operation,
+):
+    try:
+        return progress.run(index, total, message, operation)
+    except ConversionStageError:
+        raise
+    except Exception as exc:
+        raise ConversionStageError(stage, exc) from exc
 
 
 def parse_article(platform: str, html: str, url: str):
@@ -87,6 +111,40 @@ def _ensure_platform_enabled(platform: str, config_path: Optional[Path]) -> None
         raise click.ClickException(f"Platform disabled: {platform}")
 
 
+def _batch_context(url: str, platform: str, config_path: Optional[Path]) -> dict[str, Any]:
+    config = load_config(config_path)
+    resolved_platform = detect_platform(url) if platform == "auto" else platform
+    platform_config = config.platforms.get(resolved_platform)
+    fetcher = platform_config.browser if platform_config else "http"
+    max_attempts = config.fetch.browser_attempts if fetcher == "camoufox" else 1
+    return {
+        "platform": resolved_platform,
+        "fetcher": fetcher,
+        "max_attempts": max_attempts,
+        "retry_enabled": max_attempts > 1,
+    }
+
+
+def _decorate_batch_result(
+    item: dict[str, Any],
+    context: dict[str, Any],
+    elapsed_ms: int,
+    stage: str,
+) -> dict[str, Any]:
+    result = dict(item)
+    result.update(context)
+    result["elapsed_ms"] = elapsed_ms
+    result["stage"] = _quality_failure_stage(result, stage) if result.get("status") == "fail" else stage
+    return result
+
+
+def _quality_failure_stage(item: dict[str, Any], fallback: str) -> str:
+    error = str(item.get("error") or "")
+    if error.endswith("_content_not_found"):
+        return "parse"
+    return fallback
+
+
 def _should_save_debug_html(debug: bool, save_mode: str, warnings: list[str]) -> bool:
     normalized = save_mode.lower()
     return debug or normalized == "always" or (normalized == "on_failure" and bool(warnings))
@@ -104,26 +162,37 @@ def convert_url(
 ) -> Path:
     progress = ProgressReporter(show_progress)
     config = load_config(config_path)
-    resolved_platform = progress.run(
+    resolved_platform = _run_conversion_stage(
+        progress,
+        "detect",
         1,
         6,
         "Detecting platform",
         lambda: detect_platform(url) if platform == "auto" else platform,
     )
-    _ensure_platform_enabled(resolved_platform, config_path)
-    html = progress.run(
+    try:
+        _ensure_platform_enabled(resolved_platform, config_path)
+    except Exception as exc:
+        raise ConversionStageError("detect", exc) from exc
+    html = _run_conversion_stage(
+        progress,
+        "fetch",
         2,
         6,
         f"Fetching article ({resolved_platform})",
         lambda: fetch_for_platform(url, resolved_platform, config_path),
     )
-    article = progress.run(
+    article = _run_conversion_stage(
+        progress,
+        "parse",
         3,
         6,
         "Parsing article",
         lambda: parse_article(resolved_platform, html, url),
     )
-    package_dir = progress.run(
+    package_dir = _run_conversion_stage(
+        progress,
+        "write",
         4,
         6,
         "Writing Markdown package",
@@ -139,7 +208,9 @@ def convert_url(
     if download_images_enabled and config.images.download:
         from magicmd.assets import download_images, download_videos
 
-        article = progress.run(
+        article = _run_conversion_stage(
+            progress,
+            "media",
             5,
             6,
             "Downloading media",
@@ -152,11 +223,13 @@ def convert_url(
                 ),
                 package_dir,
             ),
-        )
+            )
         write_article_files(article, package_dir, markdown_config=config.markdown)
     else:
         progress.run(5, 6, "Skipping image download", lambda: article)
-    progress.run(
+    _run_conversion_stage(
+        progress,
+        "report",
         6,
         6,
         "Saving extraction report",
@@ -211,6 +284,8 @@ def batch(
     ]
     results = []
     for url in urls:
+        started_at = perf_counter()
+        context = _batch_context(url, platform, config_path)
         try:
             package_dir = convert_url(
                 url,
@@ -221,10 +296,27 @@ def batch(
                 download_images_enabled=not no_images,
                 show_progress=True,
             )
-            results.append(build_package_quality(url, package_dir))
+            elapsed_ms = int((perf_counter() - started_at) * 1000)
+            results.append(
+                _decorate_batch_result(
+                    build_package_quality(url, package_dir),
+                    context,
+                    elapsed_ms,
+                    "complete",
+                )
+            )
             typer.echo(f"OK {url} -> {package_dir}")
         except Exception as exc:
-            results.append(build_failure_quality(url, exc))
+            elapsed_ms = int((perf_counter() - started_at) * 1000)
+            stage = exc.stage if isinstance(exc, ConversionStageError) else "convert"
+            results.append(
+                _decorate_batch_result(
+                    build_failure_quality(url, exc),
+                    context,
+                    elapsed_ms,
+                    stage,
+                )
+            )
             typer.echo(f"FAIL {url}: {exc}", err=True)
     report_paths = write_batch_report(results, resolved_output)
     typer.echo(f"Batch report: {report_paths['markdown']}")
