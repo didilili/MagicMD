@@ -74,6 +74,13 @@ def build_failure_quality(url: str, error: Exception) -> dict[str, Any]:
     }
 
 
+def build_skipped_quality(url: str, package_dir: str | Path) -> dict[str, Any]:
+    item = build_package_quality(url, package_dir)
+    item["status"] = "skipped"
+    item.pop("error", None)
+    return item
+
+
 def write_batch_report(results: list[dict[str, Any]], output_dir: str | Path) -> dict[str, Path]:
     output_path = Path(output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
@@ -93,6 +100,7 @@ def _summarize(results: list[dict[str, Any]]) -> dict[str, int]:
     return {
         "total": len(results),
         "ok": sum(1 for item in results if item.get("status") == "ok"),
+        "skipped": sum(1 for item in results if item.get("status") == "skipped"),
         "failed": sum(1 for item in results if item.get("status") == "fail"),
         "with_warnings": sum(1 for item in results if item.get("warnings")),
         "with_quality_issues": sum(1 for item in results if item.get("quality_issues")),
@@ -107,6 +115,7 @@ def _render_markdown_report(payload: dict[str, Any]) -> str:
         f"- Generated at: `{payload['generated_at']}`",
         f"- Total: {summary['total']}",
         f"- OK: {summary['ok']}",
+        f"- Skipped: {summary['skipped']}",
         f"- Failed: {summary['failed']}",
         f"- With warnings: {summary['with_warnings']}",
         f"- With quality issues: {summary['with_quality_issues']}",

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import shutil
 import sys
 from time import perf_counter
@@ -24,7 +25,12 @@ from magicmd.fetchers.browser import fetch_browser
 from magicmd.fetchers.http import fetch_http
 from magicmd.output import write_article_files, write_article_package
 from magicmd.platforms.registry import get_platform_adapter
-from magicmd.quality import build_failure_quality, build_package_quality, write_batch_report
+from magicmd.quality import (
+    build_failure_quality,
+    build_package_quality,
+    build_skipped_quality,
+    write_batch_report,
+)
 
 app = typer.Typer(help="Convert public article links into Markdown packages.", no_args_is_help=True)
 
@@ -148,6 +154,24 @@ def _quality_failure_stage(item: dict[str, Any], fallback: str) -> str:
     if error.endswith("_content_not_found"):
         return "parse"
     return fallback
+
+
+def _find_existing_package(output: Path, url: str) -> Path | None:
+    if not output.exists():
+        return None
+    for metadata_path in sorted(output.glob("*/metadata.json")):
+        package_dir = metadata_path.parent
+        if not (package_dir / "article.md").exists():
+            continue
+        try:
+            metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            continue
+        if not isinstance(metadata, dict):
+            continue
+        if url in {metadata.get("source_url"), metadata.get("canonical_url")}:
+            return package_dir
+    return None
 
 
 def _should_save_debug_html(debug: bool, save_mode: str, warnings: list[str]) -> bool:
@@ -280,6 +304,8 @@ def batch(
     config_path: Optional[Path] = typer.Option(None, "--config", help="Config file path."),
     no_images: bool = typer.Option(False, "--no-images", help="Do not download images."),
     debug: bool = typer.Option(False, "--debug", help="Save debug HTML."),
+    overwrite: bool = typer.Option(False, "--overwrite", help="Overwrite output package."),
+    skip_existing: bool = typer.Option(False, "--skip-existing", help="Skip URLs already present in output metadata."),
 ):
     resolved_output = _resolve_output(output, config_path)
     urls = [
@@ -292,12 +318,27 @@ def batch(
         started_at = perf_counter()
         context = _batch_context(url, platform, config_path)
         try:
+            if skip_existing:
+                existing_package = _find_existing_package(resolved_output, url)
+                if existing_package:
+                    elapsed_ms = int((perf_counter() - started_at) * 1000)
+                    results.append(
+                        _decorate_batch_result(
+                            build_skipped_quality(url, existing_package),
+                            context,
+                            elapsed_ms,
+                            "skip",
+                        )
+                    )
+                    typer.echo(f"SKIP {url} -> {existing_package}")
+                    continue
             package_dir = convert_url(
                 url,
                 resolved_output,
                 platform=platform,
                 config_path=config_path,
                 debug=debug,
+                overwrite=overwrite,
                 download_images_enabled=not no_images,
                 show_progress=True,
             )

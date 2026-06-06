@@ -166,6 +166,7 @@ def test_write_batch_report_creates_machine_and_human_reports(tmp_path: Path):
     assert payload["summary"] == {
         "total": 2,
         "ok": 1,
+        "skipped": 0,
         "failed": 1,
         "with_warnings": 0,
         "with_quality_issues": 0,
