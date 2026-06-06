@@ -30,10 +30,16 @@ def write_article_package(article: Article, output_dir: str | Path, overwrite: b
     if package_dir.exists() and not overwrite:
         package_dir = base / f"{prefix}-{slug}-{article.content_hash[:6]}"
     package_dir.mkdir(parents=True, exist_ok=overwrite)
-    (package_dir / "article.md").write_text(render_markdown(article), encoding="utf-8")
-    (package_dir / "metadata.json").write_text(
+    write_article_files(article, package_dir)
+    return package_dir
+
+
+def write_article_files(article: Article, package_dir: str | Path) -> None:
+    package_path = Path(package_dir)
+    package_path.mkdir(parents=True, exist_ok=True)
+    article = ensure_content_hash(article)
+    (package_path / "article.md").write_text(render_markdown(article), encoding="utf-8")
+    (package_path / "metadata.json").write_text(
         json.dumps(article.to_metadata(), ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
-    return package_dir
-
