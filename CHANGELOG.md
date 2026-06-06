@@ -13,6 +13,7 @@ MagicMD v0.1.0 固化为可用的独立 CLI 基线，重点覆盖公开文章链
 - CSDN 解析已覆盖 10 篇复杂真实样本，并人工确认代码块错位、孤立数字、Mermaid/SVG 图、站内目录死链和代码控件噪声等问题。
 - 输出 `article.md`、`metadata.json`、`extraction-report.json` 和本地媒体目录。
 - 批量转换后自动生成 `batch-report.json` 和 `batch-report.md`，用于快速定位失败链接、解析 warning 和 Markdown 质量疑点。
+- 浏览器抓取层会对瞬时 Camoufox/Playwright 失败自动重试一次，降低批量转换中的偶发中断。
 - 建立微信公众号回归样本清单：`tests/fixtures/wechat_regression_manifest.json`。
 - 建立跨站点验证清单：`tests/fixtures/site_validation_manifest.json`。
 
@@ -27,5 +28,6 @@ MagicMD v0.1.0 is the first usable standalone CLI baseline for converting public
 - The CSDN parser has been validated against ten complex live samples, with manual review for code-block collisions, stray numeric markers, Mermaid/SVG diagrams, generated table-of-contents links, and code-widget noise.
 - Outputs `article.md`, `metadata.json`, `extraction-report.json`, and local media directories.
 - Batch conversion now generates `batch-report.json` and `batch-report.md` for failed URLs, extraction warnings, and Markdown quality signals.
+- Browser fetching now retries transient Camoufox/Playwright failures once, reducing intermittent interruptions during batch conversion.
 - Adds the WeChat regression corpus manifest: `tests/fixtures/wechat_regression_manifest.json`.
 - Adds the cross-site validation manifest: `tests/fixtures/site_validation_manifest.json`.

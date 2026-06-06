@@ -19,6 +19,7 @@ MagicMD 是一个把公开文章链接一键转换为 Markdown 内容包的 CLI 
 - 生成 `metadata.json`，方便后续发布到 GitHub、HaoGit 或其他网站。
 - 生成 extraction report，方便排查抓取和解析问题。
 - 批量转换自动生成 `batch-report.json` 和 `batch-report.md`，方便快速定位失败链接、解析 warning 和 Markdown 质量疑点。
+- 浏览器模式会对瞬时 Camoufox/Playwright 抓取失败自动重试一次，降低批量转换中的偶发中断。
 - 内置 `SKILL.md`，可以作为 Agent Skill 使用。
 
 ## 安装
@@ -269,7 +270,7 @@ MagicMD 只处理公开文章页面。它不会绕过登录、付费墙、私有
 
 ## 路线图
 
-- 增强 batch 批量转换韧性：为浏览器抓取失败增加 retry、attempt 记录和更清晰的失败报告。
+- 增强 batch 批量转换报告：记录 attempts、重试成功状态和更清晰的失败原因。
 - 继续扩充微信公众号、CSDN、掘金真实样本，作为回归集而不是临时人工验证。
 - 补齐 v0.1 发布收口：tag、发布说明和支持边界说明。
 - 增加 Markdown 模板系统。

@@ -19,6 +19,7 @@ It borrows proven ideas from single-platform article converters, but aims to be 
 - Generate `metadata.json` for future publishing to GitHub, HaoGit, or other sites.
 - Generate an extraction report for debugging fetch and parsing issues.
 - Generate `batch-report.json` and `batch-report.md` after batch conversion to surface failed URLs, extraction warnings, and Markdown quality signals.
+- Browser mode automatically retries transient Camoufox/Playwright fetch failures once, reducing intermittent interruptions during batch conversion.
 - Include `SKILL.md` so MagicMD can be used as an Agent Skill.
 
 ## Installation
@@ -269,7 +270,7 @@ MagicMD only targets public article pages. It does not bypass login, paywalls, p
 
 ## Roadmap
 
-- Improve batch conversion resilience with browser-fetch retry, attempt records, and clearer failure reports.
+- Improve batch conversion reports with attempt counts, retry-success markers, and clearer failure reasons.
 - Keep expanding WeChat, CSDN, and Juejin live samples as regression corpora rather than one-off manual checks.
 - Finish the v0.1 release wrap-up with a tag, release notes, and explicit support boundaries.
 - Add a Markdown template system.
