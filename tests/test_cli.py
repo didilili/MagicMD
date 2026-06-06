@@ -44,6 +44,34 @@ def test_convert_command_writes_package(monkeypatch, tmp_path: Path):
     assert list(tmp_path.glob("*/metadata.json"))
 
 
+def test_convert_command_prints_progress_steps(monkeypatch, tmp_path: Path):
+    html = """
+    <html>
+      <head><meta property="og:title" content="进度文章"></head>
+      <body><article><p>正文</p></article></body>
+    </html>
+    """
+    monkeypatch.setattr("pagemd.cli.fetch_for_platform", lambda url, platform, config_path: html)
+
+    result = runner.invoke(
+        app,
+        [
+            "convert",
+            "https://juejin.cn/post/demo",
+            "--output",
+            str(tmp_path),
+            "--no-images",
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert "[1/5] Detecting platform" in result.stdout
+    assert "[2/5] Fetching article" in result.stdout
+    assert "[3/5] Parsing article" in result.stdout
+    assert "[4/5] Writing Markdown package" in result.stdout
+    assert "[5/5] Saving extraction report" in result.stdout
+
+
 def test_root_url_alias_converts_with_default_output(monkeypatch, tmp_path: Path):
     html = """
     <html>
