@@ -363,6 +363,14 @@ def _normalize_markdown_emphasis(md: str) -> str:
     return numbered_link.sub(r"\g<number> \g<link>", md)
 
 
+def _remove_code_widget_noise(md: str) -> str:
+    md = re.sub(r"(?:[ce]?ounter\(line\)?)+", "", md)
+    md = re.sub(r"(?:一键获取完整项目代码|AI写代码)(?:[a-zA-Z]+)?", "", md)
+    md = re.sub(r"(?m)^[a-zA-Z0-9_+-]*复制代码", "", md)
+    md = re.sub(r"```[a-zA-Z0-9_-]*\n[ \t]*```\n?", "", md)
+    return md
+
+
 def html_to_markdown(content_html: str, code_blocks: list[dict[str, str]] | None = None) -> str:
     md = markdownify.markdownify(
         content_html,
@@ -400,6 +408,7 @@ def html_to_markdown(content_html: str, code_blocks: list[dict[str, str]] | None
     for block in code_blocks or []:
         fence = f"\n```{block['lang']}\n{block['code']}\n```\n"
         md = md.replace(block["placeholder"], fence)
+    md = _remove_code_widget_noise(md)
     md = _separate_markdown_images(md)
     md = _promote_numbered_markdown_headings(md)
     md = _normalize_markdown_emphasis(md)

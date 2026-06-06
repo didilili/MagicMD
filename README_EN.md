@@ -9,7 +9,8 @@ It borrows proven ideas from single-platform article converters, but aims to be 
 ## Features
 
 - Convert one article URL into a Markdown package.
-- Support WeChat public account articles, Juejin, CSDN, and generic public article pages.
+- Stable support for WeChat public account articles; experimental support for Juejin and CSDN, with browser mode enabled by default for these dynamic pages.
+- Best-effort extraction for generic public article pages.
 - Support batch URL conversion.
 - Support configurable Markdown front matter and output structure.
 - Download article images and rewrite Markdown image links to local paths.
@@ -36,6 +37,12 @@ Use the explicit `convert` command:
 
 ```bash
 uv run magicmd convert "https://juejin.cn/post/example" -o output/
+```
+
+Convert a CSDN article:
+
+```bash
+uv run magicmd convert "https://blog.csdn.net/user/article/details/123" -o output/
 ```
 
 Batch conversion:
@@ -97,6 +104,7 @@ magicmd/
 ├── docs/
 │   ├── MagicMD-v0.1-design.md
 │   ├── MagicMD-v0.1-implementation-plan.md
+│   ├── supported-sites.md
 │   └── wechat-regression-corpus.md
 ├── src/
 │   └── magicmd/
@@ -122,7 +130,7 @@ magicmd/
 │       └── templates/
 │           └── magicmd.example.toml # Config template bundled in the wheel
 └── tests/
-    ├── fixtures/             # HTML fixtures and the WeChat regression manifest
+    ├── fixtures/             # HTML fixtures, the WeChat regression manifest, and the site validation manifest
     └── test_*.py             # Unit and CLI tests
 ```
 
@@ -133,8 +141,8 @@ magicmd/
 | `src/magicmd/cli.py` | Defines `magicmd`, `convert`, `batch`, `config init`, and `doctor`, and controls dynamic progress output. |
 | `src/magicmd/config.py` | Reads `.magicmd.toml` and merges user config with defaults. |
 | `src/magicmd/detect.py` | Detects `wechat`, `juejin`, `csdn`, or `generic` from a URL. |
-| `src/magicmd/fetchers/browser.py` | Uses Camoufox for browser-rendered pages, mainly WeChat public account articles. |
-| `src/magicmd/fetchers/http.py` | Uses HTTP for regular pages, currently Juejin, CSDN, and generic pages. |
+| `src/magicmd/fetchers/browser.py` | Uses Camoufox for browser-rendered pages, currently WeChat public account articles, Juejin, and CSDN. |
+| `src/magicmd/fetchers/http.py` | Uses HTTP for regular pages, currently generic pages and statically accessible pages. |
 | `src/magicmd/platforms/wechat.py` | Extracts WeChat title, author, publish time, body, images, and code blocks. |
 | `src/magicmd/platforms/base.py` | Provides shared body cleanup, image collection, code block preservation, and HTML-to-Markdown conversion. |
 | `src/magicmd/renderers/markdown.py` | Controls the final `article.md` format, including front matter, title, source block, and body placement. |
@@ -145,7 +153,7 @@ magicmd/
 
 ## v0.1 Quality Baseline
 
-The current v0.1 baseline is recorded in [CHANGELOG.md](./CHANGELOG.md). The live WeChat regression workflow is documented in [docs/wechat-regression-corpus.md](./docs/wechat-regression-corpus.md), and the corpus manifest lives at [tests/fixtures/wechat_regression_manifest.json](./tests/fixtures/wechat_regression_manifest.json).
+The current v0.1 baseline is recorded in [CHANGELOG.md](./CHANGELOG.md). The live WeChat regression workflow is documented in [docs/wechat-regression-corpus.md](./docs/wechat-regression-corpus.md), and the corpus manifest lives at [tests/fixtures/wechat_regression_manifest.json](./tests/fixtures/wechat_regression_manifest.json). The site support status is documented in [docs/supported-sites.md](./docs/supported-sites.md), and the live site validation manifest lives at [tests/fixtures/site_validation_manifest.json](./tests/fixtures/site_validation_manifest.json).
 
 After changing the WeChat parser, run:
 
@@ -156,6 +164,17 @@ uv run magicmd batch urls-regression.txt -o output/wechat-regression-check
 ```
 
 Then review `output/wechat-regression-check/batch-report.md`.
+
+## Supported Sites
+
+| Site | Current status | Default fetch mode |
+| --- | --- | --- |
+| WeChat Official Account `mp.weixin.qq.com` | Stable primary target | `camoufox` |
+| CSDN `blog.csdn.net` | Experimental support, live samples converted | `camoufox` |
+| Juejin `juejin.cn` | Experimental support, live homepage samples converted | `camoufox` |
+| Generic pages | Best effort | `http` |
+
+See [docs/supported-sites.md](./docs/supported-sites.md) for details.
 
 ## Conversion Flow
 
@@ -198,6 +217,16 @@ download = true
 directory = "images"
 filename_pattern = "img_{index:03d}.{ext}"
 concurrency = 5
+
+[platforms.csdn]
+enabled = true
+browser = "camoufox"
+wait_selector = "#content_views"
+
+[platforms.juejin]
+enabled = true
+browser = "camoufox"
+wait_selector = "article"
 ```
 
 Currently active configuration fields:
@@ -234,7 +263,8 @@ MagicMD only targets public article pages. It does not bypass login, paywalls, p
 
 - Improve live WeChat article parsing stability.
 - Expand the WeChat regression corpus and keep reducing quality signals in `batch-report.md`.
-- Improve live Juejin and CSDN parsing quality.
+- Expand the live CSDN sample set and keep cleaning code block and site-widget noise.
+- Expand the live Juejin sample set and keep validating body content, code blocks, images, and metadata under browser-mode fetching.
 - Add a Markdown template system.
 - Add GitHub publishing.
 - Add HaoGit import support.
