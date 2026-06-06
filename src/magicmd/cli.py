@@ -186,6 +186,11 @@ def convert(
         download_images_enabled=not no_images,
         show_progress=True,
     )
+    quality = build_package_quality(url, package_dir)
+    if quality["status"] == "fail":
+        raise click.ClickException(
+            f"Extraction failed: {quality.get('error')}. Debug package saved at: {package_dir}"
+        )
     typer.echo(f"Created output package: {package_dir}")
 
 

@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+from collections import Counter
 import re
 from datetime import datetime, timedelta, timezone
+from urllib.parse import parse_qs, unquote, urlparse
 
 import markdownify
 from bs4 import BeautifulSoup, NavigableString, Tag
@@ -275,6 +277,70 @@ def _normalize_wechat_rich_text(content_el: Tag) -> None:
             tag.name = "p"
 
 
+def _looks_like_direct_url(value: str) -> bool:
+    return bool(re.match(r"^(?:https?://|mailto:|[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/)", value.strip()))
+
+
+def _direct_link_target(link: Tag) -> str:
+    title = normalize_text(str(link.get("title") or ""))
+    if _looks_like_direct_url(title):
+        return title
+    href = str(link.get("href") or "")
+    parsed = urlparse(href)
+    if parsed.netloc.endswith("link.juejin.cn"):
+        target = parse_qs(parsed.query).get("target", [""])[0]
+        target = unquote(target)
+        if _looks_like_direct_url(target):
+            return target
+    return ""
+
+
+def _normalize_external_links(content_el: Tag) -> None:
+    for link in content_el.find_all("a"):
+        direct_target = _direct_link_target(link)
+        if not direct_target:
+            continue
+        link["href"] = direct_target
+        if link.get("title") == direct_target:
+            del link["title"]
+        text = normalize_text(link.get_text(" ", strip=True))
+        if "..." in text or "…" in text:
+            link.clear()
+            link.append(NavigableString(direct_target))
+
+
+def _normalize_body_heading_depth(content_el: Tag) -> None:
+    headings = [
+        tag
+        for tag in content_el.find_all(re.compile(r"^h[1-6]$"))
+        if isinstance(tag, Tag) and normalize_text(tag.get_text(" ", strip=True))
+    ]
+    if not headings:
+        return
+
+    levels = [int(str(tag.name)[1]) for tag in headings]
+    min_level = min(levels)
+    base_level = min_level
+    counts = Counter(levels)
+    dominant_level, dominant_count = counts.most_common(1)[0]
+    dominant_headings = [tag for tag in headings if int(str(tag.name)[1]) == dominant_level]
+    numbered_count = sum(
+        1 for tag in dominant_headings if re.match(r"^\d+(?:[.)、]|\s)", normalize_text(tag.get_text(" ", strip=True)))
+    )
+
+    if (
+        dominant_level > min_level
+        and dominant_count >= 3
+        and dominant_count / len(headings) >= 0.6
+        and numbered_count / dominant_count >= 0.5
+    ):
+        base_level = dominant_level
+
+    for tag in headings:
+        level = int(str(tag.name)[1])
+        tag.name = f"h{max(2, min(6, 2 + max(0, level - base_level)))}"
+
+
 def clean_content_element(content_el: Tag) -> tuple[str, list[ImageAsset], list[dict[str, str]]]:
     for selector in ("script", "style", "nav", "footer", ".qr_code_pc", ".reward_area"):
         for tag in content_el.select(selector):
@@ -284,6 +350,7 @@ def clean_content_element(content_el: Tag) -> tuple[str, list[ImageAsset], list[
     _normalize_non_code_pre(content_el)
     _normalize_layout_headings(content_el)
     _narrow_block_links(content_el)
+    _normalize_external_links(content_el)
 
     for img in content_el.find_all("img"):
         data_src = img.get("data-src")
@@ -296,6 +363,7 @@ def clean_content_element(content_el: Tag) -> tuple[str, list[ImageAsset], list[
             img["alt"] = "Image"
 
     _normalize_wechat_rich_text(content_el)
+    _normalize_body_heading_depth(content_el)
 
     for img in content_el.find_all("img"):
         if not img.get("src"):

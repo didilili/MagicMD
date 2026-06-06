@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 
 class ImageAsset(BaseModel):
@@ -14,6 +14,12 @@ class ExtractionInfo(BaseModel):
     platform: str
     parser: str
     warnings: list[str] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def mark_content_not_found_as_failed(self) -> "ExtractionInfo":
+        if self.status == "success" and any(warning.endswith("_content_not_found") for warning in self.warnings):
+            self.status = "failed"
+        return self
 
 
 class Article(BaseModel):
@@ -45,4 +51,3 @@ class Article(BaseModel):
             "images": [image.model_dump() for image in self.images],
             "extraction": self.extraction.model_dump(),
         }
-
