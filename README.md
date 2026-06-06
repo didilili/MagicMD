@@ -127,7 +127,8 @@ magicmd/
 │       │   ├── wechat.py     # 微信公众号解析器
 │       │   ├── juejin.py     # 掘金解析器
 │       │   ├── csdn.py       # CSDN 解析器
-│       │   └── generic.py    # 通用网页解析器
+│       │   ├── generic.py    # 通用网页解析器
+│       │   └── registry.py   # 平台注册表、默认抓取模式和解析器映射
 │       ├── renderers/
 │       │   └── markdown.py   # 最终 Markdown 文件模板
 │       └── templates/
@@ -147,6 +148,7 @@ magicmd/
 | `src/magicmd/fetchers/browser.py` | 使用 Camoufox 抓取需要浏览器渲染的页面，当前用于微信公众号、掘金和 CSDN。 |
 | `src/magicmd/fetchers/http.py` | 使用 HTTP 抓取普通网页，当前用于通用页面和可静态访问的页面。 |
 | `src/magicmd/platforms/wechat.py` | 提取微信公众号标题、作者、发布时间、正文、图片和代码块。 |
+| `src/magicmd/platforms/registry.py` | 集中维护支持平台、URL 匹配规则、默认抓取模式和解析器入口。 |
 | `src/magicmd/platforms/base.py` | 提供跨平台正文清洗、图片收集、代码块保留、HTML 转 Markdown 的通用能力。 |
 | `src/magicmd/renderers/markdown.py` | 控制最终 `article.md` 的整体格式，包括 front matter、标题、来源信息和正文插入位置。 |
 | `src/magicmd/output.py` | 控制输出目录命名、`article.md`、`metadata.json` 写入和内容 hash。 |
@@ -227,6 +229,12 @@ directory = "images"
 filename_pattern = "img_{index:03d}.{ext}"
 concurrency = 5
 
+[fetch]
+timeout_seconds = 20
+browser_timeout_seconds = 15
+browser_attempts = 2
+user_agent = "default"
+
 [platforms.csdn]
 enabled = true
 browser = "camoufox"
@@ -253,6 +261,8 @@ wait_selector = "article"
 | `images.directory` | 图片保存目录。 |
 | `images.filename_pattern` | 图片文件命名格式。 |
 | `fetch.timeout_seconds` | HTTP 抓取超时时间。 |
+| `fetch.browser_timeout_seconds` | Camoufox 浏览器抓取等待选择器的超时时间。 |
+| `fetch.browser_attempts` | Camoufox 浏览器抓取失败后的总尝试次数。 |
 | `fetch.user_agent` | HTTP 抓取 User-Agent。 |
 | `platforms.<name>.enabled` | 是否启用某个平台。 |
 | `platforms.<name>.browser` | 使用 `http` 或 `camoufox` 抓取。 |

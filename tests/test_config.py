@@ -24,6 +24,23 @@ def test_load_config_merges_toml_file(tmp_path: Path):
     assert config.images.directory == "images"
 
 
+def test_load_config_accepts_browser_fetch_options(tmp_path: Path):
+    config_path = tmp_path / ".magicmd.toml"
+    config_path.write_text(
+        """
+        [fetch]
+        browser_timeout_seconds = 7
+        browser_attempts = 4
+        """,
+        encoding="utf-8",
+    )
+
+    config = load_config(config_path)
+
+    assert config.fetch.browser_timeout_seconds == 7
+    assert config.fetch.browser_attempts == 4
+
+
 def test_default_platform_fetch_modes_match_live_validation_baseline():
     config = load_config()
 
@@ -46,3 +63,5 @@ def test_packaged_config_template_is_available():
     assert "[platforms.csdn]" in template_text
     assert 'wait_selector = "article"' in template_text
     assert 'wait_selector = "#content_views"' in template_text
+    assert "browser_timeout_seconds = 15" in template_text
+    assert "browser_attempts = 2" in template_text
