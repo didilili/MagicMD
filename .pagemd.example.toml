@@ -1,0 +1,37 @@
+[output]
+directory = "output"
+overwrite = false
+save_debug_html = "on_failure"
+
+[markdown]
+template = "default"
+front_matter = "yaml"
+include_source_block = true
+heading_offset = 0
+
+[images]
+download = true
+directory = "images"
+filename_pattern = "img_{index:03d}.{ext}"
+concurrency = 5
+
+[fetch]
+timeout_seconds = 20
+user_agent = "default"
+
+[platforms.wechat]
+enabled = true
+browser = "camoufox"
+wait_selector = "#js_content"
+
+[platforms.juejin]
+enabled = true
+browser = "http"
+
+[platforms.csdn]
+enabled = true
+browser = "http"
+
+[platforms.generic]
+enabled = true
+browser = "http"
