@@ -1,10 +1,12 @@
 from pathlib import Path
 
+import io
 import sys
 
+from rich.console import Console
 from typer.testing import CliRunner
 
-from pagemd.cli import app, entrypoint
+from pagemd.cli import ProgressReporter, app, entrypoint
 
 
 runner = CliRunner()
@@ -65,11 +67,31 @@ def test_convert_command_prints_progress_steps(monkeypatch, tmp_path: Path):
     )
 
     assert result.exit_code == 0
-    assert "[1/5] Detecting platform" in result.stdout
-    assert "[2/5] Fetching article" in result.stdout
-    assert "[3/5] Parsing article" in result.stdout
-    assert "[4/5] Writing Markdown package" in result.stdout
-    assert "[5/5] Saving extraction report" in result.stdout
+    assert "✓ [1/6] Detecting platform" in result.stdout
+    assert "✓ [2/6] Fetching article" in result.stdout
+    assert "✓ [3/6] Parsing article" in result.stdout
+    assert "✓ [4/6] Writing Markdown package" in result.stdout
+    assert "✓ [5/6] Skipping image download" in result.stdout
+    assert "✓ [6/6] Saving extraction report" in result.stdout
+
+
+def test_progress_reporter_prints_green_completion():
+    output = io.StringIO()
+    console = Console(
+        file=output,
+        force_terminal=True,
+        color_system="standard",
+        no_color=False,
+        width=100,
+    )
+    reporter = ProgressReporter(enabled=True, console=console)
+
+    result = reporter.run(1, 1, "Testing progress", lambda: "done")
+
+    assert result == "done"
+    rendered = output.getvalue()
+    assert "\x1b[32m✓\x1b[0m" in rendered
+    assert "Testing progress" in rendered
 
 
 def test_root_url_alias_converts_with_default_output(monkeypatch, tmp_path: Path):

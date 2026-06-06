@@ -6,6 +6,8 @@ from pathlib import Path
 from typing import Optional
 
 import typer
+from rich.console import Console
+from rich.text import Text
 
 from pagemd.config import load_config
 from pagemd.detect import detect_platform
@@ -22,12 +24,21 @@ app = typer.Typer(help="Convert public article links into Markdown packages.", n
 
 
 class ProgressReporter:
-    def __init__(self, enabled: bool = False):
+    def __init__(self, enabled: bool = False, console: Console | None = None):
         self.enabled = enabled
+        self.console = console or Console(no_color=False)
 
-    def step(self, index: int, total: int, message: str):
-        if self.enabled:
-            typer.echo(f"[{index}/{total}] {message}")
+    def run(self, index: int, total: int, message: str, operation):
+        if not self.enabled:
+            return operation()
+        status_text = f"[cyan]⠋ [{index}/{total}] {message}...[/cyan]"
+        with self.console.status(status_text, spinner="dots"):
+            result = operation()
+        line = Text()
+        line.append("✓", style="green")
+        line.append(f" [{index}/{total}] {message}")
+        self.console.print(line)
+        return result
 
 
 def parse_article(platform: str, html: str, url: str):
@@ -68,23 +79,50 @@ def convert_url(
 ) -> Path:
     progress = ProgressReporter(show_progress)
     config = load_config(config_path)
-    progress.step(1, 5, "Detecting platform")
-    resolved_platform = detect_platform(url) if platform == "auto" else platform
-    progress.step(2, 5, f"Fetching article ({resolved_platform})")
-    html = fetch_for_platform(url, resolved_platform, config_path)
-    progress.step(3, 5, "Parsing article")
-    article = parse_article(resolved_platform, html, url)
-    progress.step(4, 5, "Writing Markdown package")
-    package_dir = write_article_package(article, output, overwrite=overwrite or config.output.overwrite)
+    resolved_platform = progress.run(
+        1,
+        6,
+        "Detecting platform",
+        lambda: detect_platform(url) if platform == "auto" else platform,
+    )
+    html = progress.run(
+        2,
+        6,
+        f"Fetching article ({resolved_platform})",
+        lambda: fetch_for_platform(url, resolved_platform, config_path),
+    )
+    article = progress.run(
+        3,
+        6,
+        "Parsing article",
+        lambda: parse_article(resolved_platform, html, url),
+    )
+    package_dir = progress.run(
+        4,
+        6,
+        "Writing Markdown package",
+        lambda: write_article_package(article, output, overwrite=overwrite or config.output.overwrite),
+    )
     if debug:
         save_debug_html(package_dir, html)
     if download_images_enabled and config.images.download:
         from pagemd.assets import download_images
 
-        article = download_images(article, package_dir, config.images.directory)
+        article = progress.run(
+            5,
+            6,
+            "Downloading images",
+            lambda: download_images(article, package_dir, config.images.directory),
+        )
         write_article_package(article, output, overwrite=True)
-    progress.step(5, 5, "Saving extraction report")
-    save_extraction_report(package_dir, article.to_metadata()["extraction"])
+    else:
+        progress.run(5, 6, "Skipping image download", lambda: article)
+    progress.run(
+        6,
+        6,
+        "Saving extraction report",
+        lambda: save_extraction_report(package_dir, article.to_metadata()["extraction"]),
+    )
     return package_dir
 
 

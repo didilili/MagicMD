@@ -1131,6 +1131,7 @@ dependencies = [
     { name = "httpx" },
     { name = "markdownify" },
     { name = "pydantic" },
+    { name = "rich" },
     { name = "typer" },
 ]
 
@@ -1150,6 +1151,7 @@ requires-dist = [
     { name = "pydantic", specifier = ">=2.8" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.2" },
     { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=0.23" },
+    { name = "rich", specifier = ">=13.7" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.6" },
     { name = "typer", specifier = ">=0.12" },
 ]
