@@ -14,7 +14,12 @@ from rich.text import Text
 
 from magicmd.config import load_config
 from magicmd.detect import detect_platform
-from magicmd.diagnostics import save_debug_html, save_extraction_report
+from magicmd.diagnostics import (
+    build_doctor_report,
+    render_doctor_report,
+    save_debug_html,
+    save_extraction_report,
+)
 from magicmd.fetchers.browser import fetch_browser
 from magicmd.fetchers.http import fetch_http
 from magicmd.output import write_article_files, write_article_package
@@ -345,5 +350,12 @@ def config_init(path: Path = typer.Option(Path(".magicmd.toml"), "--path", help=
 
 
 @app.command()
-def doctor():
-    typer.echo("MagicMD doctor: ok")
+def doctor(
+    config_path: Optional[Path] = typer.Option(None, "--config", help="Config file path."),
+    output: Optional[Path] = typer.Option(None, "--output", "-o", help="Output directory to check."),
+):
+    report = build_doctor_report(config_path=config_path, output_dir=output)
+    typer.echo(render_doctor_report(report), nl=False)
+    if not report["ok"]:
+        typer.echo("MagicMD doctor found issues.", err=True)
+        raise typer.Exit(1)

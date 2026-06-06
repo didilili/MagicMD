@@ -76,6 +76,12 @@ Check the runtime:
 uv run magicmd doctor
 ```
 
+`doctor` checks the Python version, MagicMD version, config parsing, output writability, Camoufox availability, and default fetch mode for each platform. You can also pass an explicit config and output directory:
+
+```bash
+uv run magicmd doctor --config .magicmd.toml --output output/
+```
+
 ## Output Structure
 
 ```text

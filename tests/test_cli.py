@@ -19,7 +19,60 @@ def test_doctor_command():
     result = runner.invoke(app, ["doctor"])
 
     assert result.exit_code == 0
-    assert "ok" in result.stdout
+    assert "MagicMD doctor" in result.stdout
+    assert "Python:" in result.stdout
+    assert "MagicMD:" in result.stdout
+    assert "Config:" in result.stdout
+    assert "Output:" in result.stdout
+    assert "Camoufox:" in result.stdout
+    assert "Platforms:" in result.stdout
+    assert "wechat: camoufox, #js_content" in result.stdout
+    assert "generic: http" in result.stdout
+
+
+def test_doctor_command_honors_config_and_output_options(tmp_path: Path):
+    config_path = tmp_path / ".magicmd.toml"
+    output_dir = tmp_path / "custom-output"
+    config_path.write_text(
+        """
+        [output]
+        directory = "configured-output"
+
+        [platforms.juejin]
+        browser = "http"
+        wait_selector = ""
+        """,
+        encoding="utf-8",
+    )
+
+    result = runner.invoke(
+        app,
+        [
+            "doctor",
+            "--config",
+            str(config_path),
+            "--output",
+            str(output_dir),
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert f"Config: {config_path} loaded" in result.stdout
+    assert f"Output: {output_dir}" in result.stdout
+    assert "juejin: http" in result.stdout
+
+
+def test_doctor_command_reports_invalid_config_without_traceback(tmp_path: Path):
+    config_path = tmp_path / ".magicmd.toml"
+    config_path.write_text("[output\n", encoding="utf-8")
+
+    result = runner.invoke(app, ["doctor", "--config", str(config_path)])
+
+    rendered = result.stdout + result.stderr
+    assert result.exit_code != 0
+    assert f"Config: {config_path} invalid" in rendered
+    assert "MagicMD doctor found issues" in rendered
+    assert "Traceback" not in rendered
 
 
 def test_convert_command_writes_package(monkeypatch, tmp_path: Path):
