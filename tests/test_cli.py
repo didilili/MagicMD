@@ -8,7 +8,7 @@ import pytest
 from rich.console import Console
 from typer.testing import CliRunner
 
-from magicmd.cli import ProgressReporter, app, entrypoint
+from magicmd.cli import ConversionStageError, ProgressReporter, app, entrypoint
 from magicmd.cli import convert_url, fetch_for_platform
 
 
@@ -249,6 +249,19 @@ def test_fetch_for_platform_passes_browser_fetch_options(monkeypatch, tmp_path: 
     )
 
 
+def test_convert_url_marks_fetch_stage_failures(monkeypatch, tmp_path: Path):
+    def fail_fetch(url, platform, config_path):
+        raise RuntimeError("network failed")
+
+    monkeypatch.setattr("magicmd.cli.fetch_for_platform", fail_fetch)
+
+    with pytest.raises(ConversionStageError) as exc_info:
+        convert_url("https://juejin.cn/post/demo", tmp_path, download_images_enabled=False)
+
+    assert exc_info.value.stage == "fetch"
+    assert "network failed" in str(exc_info.value)
+
+
 def test_convert_command_prints_progress_steps(monkeypatch, tmp_path: Path):
     html = """
     <html>
@@ -403,6 +416,53 @@ def test_batch_command_writes_quality_report(monkeypatch, tmp_path: Path):
     assert report["summary"]["failed"] == 1
     assert (tmp_path / "batch-report.md").exists()
     assert "Batch report" in result.stdout
+
+
+def test_batch_command_adds_diagnostic_fields_to_report(monkeypatch, tmp_path: Path):
+    urls = tmp_path / "urls.txt"
+    urls.write_text(
+        "https://juejin.cn/post/ok\nhttps://juejin.cn/post/fail\n",
+        encoding="utf-8",
+    )
+
+    def fake_convert_url(url, output, **kwargs):
+        if url.endswith("/fail"):
+            raise RuntimeError("fetch failed")
+        package = tmp_path / "pkg"
+        package.mkdir(exist_ok=True)
+        (package / "article.md").write_text("# OK\n\n正文", encoding="utf-8")
+        (package / "metadata.json").write_text(
+            json.dumps(
+                {
+                    "title": "OK",
+                    "source_url": url,
+                    "platform": "juejin",
+                    "images": [],
+                    "extraction": {"warnings": []},
+                },
+                ensure_ascii=False,
+            ),
+            encoding="utf-8",
+        )
+        return package
+
+    monkeypatch.setattr("magicmd.cli.convert_url", fake_convert_url)
+
+    result = runner.invoke(app, ["batch", str(urls), "--output", str(tmp_path)])
+
+    assert result.exit_code == 0
+    report = json.loads((tmp_path / "batch-report.json").read_text(encoding="utf-8"))
+    ok_item, fail_item = report["items"]
+    assert ok_item["platform"] == "juejin"
+    assert ok_item["fetcher"] == "camoufox"
+    assert ok_item["stage"] == "complete"
+    assert ok_item["elapsed_ms"] >= 0
+    assert ok_item["max_attempts"] == 2
+    assert ok_item["retry_enabled"] is True
+    assert fail_item["platform"] == "juejin"
+    assert fail_item["fetcher"] == "camoufox"
+    assert fail_item["stage"] == "convert"
+    assert fail_item["elapsed_ms"] >= 0
 
 
 def test_duplicate_url_with_image_download_does_not_overwrite_first_package(

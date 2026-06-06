@@ -62,6 +62,8 @@ output/
 └── batch-report.md
 ```
 
+报告会记录每个 URL 的 `status`、`platform`、`fetcher`、`stage`、`elapsed_ms`、`max_attempts`、`retry_enabled`、图片/视频数量、warning 和质量疑点。其中 `stage` 用于定位失败发生在 `detect`、`fetch`、`parse`、`write`、`media`、`report` 还是整体 `convert` 阶段；`max_attempts` 表示配置的最大尝试次数，不代表实际第几次成功。
+
 初始化配置：
 
 ```bash

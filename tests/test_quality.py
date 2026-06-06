@@ -132,6 +132,10 @@ def test_write_batch_report_creates_machine_and_human_reports(tmp_path: Path):
             "url": "https://mp.weixin.qq.com/s/ok",
             "status": "ok",
             "title": "OK",
+            "platform": "wechat",
+            "fetcher": "camoufox",
+            "stage": "complete",
+            "elapsed_ms": 123,
             "package_dir": "output/ok",
             "warnings": [],
             "quality_issues": [],
@@ -143,6 +147,10 @@ def test_write_batch_report_creates_machine_and_human_reports(tmp_path: Path):
             "status": "fail",
             "error": "wechat_content_not_found",
             "title": "",
+            "platform": "wechat",
+            "fetcher": "camoufox",
+            "stage": "parse",
+            "elapsed_ms": 45,
             "package_dir": "",
             "warnings": [],
             "quality_issues": [],
@@ -164,3 +172,5 @@ def test_write_batch_report_creates_machine_and_human_reports(tmp_path: Path):
     }
     assert "Batch Quality Report" in markdown
     assert "wechat_content_not_found" in markdown
+    assert "| Status | Platform | Fetcher | Stage | Time | Title |" in markdown
+    assert "| ok | wechat | camoufox | complete | 123 ms | OK |" in markdown
