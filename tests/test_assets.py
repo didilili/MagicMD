@@ -1,6 +1,11 @@
 import httpx
 
-from pagemd.assets import download_videos, infer_image_extension, rewrite_markdown_image_links
+from pagemd.assets import (
+    download_images,
+    download_videos,
+    infer_image_extension,
+    rewrite_markdown_image_links,
+)
 from pagemd.models import Article, ExtractionInfo, ImageAsset
 
 
@@ -52,6 +57,32 @@ def test_rewrite_markdown_image_links_keeps_linked_images_intact():
         rewrite_markdown_image_links(markdown, images)
         == "[![Image](images/img_001.png)](https://mp.weixin.qq.com/mp/appmsgalbum?id=1)"
     )
+
+
+def test_download_images_honors_filename_pattern(monkeypatch, tmp_path):
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, headers={"content-type": "image/jpeg"}, content=b"image")
+
+    article = Article(
+        title="图片命名文章",
+        platform="wechat",
+        source_url="https://mp.weixin.qq.com/s/demo",
+        content_markdown="![Image](https://example.com/a.jpg)",
+        images=[ImageAsset(source_url="https://example.com/a.jpg")],
+        extraction=ExtractionInfo(platform="wechat", parser="wechat"),
+    )
+    monkeypatch.setattr("pagemd.assets._image_transport", lambda: httpx.MockTransport(handler))
+
+    next_article = download_images(
+        article,
+        tmp_path,
+        image_dir_name="images",
+        filename_pattern="asset-{index}.{ext}",
+    )
+
+    assert (tmp_path / "images" / "asset-1.jpg").exists()
+    assert next_article.images[0].local_path == "images/asset-1.jpg"
+    assert "![Image](images/asset-1.jpg)" in next_article.content_markdown
 
 
 def test_download_videos_saves_local_file_and_rewrites_markdown(monkeypatch, tmp_path):

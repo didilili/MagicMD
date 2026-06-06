@@ -86,10 +86,14 @@ pagemd/
 ├── README.md                 # Chinese documentation
 ├── README_EN.md              # English documentation
 ├── CHANGELOG.md              # Bilingual changelog
+├── LICENSE                   # MIT open-source license
 ├── SKILL.md                  # Agent Skill instructions
 ├── .pagemd.example.toml      # Example PageMD config
 ├── pyproject.toml            # Python package metadata, dependencies, and CLI entry
 ├── uv.lock                   # Locked dependency versions from uv
+├── .github/
+│   └── workflows/
+│       └── ci.yml            # GitHub Actions: tests, lint, and build
 ├── docs/
 │   ├── PageMD-v0.1-design.md
 │   ├── PageMD-v0.1-implementation-plan.md
@@ -113,8 +117,10 @@ pagemd/
 │       │   ├── juejin.py     # Juejin parser
 │       │   ├── csdn.py       # CSDN parser
 │       │   └── generic.py    # Generic web page parser
-│       └── renderers/
-│           └── markdown.py   # Final Markdown file template
+│       ├── renderers/
+│       │   └── markdown.py   # Final Markdown file template
+│       └── templates/
+│           └── pagemd.example.toml # Config template bundled in the wheel
 └── tests/
     ├── fixtures/             # HTML fixtures and the WeChat regression manifest
     └── test_*.py             # Unit and CLI tests
@@ -193,6 +199,28 @@ directory = "images"
 filename_pattern = "img_{index:03d}.{ext}"
 concurrency = 5
 ```
+
+Currently active configuration fields:
+
+| Config | Meaning |
+| --- | --- |
+| `output.directory` | Default output directory when `--output` is not provided. |
+| `output.overwrite` | Whether to overwrite an existing output package. |
+| `output.save_debug_html` | `always`, `on_failure`, or `never`; controls `debug.html` output. |
+| `markdown.front_matter` | `yaml` or `none`; controls YAML front matter output. |
+| `markdown.include_source_block` | Controls the source block below the title. |
+| `markdown.heading_offset` | Shifts Markdown heading levels. |
+| `markdown.template` | `default` or `clean`; `clean` omits the source block. |
+| `images.download` | Whether images are downloaded. |
+| `images.directory` | Directory used for downloaded images. |
+| `images.filename_pattern` | Filename pattern for downloaded images. |
+| `fetch.timeout_seconds` | HTTP fetch timeout. |
+| `fetch.user_agent` | HTTP fetch User-Agent. |
+| `platforms.<name>.enabled` | Whether a platform is enabled. |
+| `platforms.<name>.browser` | Uses `http` or `camoufox` fetching. |
+| `platforms.<name>.wait_selector` | Selector to wait for during browser fetching. |
+
+`images.concurrency` is reserved for future concurrent downloads. Current downloads are sequential.
 
 ## Agent Skill
 
