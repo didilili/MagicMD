@@ -11,17 +11,17 @@ import click
 from rich.console import Console
 from rich.text import Text
 
-from pagemd.config import load_config
-from pagemd.detect import detect_platform
-from pagemd.diagnostics import save_debug_html, save_extraction_report
-from pagemd.fetchers.browser import fetch_browser
-from pagemd.fetchers.http import fetch_http
-from pagemd.output import write_article_files, write_article_package
-from pagemd.platforms.generic import parse_generic_html
-from pagemd.platforms.csdn import parse_csdn_html
-from pagemd.platforms.juejin import parse_juejin_html
-from pagemd.platforms.wechat import parse_wechat_html
-from pagemd.quality import build_failure_quality, build_package_quality, write_batch_report
+from magicmd.config import load_config
+from magicmd.detect import detect_platform
+from magicmd.diagnostics import save_debug_html, save_extraction_report
+from magicmd.fetchers.browser import fetch_browser
+from magicmd.fetchers.http import fetch_http
+from magicmd.output import write_article_files, write_article_package
+from magicmd.platforms.generic import parse_generic_html
+from magicmd.platforms.csdn import parse_csdn_html
+from magicmd.platforms.juejin import parse_juejin_html
+from magicmd.platforms.wechat import parse_wechat_html
+from magicmd.quality import build_failure_quality, build_package_quality, write_batch_report
 
 app = typer.Typer(help="Convert public article links into Markdown packages.", no_args_is_help=True)
 
@@ -137,7 +137,7 @@ def convert_url(
     if _should_save_debug_html(debug, config.output.save_debug_html, article.extraction.warnings):
         save_debug_html(package_dir, html)
     if download_images_enabled and config.images.download:
-        from pagemd.assets import download_images, download_videos
+        from magicmd.assets import download_images, download_videos
 
         article = progress.run(
             5,
@@ -225,21 +225,21 @@ def batch(
     typer.echo(f"Batch report: {report_paths['markdown']}")
 
 
-config_app = typer.Typer(help="Manage PageMD config.")
+config_app = typer.Typer(help="Manage MagicMD config.")
 app.add_typer(config_app, name="config")
 
 
 @config_app.command("init")
-def config_init(path: Path = typer.Option(Path(".pagemd.toml"), "--path", help="Config path.")):
+def config_init(path: Path = typer.Option(Path(".magicmd.toml"), "--path", help="Config path.")):
     if path.exists():
         typer.echo(f"Config already exists: {path}")
         return
-    package_template = resources.files("pagemd").joinpath("templates/pagemd.example.toml")
+    package_template = resources.files("magicmd").joinpath("templates/magicmd.example.toml")
     if package_template.is_file():
         path.write_text(package_template.read_text(encoding="utf-8"), encoding="utf-8")
         typer.echo(f"Created config: {path}")
         return
-    example = Path(__file__).resolve().parents[2] / ".pagemd.example.toml"
+    example = Path(__file__).resolve().parents[2] / ".magicmd.example.toml"
     if example.exists():
         shutil.copyfile(example, path)
     else:
@@ -249,4 +249,4 @@ def config_init(path: Path = typer.Option(Path(".pagemd.toml"), "--path", help="
 
 @app.command()
 def doctor():
-    typer.echo("PageMD doctor: ok")
+    typer.echo("MagicMD doctor: ok")

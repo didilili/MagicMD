@@ -1,5 +1,5 @@
-from pagemd.models import Article, ExtractionInfo
-from pagemd.renderers.markdown import render_markdown
+from magicmd.models import Article, ExtractionInfo
+from magicmd.renderers.markdown import render_markdown
 
 
 def test_render_markdown_includes_front_matter_and_source_block():

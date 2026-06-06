@@ -8,5 +8,4 @@ build/
 *.egg-info/
 output/
 debug.html
-.pagemd.toml
-
+.magicmd.toml

@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import re
 
-from pagemd.config import MarkdownConfig
-from pagemd.models import Article
+from magicmd.config import MarkdownConfig
+from magicmd.models import Article
 
 
 def _quote(value: str) -> str:

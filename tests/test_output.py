@@ -1,8 +1,8 @@
 import json
 from pathlib import Path
 
-from pagemd.models import Article, ExtractionInfo
-from pagemd.output import write_article_package
+from magicmd.models import Article, ExtractionInfo
+from magicmd.output import write_article_package
 
 
 def test_write_article_package_creates_markdown_and_metadata(tmp_path: Path):

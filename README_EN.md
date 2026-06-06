@@ -1,8 +1,8 @@
-# PageMD
+# MagicMD
 
 [中文](./README.md) | English
 
-PageMD is a CLI tool that turns public article links into Markdown content packages.
+MagicMD is a CLI tool that turns public article links into Markdown content packages.
 
 It borrows proven ideas from single-platform article converters, but aims to be more complete: cleaner architecture, stronger configuration, multi-platform adapters, normalized metadata, and room for future publishing to GitHub or ingestion into HaoGit.
 
@@ -16,7 +16,7 @@ It borrows proven ideas from single-platform article converters, but aims to be 
 - Generate `metadata.json` for future publishing to GitHub, HaoGit, or other sites.
 - Generate an extraction report for debugging fetch and parsing issues.
 - Generate `batch-report.json` and `batch-report.md` after batch conversion to surface failed URLs, extraction warnings, and Markdown quality signals.
-- Include `SKILL.md` so PageMD can be used as an Agent Skill.
+- Include `SKILL.md` so MagicMD can be used as an Agent Skill.
 
 ## Installation
 
@@ -29,22 +29,22 @@ uv sync --extra dev
 Convert a single article:
 
 ```bash
-uv run pagemd "https://mp.weixin.qq.com/s/example"
+uv run magicmd "https://mp.weixin.qq.com/s/example"
 ```
 
 Use the explicit `convert` command:
 
 ```bash
-uv run pagemd convert "https://juejin.cn/post/example" -o output/
+uv run magicmd convert "https://juejin.cn/post/example" -o output/
 ```
 
 Batch conversion:
 
 ```bash
-uv run pagemd batch urls.txt -o output/
+uv run magicmd batch urls.txt -o output/
 ```
 
-After batch conversion, PageMD writes:
+After batch conversion, MagicMD writes:
 
 ```text
 output/
@@ -55,13 +55,13 @@ output/
 Initialize config:
 
 ```bash
-uv run pagemd config init
+uv run magicmd config init
 ```
 
 Check the runtime:
 
 ```bash
-uv run pagemd doctor
+uv run magicmd doctor
 ```
 
 ## Output Structure
@@ -82,24 +82,24 @@ output/
 ## Project Structure
 
 ```text
-pagemd/
+magicmd/
 ├── README.md                 # Chinese documentation
 ├── README_EN.md              # English documentation
 ├── CHANGELOG.md              # Bilingual changelog
 ├── LICENSE                   # MIT open-source license
 ├── SKILL.md                  # Agent Skill instructions
-├── .pagemd.example.toml      # Example PageMD config
+├── .magicmd.example.toml      # Example MagicMD config
 ├── pyproject.toml            # Python package metadata, dependencies, and CLI entry
 ├── uv.lock                   # Locked dependency versions from uv
 ├── .github/
 │   └── workflows/
 │       └── ci.yml            # GitHub Actions: tests, lint, and build
 ├── docs/
-│   ├── PageMD-v0.1-design.md
-│   ├── PageMD-v0.1-implementation-plan.md
+│   ├── MagicMD-v0.1-design.md
+│   ├── MagicMD-v0.1-implementation-plan.md
 │   └── wechat-regression-corpus.md
 ├── src/
-│   └── pagemd/
+│   └── magicmd/
 │       ├── cli.py            # CLI commands and conversion orchestration
 │       ├── config.py         # Config loading and defaults
 │       ├── detect.py         # URL-based platform detection
@@ -120,7 +120,7 @@ pagemd/
 │       ├── renderers/
 │       │   └── markdown.py   # Final Markdown file template
 │       └── templates/
-│           └── pagemd.example.toml # Config template bundled in the wheel
+│           └── magicmd.example.toml # Config template bundled in the wheel
 └── tests/
     ├── fixtures/             # HTML fixtures and the WeChat regression manifest
     └── test_*.py             # Unit and CLI tests
@@ -130,18 +130,18 @@ pagemd/
 
 | File | Purpose |
 | --- | --- |
-| `src/pagemd/cli.py` | Defines `pagemd`, `convert`, `batch`, `config init`, and `doctor`, and controls dynamic progress output. |
-| `src/pagemd/config.py` | Reads `.pagemd.toml` and merges user config with defaults. |
-| `src/pagemd/detect.py` | Detects `wechat`, `juejin`, `csdn`, or `generic` from a URL. |
-| `src/pagemd/fetchers/browser.py` | Uses Camoufox for browser-rendered pages, mainly WeChat public account articles. |
-| `src/pagemd/fetchers/http.py` | Uses HTTP for regular pages, currently Juejin, CSDN, and generic pages. |
-| `src/pagemd/platforms/wechat.py` | Extracts WeChat title, author, publish time, body, images, and code blocks. |
-| `src/pagemd/platforms/base.py` | Provides shared body cleanup, image collection, code block preservation, and HTML-to-Markdown conversion. |
-| `src/pagemd/renderers/markdown.py` | Controls the final `article.md` format, including front matter, title, source block, and body placement. |
-| `src/pagemd/output.py` | Controls output folder naming, `article.md`, `metadata.json`, and content hash writing. |
-| `src/pagemd/quality.py` | Scans Markdown quality signals and generates `batch-report.json` and `batch-report.md` for the batch command. |
-| `src/pagemd/assets.py` | Downloads images into local `images/` and rewrites remote Markdown image links to local paths. |
-| `src/pagemd/models.py` | Defines the standard article structure used by future GitHub publishing and HaoGit imports. |
+| `src/magicmd/cli.py` | Defines `magicmd`, `convert`, `batch`, `config init`, and `doctor`, and controls dynamic progress output. |
+| `src/magicmd/config.py` | Reads `.magicmd.toml` and merges user config with defaults. |
+| `src/magicmd/detect.py` | Detects `wechat`, `juejin`, `csdn`, or `generic` from a URL. |
+| `src/magicmd/fetchers/browser.py` | Uses Camoufox for browser-rendered pages, mainly WeChat public account articles. |
+| `src/magicmd/fetchers/http.py` | Uses HTTP for regular pages, currently Juejin, CSDN, and generic pages. |
+| `src/magicmd/platforms/wechat.py` | Extracts WeChat title, author, publish time, body, images, and code blocks. |
+| `src/magicmd/platforms/base.py` | Provides shared body cleanup, image collection, code block preservation, and HTML-to-Markdown conversion. |
+| `src/magicmd/renderers/markdown.py` | Controls the final `article.md` format, including front matter, title, source block, and body placement. |
+| `src/magicmd/output.py` | Controls output folder naming, `article.md`, `metadata.json`, and content hash writing. |
+| `src/magicmd/quality.py` | Scans Markdown quality signals and generates `batch-report.json` and `batch-report.md` for the batch command. |
+| `src/magicmd/assets.py` | Downloads images into local `images/` and rewrites remote Markdown image links to local paths. |
+| `src/magicmd/models.py` | Defines the standard article structure used by future GitHub publishing and HaoGit imports. |
 
 ## v0.1 Quality Baseline
 
@@ -152,7 +152,7 @@ After changing the WeChat parser, run:
 ```bash
 uv run pytest -q
 uv run ruff check .
-uv run pagemd batch urls-regression.txt -o output/wechat-regression-check
+uv run magicmd batch urls-regression.txt -o output/wechat-regression-check
 ```
 
 Then review `output/wechat-regression-check/batch-report.md`.
@@ -179,7 +179,7 @@ output.py writes article.md, metadata.json, and extraction-report.json
 
 ## Configuration
 
-Example config file: [.pagemd.example.toml](./.pagemd.example.toml)
+Example config file: [.magicmd.example.toml](./.magicmd.example.toml)
 
 ```toml
 [output]
@@ -224,11 +224,11 @@ Currently active configuration fields:
 
 ## Agent Skill
 
-This repository includes [SKILL.md](./SKILL.md). Agents that support skills can use it to call PageMD and convert public article links into Markdown packages.
+This repository includes [SKILL.md](./SKILL.md). Agents that support skills can use it to call MagicMD and convert public article links into Markdown packages.
 
 ## Safety
 
-PageMD only targets public article pages. It does not bypass login, paywalls, private content, CAPTCHA, or platform access controls.
+MagicMD only targets public article pages. It does not bypass login, paywalls, private content, CAPTCHA, or platform access controls.
 
 ## Roadmap
 

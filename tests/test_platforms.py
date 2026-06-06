@@ -1,9 +1,9 @@
 from pathlib import Path
 
-from pagemd.platforms.csdn import parse_csdn_html
-from pagemd.platforms.generic import parse_generic_html
-from pagemd.platforms.juejin import parse_juejin_html
-from pagemd.platforms.wechat import parse_wechat_html
+from magicmd.platforms.csdn import parse_csdn_html
+from magicmd.platforms.generic import parse_generic_html
+from magicmd.platforms.juejin import parse_juejin_html
+from magicmd.platforms.wechat import parse_wechat_html
 
 
 FIXTURES = Path(__file__).parent / "fixtures"
@@ -15,7 +15,7 @@ def test_parse_wechat_html_extracts_title_author_body_and_images():
     article = parse_wechat_html(html, "https://mp.weixin.qq.com/s/demo")
 
     assert article.title == "微信文章标题"
-    assert article.author == "PageMD"
+    assert article.author == "MagicMD"
     assert article.platform == "wechat"
     assert "第一段正文" in article.content_markdown
     assert 'print("hello")' in article.content_markdown
@@ -27,7 +27,7 @@ def test_parse_wechat_html_normalizes_rich_sections_styles_and_images():
     <html>
       <body>
         <h1 id="activity-name">富文本文章</h1>
-        <a id="js_name">PageMD</a>
+        <a id="js_name">MagicMD</a>
         <div id="js_content">
           <section>
             <section style="font-size: 14px;">

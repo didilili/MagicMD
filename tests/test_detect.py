@@ -1,6 +1,6 @@
 import pytest
 
-from pagemd.detect import detect_platform
+from magicmd.detect import detect_platform
 
 
 @pytest.mark.parametrize(

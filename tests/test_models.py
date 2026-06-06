@@ -1,4 +1,4 @@
-from pagemd.models import Article, ExtractionInfo, ImageAsset
+from magicmd.models import Article, ExtractionInfo, ImageAsset
 
 
 def test_article_metadata_dump_uses_stable_keys():

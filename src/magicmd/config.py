@@ -37,7 +37,7 @@ class PlatformConfig(BaseModel):
     wait_selector: str = ""
 
 
-class PageMDConfig(BaseModel):
+class MagicMDConfig(BaseModel):
     output: OutputConfig = Field(default_factory=OutputConfig)
     markdown: MarkdownConfig = Field(default_factory=MarkdownConfig)
     images: ImagesConfig = Field(default_factory=ImagesConfig)
@@ -62,12 +62,12 @@ def _deep_merge(base: dict, override: dict) -> dict:
     return merged
 
 
-def load_config(path: str | Path | None = None) -> PageMDConfig:
-    default = PageMDConfig().model_dump()
+def load_config(path: str | Path | None = None) -> MagicMDConfig:
+    default = MagicMDConfig().model_dump()
     if not path:
-        return PageMDConfig.model_validate(default)
+        return MagicMDConfig.model_validate(default)
     config_path = Path(path)
     if not config_path.exists():
-        return PageMDConfig.model_validate(default)
+        return MagicMDConfig.model_validate(default)
     loaded = tomllib.loads(config_path.read_text(encoding="utf-8"))
-    return PageMDConfig.model_validate(_deep_merge(default, loaded))
+    return MagicMDConfig.model_validate(_deep_merge(default, loaded))

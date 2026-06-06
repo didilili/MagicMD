@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from pagemd.quality import build_package_quality, scan_markdown_quality, write_batch_report
+from magicmd.quality import build_package_quality, scan_markdown_quality, write_batch_report
 
 
 def test_scan_markdown_quality_flags_known_wechat_regressions():
