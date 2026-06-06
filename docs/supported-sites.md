@@ -9,7 +9,7 @@ This document records the real MagicMD v0.1 support status for each site. It is 
 | 站点 | 状态 | 默认抓取模式 | 说明 |
 | --- | --- | --- | --- |
 | 微信公众号 `mp.weixin.qq.com` | 稳定主目标 | `camoufox` | v0.1 的主要验证对象，已有真实样本回归清单和多轮格式修复。 |
-| CSDN `blog.csdn.net` | 实验支持 | `camoufox` | 真实样本可转换正文；普通 HTTP 在验证中返回 521，因此默认使用浏览器模式。仍需继续优化代码块和站内组件清理。 |
+| CSDN `blog.csdn.net` | 实验支持 | `camoufox` | 10 篇复杂真实样本已通过默认配置转换；普通 HTTP 在验证中返回 521，因此默认使用浏览器模式。 |
 | 掘金 `juejin.cn` | 实验支持 | `camoufox` | 首页 5 篇真实样本已通过默认配置转换；普通 HTTP 抓取会偶发拿到字节 WAF challenge，因此默认使用浏览器模式。 |
 | 通用网页 | 尽力支持 | `http` | 对带有标准 `article`、`main` 或 Open Graph 元信息的公开静态页面做基础提取。 |
 
@@ -18,7 +18,7 @@ This document records the real MagicMD v0.1 support status for each site. It is 
 | Site | Status | Default fetch mode | Notes |
 | --- | --- | --- | --- |
 | WeChat Official Account `mp.weixin.qq.com` | Stable primary target | `camoufox` | Main v0.1 validation target with a live regression corpus and multiple formatting fixes. |
-| CSDN `blog.csdn.net` | Experimental support | `camoufox` | Live samples converted with article body content. Plain HTTP returned 521 during validation, so browser mode is the default. Code block and site-widget cleanup still need more samples. |
+| CSDN `blog.csdn.net` | Experimental support | `camoufox` | Ten complex live samples converted with the default configuration. Plain HTTP returned 521 during validation, so browser mode is the default. |
 | Juejin `juejin.cn` | Experimental support | `camoufox` | Five live homepage samples converted with the default configuration. Plain HTTP can intermittently return a ByteDance WAF challenge, so browser mode is the default. |
 | Generic pages | Best effort | `http` | Basic extraction for public static pages with standard `article`, `main`, or Open Graph metadata. |
 

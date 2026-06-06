@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from collections import Counter
 import re
+import textwrap
 from datetime import datetime, timedelta, timezone
 from urllib.parse import parse_qs, unquote, urlparse
 
@@ -309,6 +310,34 @@ def _normalize_external_links(content_el: Tag) -> None:
             link.append(NavigableString(direct_target))
 
 
+def _remove_code_chrome(content_el: Tag) -> None:
+    selectors = [
+        ".opt-box",
+        ".hide-preCode-box",
+        ".pre-numbering",
+        ".hljs-button",
+        ".btn-code-notes",
+        ".look-more-preCode",
+    ]
+    for tag in content_el.select(",".join(selectors)):
+        tag.decompose()
+
+
+def _block_placeholder(kind: str, index: int) -> str:
+    return f"MAGICMD{kind.upper()}BLOCK{index:06d}END"
+
+
+def _preserve_raw_html_blocks(content_el: Tag, blocks: list[dict[str, str]]) -> None:
+    for tag in list(content_el.select(".mermaid")):
+        if not tag.find("svg"):
+            continue
+        for script in tag.find_all("script"):
+            script.decompose()
+        placeholder = _block_placeholder("html", len(blocks))
+        blocks.append({"placeholder": placeholder, "raw_html": str(tag)})
+        tag.replace_with(NavigableString(placeholder))
+
+
 def _normalize_body_heading_depth(content_el: Tag) -> None:
     headings = [
         tag
@@ -341,7 +370,36 @@ def _normalize_body_heading_depth(content_el: Tag) -> None:
         tag.name = f"h{max(2, min(6, 2 + max(0, level - base_level)))}"
 
 
+def _code_text(code_tag: Tag) -> str:
+    def normalize_code_text(text: str) -> str:
+        text = text.replace("\u00a0", " ")
+        text = text.replace("\r\n", "\n").replace("\r", "\n")
+        starters = (
+            "conda",
+            "pip3",
+            "pip",
+            "docker",
+            "kubectl",
+            "npm",
+            "yarn",
+            "pnpm",
+            "sudo",
+            "print",
+            "import",
+        )
+        return re.sub(rf"(?<=[^\s])(?=(?:{'|'.join(starters)})\b)", "\n", text)
+
+    highlighted_lines = code_tag.select(".hljs-ln-code .hljs-ln-line")
+    if highlighted_lines:
+        lines = [normalize_code_text(line.get_text("", strip=False)).rstrip() for line in highlighted_lines]
+        return textwrap.dedent("\n".join(lines)).strip("\n")
+    return normalize_code_text(code_tag.get_text())
+
+
 def clean_content_element(content_el: Tag) -> tuple[str, list[ImageAsset], list[dict[str, str]]]:
+    code_blocks: list[dict[str, str]] = []
+    _preserve_raw_html_blocks(content_el, code_blocks)
+
     for selector in ("script", "style", "nav", "footer", ".qr_code_pc", ".reward_area"):
         for tag in content_el.select(selector):
             tag.decompose()
@@ -351,6 +409,7 @@ def clean_content_element(content_el: Tag) -> tuple[str, list[ImageAsset], list[
     _normalize_layout_headings(content_el)
     _narrow_block_links(content_el)
     _normalize_external_links(content_el)
+    _remove_code_chrome(content_el)
 
     for img in content_el.find_all("img"):
         data_src = img.get("data-src")
@@ -378,7 +437,6 @@ def clean_content_element(content_el: Tag) -> tuple[str, list[ImageAsset], list[
         seen.add(src)
         images.append(ImageAsset(source_url=src, alt=img.get("alt", "")))
 
-    code_blocks: list[dict[str, str]] = []
     for index, el in enumerate(content_el.select(".code-snippet__fix")):
         for line_idx in el.select(".code-snippet__line-index"):
             line_idx.decompose()
@@ -391,7 +449,24 @@ def clean_content_element(content_el: Tag) -> tuple[str, list[ImageAsset], list[
                 continue
             lines.append(text)
         code = "\n".join(lines) or el.get_text()
-        placeholder = f"MAGICMDCODEBLOCK{index}"
+        placeholder = _block_placeholder("code", len(code_blocks))
+        code_blocks.append({"placeholder": placeholder, "lang": lang, "code": code})
+        el.replace_with(placeholder)
+
+    for el in list(content_el.find_all("pre")):
+        if el.find_parent(".code-snippet__fix"):
+            continue
+        code_tag = el.find("code", recursive=False)
+        if not isinstance(code_tag, Tag):
+            continue
+        code = _code_text(code_tag)
+        if not code.strip():
+            continue
+        lang = str(el.get("data-lang") or "")
+        if not lang:
+            classes = [str(class_name) for class_name in code_tag.get("class", [])]
+            lang = next((class_name.removeprefix("language-") for class_name in classes if class_name.startswith("language-")), "")
+        placeholder = _block_placeholder("code", len(code_blocks))
         code_blocks.append({"placeholder": placeholder, "lang": lang, "code": code})
         el.replace_with(placeholder)
 
@@ -474,6 +549,9 @@ def html_to_markdown(content_html: str, code_blocks: list[dict[str, str]] | None
     )
     md = md.replace("\u00a0", " ")
     for block in code_blocks or []:
+        if "raw_html" in block:
+            md = md.replace(block["placeholder"], f"\n{block['raw_html']}\n")
+            continue
         fence = f"\n```{block['lang']}\n{block['code']}\n```\n"
         md = md.replace(block["placeholder"], fence)
     md = _remove_code_widget_noise(md)
