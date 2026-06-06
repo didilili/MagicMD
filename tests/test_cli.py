@@ -169,6 +169,31 @@ def test_convert_command_saves_debug_html_from_config(monkeypatch, tmp_path: Pat
     assert next(tmp_path.glob("*/debug.html")).read_text(encoding="utf-8") == html
 
 
+def test_convert_command_reports_content_not_found_as_failure(monkeypatch, tmp_path: Path):
+    html = "<html><body>Please wait...</body></html>"
+
+    monkeypatch.setattr("magicmd.cli.fetch_for_platform", lambda url, platform, config_path: html)
+
+    result = runner.invoke(
+        app,
+        [
+            "convert",
+            "https://juejin.cn/post/demo",
+            "--output",
+            str(tmp_path),
+            "--no-images",
+        ],
+    )
+
+    assert result.exit_code != 0
+    assert result.exception is not None
+    assert "Extraction failed: juejin_content_not_found" in str(result.exception)
+    package_dir = next(tmp_path.glob("*"))
+    assert (package_dir / "debug.html").exists()
+    metadata = json.loads((package_dir / "metadata.json").read_text(encoding="utf-8"))
+    assert metadata["extraction"]["status"] == "failed"
+
+
 def test_convert_command_rejects_disabled_platform(monkeypatch, tmp_path: Path):
     config_path = tmp_path / ".magicmd.toml"
     config_path.write_text(

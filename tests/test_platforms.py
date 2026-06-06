@@ -432,6 +432,68 @@ def test_parse_juejin_html_cleans_code_copy_widget_prefixes():
     assert "npm install" in article.content_markdown
 
 
+def test_parse_juejin_html_uses_link_title_as_direct_target_for_wrapped_external_links():
+    html = """
+    <html><body>
+      <article>
+        <h1>掘金链接文章</h1>
+        <a class="author-name">MagicMD</a>
+        <div class="markdown-body">
+          <p>
+            前端劝退指南：
+            <a href="https://link.juejin.cn?target=https%3A%2F%2Fgithub.com%2Froger-hiro%2FBlogFN"
+               title="https://github.com/roger-hiro/BlogFN">github.com/roger-hiro/...</a>
+          </p>
+          <p>
+            参考
+            <a href="https://link.juejin.cn?target=https%3A%2F%2Fvuejs.org%2Fguide"
+               title="https://vuejs.org/guide">官方文档</a>
+          </p>
+        </div>
+      </article>
+    </body></html>
+    """
+
+    article = parse_juejin_html(html, "https://juejin.cn/post/link")
+
+    assert "<https://github.com/roger-hiro/BlogFN>" in article.content_markdown
+    assert "github.com/roger-hiro/..." not in article.content_markdown
+    assert "[官方文档](https://vuejs.org/guide)" in article.content_markdown
+    assert "link.juejin.cn?target=" not in article.content_markdown
+
+
+def test_parse_juejin_html_normalizes_body_heading_depth_to_start_at_h2():
+    html = """
+    <html><body>
+      <article>
+        <h1>TypeScript高频面试题及解析</h1>
+        <a class="author-name">MagicMD</a>
+        <div class="markdown-body">
+          <p>正文开头。</p>
+          <h4>1. 什么是TypeScript</h4>
+          <p>TypeScript 是一种语言。</p>
+          <h5>1.1 类型系统</h5>
+          <p>类型系统正文。</p>
+          <h4>2. 类型声明和类型推断的区别</h4>
+          <p>更多正文。</p>
+          <h4>3. 什么是接口</h4>
+          <p>接口正文。</p>
+          <h3>结尾</h3>
+          <p>结尾正文。</p>
+        </div>
+      </article>
+    </body></html>
+    """
+
+    article = parse_juejin_html(html, "https://juejin.cn/post/7321542773076082699#heading-0")
+
+    lines = article.content_markdown.splitlines()
+    assert "## 1. 什么是TypeScript" in lines
+    assert "### 1.1 类型系统" in lines
+    assert "## 结尾" in lines
+    assert "#### 1. 什么是TypeScript" not in lines
+
+
 def test_parse_generic_html_uses_article_element():
     html = (FIXTURES / "generic" / "basic.html").read_text(encoding="utf-8")
 
@@ -440,6 +502,26 @@ def test_parse_generic_html_uses_article_element():
     assert article.title == "通用文章标题"
     assert article.author == "Generic Author"
     assert "通用正文" in article.content_markdown
+
+
+def test_parse_generic_html_normalizes_body_heading_depth_to_start_at_h2():
+    html = """
+    <html><head><title>通用文章标题</title></head><body>
+      <article>
+        <h4>第一节</h4>
+        <p>第一节正文。</p>
+        <h5>第一小节</h5>
+        <p>第一小节正文。</p>
+      </article>
+    </body></html>
+    """
+
+    article = parse_generic_html(html, "https://example.com/heading")
+
+    lines = article.content_markdown.splitlines()
+    assert "## 第一节" in lines
+    assert "### 第一小节" in lines
+    assert "#### 第一节" not in lines
 
 
 def test_parse_csdn_html_extracts_basic_article():
@@ -452,6 +534,27 @@ def test_parse_csdn_html_extracts_basic_article():
     assert article.platform == "csdn"
     assert "CSDN 正文" in article.content_markdown
     assert article.images[0].source_url == "https://example.com/csdn.png"
+
+
+def test_parse_csdn_html_normalizes_body_heading_depth_to_start_at_h2():
+    html = """
+    <html><body>
+      <h1 class="title-article">CSDN 标题文章</h1>
+      <div id="content_views">
+        <h3>一、准备工作</h3>
+        <p>准备正文。</p>
+        <h4>1. 安装依赖</h4>
+        <p>安装正文。</p>
+      </div>
+    </body></html>
+    """
+
+    article = parse_csdn_html(html, "https://blog.csdn.net/demo/article/details/heading")
+
+    lines = article.content_markdown.splitlines()
+    assert "## 一、准备工作" in lines
+    assert "### 1. 安装依赖" in lines
+    assert "### 一、准备工作" not in lines
 
 
 def test_parse_csdn_html_cleans_code_widget_noise():
