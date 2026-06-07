@@ -82,7 +82,7 @@ magicmd/
 | `src/magicmd/config.py` | 读取 `.magicmd.toml`，合并默认配置和用户配置。 |
 | `src/magicmd/detect.py` | 根据 URL 自动识别 `wechat`、`juejin`、`csdn` 或 `generic`。 |
 | `src/magicmd/models.py` | 定义 `Article`、`ImageAsset`、`ExtractionInfo` 等标准数据结构。 |
-| `src/magicmd/output.py` | 控制输出目录命名、`article.md`、`metadata.json` 写入和内容 hash。 |
+| `src/magicmd/output.py` | 控制输出包命名、`output.naming` 文件名模板、Markdown/metadata 写入和内容 hash。 |
 | `src/magicmd/assets.py` | 下载图片到本地 `images/`，并把 Markdown 里的远程图片链接改成本地路径。 |
 | `src/magicmd/diagnostics.py` | 写入 `debug.html` 和 `extraction-report.json`。 |
 | `src/magicmd/quality.py` | 扫描 Markdown 质量疑点，并为 batch 命令生成 `batch-report.json`、`batch-report.md`。 |

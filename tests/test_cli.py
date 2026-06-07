@@ -212,6 +212,48 @@ def test_convert_command_uses_configured_output_directory(monkeypatch, tmp_path:
     assert list((tmp_path / "configured-output").glob("*/article.md"))
 
 
+def test_convert_command_uses_configured_output_names(monkeypatch, tmp_path: Path):
+    html = """
+    <html>
+      <head><meta property="og:title" content="配置命名文章"></head>
+      <body><article><p>正文</p></article></body>
+    </html>
+    """
+    config_path = tmp_path / ".magicmd.toml"
+    config_path.write_text(
+        """
+        [output]
+        directory = "configured-output"
+
+        [output.naming]
+        package = "{date}/{slug}"
+        markdown = "index.md"
+        metadata = "meta.json"
+        """,
+        encoding="utf-8",
+    )
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr("magicmd.cli.fetch_for_platform", lambda url, platform, config_path: html)
+
+    result = runner.invoke(
+        app,
+        [
+            "convert",
+            "https://juejin.cn/post/demo",
+            "--config",
+            str(config_path),
+            "--no-images",
+        ],
+    )
+
+    package_dir = tmp_path / "configured-output" / "undated" / "配置命名文章"
+    assert result.exit_code == 0
+    assert (package_dir / "index.md").exists()
+    assert (package_dir / "meta.json").exists()
+    assert not (package_dir / "article.md").exists()
+    assert not (package_dir / "metadata.json").exists()
+
+
 def test_convert_command_honors_markdown_config(monkeypatch, tmp_path: Path):
     html = """
     <html>
@@ -605,6 +647,62 @@ def test_batch_command_skip_existing_uses_existing_package(monkeypatch, tmp_path
     assert item["status"] == "skipped"
     assert item["stage"] == "skip"
     assert item["package_dir"] == str(package)
+
+
+def test_batch_command_skip_existing_uses_configured_output_names(monkeypatch, tmp_path: Path):
+    url = "https://juejin.cn/post/existing"
+    urls = tmp_path / "urls.txt"
+    urls.write_text(url + "\n", encoding="utf-8")
+    config_path = tmp_path / ".magicmd.toml"
+    config_path.write_text(
+        """
+        [output.naming]
+        markdown = "index.md"
+        metadata = "meta.json"
+        """,
+        encoding="utf-8",
+    )
+    package = tmp_path / "existing-package"
+    package.mkdir()
+    (package / "index.md").write_text("# Existing\n\n正文", encoding="utf-8")
+    (package / "meta.json").write_text(
+        json.dumps(
+            {
+                "title": "Existing",
+                "source_url": url,
+                "canonical_url": url,
+                "platform": "juejin",
+                "images": [],
+                "extraction": {"warnings": []},
+            },
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+
+    def fail_convert_url(url, output, **kwargs):
+        raise AssertionError("existing package should be skipped")
+
+    monkeypatch.setattr("magicmd.cli.convert_url", fail_convert_url)
+
+    result = runner.invoke(
+        app,
+        [
+            "batch",
+            str(urls),
+            "--output",
+            str(tmp_path),
+            "--config",
+            str(config_path),
+            "--skip-existing",
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert f"SKIP {url} -> {package}" in result.stdout
+    report = json.loads((tmp_path / "batch-report.json").read_text(encoding="utf-8"))
+    assert report["summary"]["skipped"] == 1
+    assert report["items"][0]["package_dir"] == str(package)
 
 
 def test_batch_command_adds_diagnostic_fields_to_report(monkeypatch, tmp_path: Path):

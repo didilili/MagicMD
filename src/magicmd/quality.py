@@ -22,10 +22,15 @@ def scan_markdown_quality(markdown: str) -> list[str]:
     return [name for name, matched in checks.items() if matched]
 
 
-def build_package_quality(url: str, package_dir: str | Path) -> dict[str, Any]:
+def build_package_quality(
+    url: str,
+    package_dir: str | Path,
+    markdown_filename: str = "article.md",
+    metadata_filename: str = "metadata.json",
+) -> dict[str, Any]:
     package_path = Path(package_dir)
-    metadata = _read_json(package_path / "metadata.json")
-    article_path = package_path / "article.md"
+    metadata = _read_json(package_path / metadata_filename)
+    article_path = package_path / markdown_filename
     markdown = article_path.read_text(encoding="utf-8") if article_path.exists() else ""
     extraction = metadata.get("extraction") if isinstance(metadata.get("extraction"), dict) else {}
     images = metadata.get("images") if isinstance(metadata.get("images"), list) else []
@@ -74,8 +79,18 @@ def build_failure_quality(url: str, error: Exception) -> dict[str, Any]:
     }
 
 
-def build_skipped_quality(url: str, package_dir: str | Path) -> dict[str, Any]:
-    item = build_package_quality(url, package_dir)
+def build_skipped_quality(
+    url: str,
+    package_dir: str | Path,
+    markdown_filename: str = "article.md",
+    metadata_filename: str = "metadata.json",
+) -> dict[str, Any]:
+    item = build_package_quality(
+        url,
+        package_dir,
+        markdown_filename=markdown_filename,
+        metadata_filename=metadata_filename,
+    )
     item["status"] = "skipped"
     item.pop("error", None)
     return item
