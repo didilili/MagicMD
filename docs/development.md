@@ -25,6 +25,12 @@ magicmd/
 │   ├── development.md
 │   ├── supported-sites.md
 │   └── wechat-regression-corpus.md
+├── npm/
+│   └── magicmd/               # npm wrapper，转发到 PyPI 版 CLI
+│       ├── package.json
+│       ├── README.md
+│       └── bin/
+│           └── magicmd.js
 ├── samples/                   # 真实站点验证 URL 样本
 ├── src/
 │   └── magicmd/
@@ -87,6 +93,7 @@ magicmd/
 | `src/magicmd/platforms/shared/markdown.py` | HTML 转 Markdown 和 Markdown 后处理。 |
 | `src/magicmd/platforms/shared/metadata.py` | 元数据、脚本变量、文本和时间提取工具。 |
 | `src/magicmd/renderers/markdown.py` | 控制最终 `article.md` 的整体格式，包括 front matter、标题、来源信息和正文插入位置。 |
+| `npm/magicmd/bin/magicmd.js` | npm wrapper 入口，调用 `uvx --from magicmd magicmd ...`，不复制 Python 转换逻辑。 |
 
 ## 转换流程 / Conversion Flow
 

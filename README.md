@@ -87,14 +87,18 @@ uv tool install magicmd
 pipx install magicmd
 ```
 
-MagicMD 目前也不是 npm 包，所以暂时不支持：
+MagicMD 目前还没有发布 npm 包，所以暂时不支持：
 
 ```bash
 npm install -g magicmd
 npx magicmd
 ```
 
-npm 入口适合后续做成轻量 wrapper：用户通过 npm 安装，底层仍调用 MagicMD CLI。v0.1 先把 Python CLI 稳住，再评估这个入口。
+仓库里已经准备了轻量 npm wrapper，位置在 [npm/magicmd](./npm/magicmd)。它不会重新实现转换逻辑，只会把命令转发给 PyPI 版 CLI：
+
+```bash
+uvx --from magicmd magicmd
+```
 
 ## 快速使用
 
@@ -282,7 +286,7 @@ MagicMD 只处理公开文章页面。它不会绕过登录、付费墙、私有
 
 ## 接下来
 
-- 评估 npm wrapper，支持 `npm install -g magicmd` 或 `npx magicmd`。
+- 发布 npm wrapper，支持 `npm install -g magicmd` 或 `npx magicmd`。
 - 完善 PyPI 发布自动化和 project-scoped token 流程。
 - 增加 Markdown 模板系统。
 - 增加 GitHub 发布能力。
