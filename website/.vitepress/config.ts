@@ -4,7 +4,7 @@ export default defineConfig({
   lang: 'zh-CN',
   title: 'MagicMD',
   description: '强大易用的文章转 Markdown 工具，一键转换微信公众号、掘金、CSDN 等公开文章。',
-  base: '/MagicMD/',
+  base: '/',
   outDir: 'dist',
   srcExclude: ['README.md'],
   cleanUrls: true,
