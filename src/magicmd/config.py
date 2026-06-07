@@ -8,17 +8,41 @@ from pydantic import BaseModel, Field
 from magicmd.platforms.registry import platform_adapters
 
 
+class OutputNamingConfig(BaseModel):
+    package: str = "{date}-{slug}"
+    markdown: str = "article.md"
+    metadata: str = "metadata.json"
+    report: str = "extraction-report.json"
+
+
 class OutputConfig(BaseModel):
     directory: str = "output"
     overwrite: bool = False
     save_debug_html: str = "on_failure"
+    naming: OutputNamingConfig = Field(default_factory=OutputNamingConfig)
 
 
 class MarkdownConfig(BaseModel):
     template: str = "default"
+    preset: str = "default"
     front_matter: str = "yaml"
+    include_title: bool = True
     include_source_block: bool = True
     heading_offset: int = 0
+    source_block_template: str = (
+        "> Source: {platform}\n"
+        "> Author: {author}\n"
+        "> Original: {source_url}"
+    )
+    front_matter_fields: dict[str, str] = Field(
+        default_factory=lambda: {
+            "title": "{title}",
+            "author": "{author}",
+            "platform": "{platform}",
+            "source_url": "{source_url}",
+            "published_at": "{published_at}",
+        }
+    )
 
 
 class ImagesConfig(BaseModel):
@@ -26,6 +50,13 @@ class ImagesConfig(BaseModel):
     directory: str = "images"
     filename_pattern: str = "img_{index:03d}.{ext}"
     concurrency: int = 5
+
+
+class VideosConfig(BaseModel):
+    download: bool = True
+    directory: str = "videos"
+    filename_pattern: str = "video_{index:03d}.{ext}"
+    markdown_path: str = "{directory}/{filename}"
 
 
 class FetchConfig(BaseModel):
@@ -45,6 +76,7 @@ class MagicMDConfig(BaseModel):
     output: OutputConfig = Field(default_factory=OutputConfig)
     markdown: MarkdownConfig = Field(default_factory=MarkdownConfig)
     images: ImagesConfig = Field(default_factory=ImagesConfig)
+    videos: VideosConfig = Field(default_factory=VideosConfig)
     fetch: FetchConfig = Field(default_factory=FetchConfig)
     platforms: dict[str, PlatformConfig] = Field(
         default_factory=lambda: {
@@ -57,11 +89,15 @@ class MagicMDConfig(BaseModel):
     )
 
 
-def _deep_merge(base: dict, override: dict) -> dict:
+def _deep_merge(base: dict, override: dict, path: tuple[str, ...] = ()) -> dict:
     merged = dict(base)
     for key, value in override.items():
+        next_path = (*path, key)
+        if next_path == ("markdown", "front_matter_fields"):
+            merged[key] = value
+            continue
         if isinstance(value, dict) and isinstance(merged.get(key), dict):
-            merged[key] = _deep_merge(merged[key], value)
+            merged[key] = _deep_merge(merged[key], value, next_path)
         else:
             merged[key] = value
     return merged

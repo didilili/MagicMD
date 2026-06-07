@@ -154,7 +154,7 @@ Media-only variables:
 - Modify: `src/magicmd/config.py`
 - Test: `tests/test_config.py`
 
-- [ ] **Step 1: Add failing tests for naming and template config**
+- [x] **Step 1: Add failing tests for naming and template config**
 
 Add this test to `tests/test_config.py`:
 
@@ -207,7 +207,7 @@ def test_load_config_accepts_v02_output_and_markdown_templates(tmp_path: Path):
     assert config.videos.markdown_path == "../videos/{filename}"
 ```
 
-- [ ] **Step 2: Run the failing test**
+- [x] **Step 2: Run the failing test**
 
 Run:
 
@@ -217,7 +217,7 @@ uv run pytest tests/test_config.py::test_load_config_accepts_v02_output_and_mark
 
 Expected: fail because `naming`, `preset`, `include_title`, `front_matter_fields`, and `videos` do not exist yet.
 
-- [ ] **Step 3: Implement config models**
+- [x] **Step 3: Implement config models**
 
 Add these models in `src/magicmd/config.py`:
 
@@ -268,7 +268,7 @@ class VideosConfig(BaseModel):
 
 Add `videos: VideosConfig = Field(default_factory=VideosConfig)` to `MagicMDConfig`.
 
-- [ ] **Step 4: Run config tests**
+- [x] **Step 4: Run config tests**
 
 Run:
 
