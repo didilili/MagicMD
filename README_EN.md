@@ -281,6 +281,7 @@ If a platform changes its page structure and conversion quality drops, keep the 
 
 - [docs/development.md](./docs/development.md): project structure, core modules, conversion flow, and verification commands.
 - [docs/supported-sites.md](./docs/supported-sites.md): supported sites and notes.
+- [docs/troubleshooting.md](./docs/troubleshooting.md): install, fetch, media, and conversion-quality troubleshooting.
 - [docs/wechat-regression-corpus.md](./docs/wechat-regression-corpus.md): WeChat live regression notes.
 - [docs/MagicMD-v0.1-design.md](./docs/MagicMD-v0.1-design.md): v0.1 design notes.
 - [ROADMAP.md](./ROADMAP.md): upcoming version plan. GitHub Issues are mainly for real user feedback.
