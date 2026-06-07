@@ -528,7 +528,7 @@ Expected: pass.
 - Modify: `src/magicmd/renderers/markdown.py`
 - Test: `tests/test_markdown.py`
 
-- [ ] **Step 1: Add failing Markdown template test**
+- [x] **Step 1: Add failing Markdown template test**
 
 Add:
 
@@ -560,7 +560,7 @@ def test_render_markdown_uses_configured_front_matter_and_source_block():
     assert "> Saved from https://mp.weixin.qq.com/s/demo" in md
 ```
 
-- [ ] **Step 2: Run the failing test**
+- [x] **Step 2: Run the failing test**
 
 Run:
 
@@ -570,7 +570,7 @@ uv run pytest tests/test_markdown.py::test_render_markdown_uses_configured_front
 
 Expected: fail because fields and source template are hardcoded.
 
-- [ ] **Step 3: Implement front matter field rendering**
+- [x] **Step 3: Implement front matter field rendering**
 
 Use `build_article_template_vars` and `format_template`. For YAML values, keep `_quote`.
 
@@ -589,7 +589,7 @@ Render source block with:
 source_block = format_template(config.source_block_template, variables).strip()
 ```
 
-- [ ] **Step 4: Run Markdown tests**
+- [x] **Step 4: Run Markdown tests**
 
 Run:
 

@@ -9,6 +9,7 @@
 - 新增模板变量模块，统一提供 `{title}`、`{slug}`、`{date}`、`{short_hash}` 等字段，并在未知字段时给出清晰错误。
 - 让 `output.naming` 开始控制真实输出：内容包目录、Markdown 文件名、metadata 文件名以及批量 `--skip-existing` 检测都会使用配置值。
 - 让 `output.naming.report` 控制提取报告文件名，并支持同一套模板变量。
+- 让 Markdown front matter、正文标题和来源信息块支持配置模板，便于直接适配个人博客和静态站。
 
 ### English
 
@@ -17,6 +18,7 @@
 - Added a template variable helper for fields such as `{title}`, `{slug}`, `{date}`, and `{short_hash}`, with clear errors for unknown fields.
 - Made `output.naming` affect real output: package directories, Markdown filenames, metadata filenames, and batch `--skip-existing` detection now use configured values.
 - Made `output.naming.report` control the extraction report filename with the same template variables.
+- Made Markdown front matter, title rendering, and the source block configurable for blog and static-site workflows.
 
 ## v0.1.2 - 2026-06-07
 
