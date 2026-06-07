@@ -283,15 +283,11 @@ If a platform changes its page structure and conversion quality drops, keep the 
 - [docs/supported-sites.md](./docs/supported-sites.md): supported sites and notes.
 - [docs/wechat-regression-corpus.md](./docs/wechat-regression-corpus.md): WeChat live regression notes.
 - [docs/MagicMD-v0.1-design.md](./docs/MagicMD-v0.1-design.md): v0.1 design notes.
+- [ROADMAP.md](./ROADMAP.md): upcoming version plan. GitHub Issues are mainly for real user feedback.
 
 ## Next
 
-- Improve PyPI release automation and the project-scoped token workflow.
-- Add a Markdown template system.
-- Add GitHub publishing.
-- Add HaoGit import support.
-- Expand live regression corpora for WeChat, Juejin, and CSDN.
-- Add more platform adapters.
+Next up is v0.1.1 polish: npm install experience, troubleshooting docs, `doctor --json`, and clearer supported-site notes. See [ROADMAP.md](./ROADMAP.md).
 
 ## License
 
