@@ -398,7 +398,7 @@ If a platform changes its page structure and conversion quality drops, keep the 
 
 ## Next
 
-v0.2.0 adds configurable output names, front matter, source blocks, media paths, and publishing presets. Next up: more live regression samples, release polish, and broader site support. See [ROADMAP.md](./ROADMAP.md).
+v0.3.0 adds the public Python SDK, so MagicMD now works as both a CLI and a directly importable library for web backends, content systems, and automation jobs. Next up: more live regression samples, broader site support, and smoother backend integration. See [ROADMAP.md](./ROADMAP.md).
 
 ## License
 
