@@ -49,25 +49,27 @@ MagicMD's advantage is not "crawl the whole web." It is doing the Chinese techni
 
 ## Installation
 
-For v0.1, install from source or use an editable development install. After cloning the repository, run:
+Recommended global install with `uv`:
 
 ```bash
-cd magicmd
-uv sync --extra dev
-uv run magicmd doctor
-```
-
-Install it as a global command:
-
-```bash
-uv tool install --editable .
+uv tool install magicmd
 magicmd doctor
 ```
 
 If you prefer `pipx`:
 
 ```bash
-pipx install .
+pipx install magicmd
+magicmd doctor
+```
+
+Use an editable install only when developing MagicMD or running from the current source tree:
+
+```bash
+git clone https://github.com/didilili/MagicMD.git
+cd MagicMD
+uv sync --extra dev
+uv run magicmd doctor
 ```
 
 If MagicMD is not globally installed yet, replace `magicmd` with `uv run magicmd`:
@@ -78,10 +80,11 @@ uv run magicmd batch urls.txt -o output/
 
 ### PyPI and npm
 
-MagicMD has not been published to PyPI yet, so this is not available today:
+MagicMD is available on PyPI:
 
 ```bash
 uv tool install magicmd
+pipx install magicmd
 ```
 
 MagicMD is not an npm package yet, so these are not currently supported:
@@ -279,8 +282,8 @@ If a platform changes its page structure and conversion quality drops, keep the 
 
 ## Next
 
-- Publish to PyPI for `uv tool install magicmd`.
 - Evaluate an npm wrapper for `npm install -g magicmd` or `npx magicmd`.
+- Improve PyPI release automation and the project-scoped token workflow.
 - Add a Markdown template system.
 - Add GitHub publishing.
 - Add HaoGit import support.
