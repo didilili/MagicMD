@@ -87,14 +87,18 @@ uv tool install magicmd
 pipx install magicmd
 ```
 
-MagicMD is not an npm package yet, so these are not currently supported:
+MagicMD has not been published as an npm package yet, so these are not currently supported:
 
 ```bash
 npm install -g magicmd
 npx magicmd
 ```
 
-An npm entrypoint would be a lightweight wrapper around the MagicMD CLI. v0.1 focuses on stabilizing the Python CLI first.
+The repository already includes a thin npm wrapper at [npm/magicmd](./npm/magicmd). It does not reimplement conversion logic; it forwards commands to the PyPI CLI:
+
+```bash
+uvx --from magicmd magicmd
+```
 
 ## Quick Start
 
@@ -282,7 +286,7 @@ If a platform changes its page structure and conversion quality drops, keep the 
 
 ## Next
 
-- Evaluate an npm wrapper for `npm install -g magicmd` or `npx magicmd`.
+- Publish the npm wrapper for `npm install -g magicmd` or `npx magicmd`.
 - Improve PyPI release automation and the project-scoped token workflow.
 - Add a Markdown template system.
 - Add GitHub publishing.

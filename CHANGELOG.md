@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### 中文
+
+- 新增 `npm/magicmd` 轻量 npm wrapper 准备项，后续发布 npm 包时可转发到 PyPI 版 `magicmd` CLI。
+
+### English
+
+- Added the `npm/magicmd` thin npm wrapper scaffold for a future npm package that forwards to the PyPI `magicmd` CLI.
+
 ## v0.1.0 - 2026-06-06
 
 ### 中文
