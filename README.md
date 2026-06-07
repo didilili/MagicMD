@@ -326,7 +326,7 @@ MagicMD 只处理公开文章页面。它不会绕过登录、付费墙、私有
 
 ## 接下来
 
-v0.1.2 补齐了可从 GitHub 安装的 Agent Skill。下一步会进入 v0.2：Markdown 模板、批量报告增强和更多真实样本回归。完整计划见 [ROADMAP.md](./ROADMAP.md)。
+v0.2.0 已补齐可配置输出命名、Front matter、来源块、媒体路径和常用站点预设。下一步会继续做真实样本回归、发布流程打磨和更多站点适配。完整计划见 [ROADMAP.md](./ROADMAP.md)。
 
 ## License
 
