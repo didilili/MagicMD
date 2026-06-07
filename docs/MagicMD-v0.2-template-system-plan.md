@@ -486,7 +486,7 @@ Expected: pass.
 - Modify: `src/magicmd/cli.py`
 - Test: `tests/test_cli.py`
 
-- [ ] **Step 1: Add failing CLI test**
+- [x] **Step 1: Add failing CLI test**
 
 Add a CLI test that writes a config file with:
 
@@ -497,17 +497,21 @@ report = "report.json"
 
 Run a mocked conversion and assert `report.json` exists.
 
-- [ ] **Step 2: Modify save function**
+- [x] **Step 2: Modify save function**
 
 Change `save_extraction_report(package_dir, extraction)` to accept `filename: str = "extraction-report.json"`.
 
 In `convert_url`, call:
 
 ```python
-save_extraction_report(package_dir, article.to_metadata()["extraction"], config.output.naming.report)
+save_extraction_report(
+    package_dir,
+    article.to_metadata()["extraction"],
+    format_template(config.output.naming.report, build_article_template_vars(article)),
+)
 ```
 
-- [ ] **Step 3: Run CLI tests**
+- [x] **Step 3: Run CLI tests**
 
 Run:
 

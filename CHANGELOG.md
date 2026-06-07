@@ -8,6 +8,7 @@
 - 新增 v0.2 配置模型：`output.naming`、`markdown.preset`、自定义 front matter 字段、source block 模板和 `videos` 配置现在可以被 `.magicmd.toml` 正确读取。
 - 新增模板变量模块，统一提供 `{title}`、`{slug}`、`{date}`、`{short_hash}` 等字段，并在未知字段时给出清晰错误。
 - 让 `output.naming` 开始控制真实输出：内容包目录、Markdown 文件名、metadata 文件名以及批量 `--skip-existing` 检测都会使用配置值。
+- 让 `output.naming.report` 控制提取报告文件名，并支持同一套模板变量。
 
 ### English
 
@@ -15,6 +16,7 @@
 - Added v0.2 config models so `.magicmd.toml` can now read `output.naming`, `markdown.preset`, custom front matter fields, source block templates, and `videos` settings.
 - Added a template variable helper for fields such as `{title}`, `{slug}`, `{date}`, and `{short_hash}`, with clear errors for unknown fields.
 - Made `output.naming` affect real output: package directories, Markdown filenames, metadata filenames, and batch `--skip-existing` detection now use configured values.
+- Made `output.naming.report` control the extraction report filename with the same template variables.
 
 ## v0.1.2 - 2026-06-07
 

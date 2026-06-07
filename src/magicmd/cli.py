@@ -33,6 +33,7 @@ from magicmd.quality import (
     build_skipped_quality,
     write_batch_report,
 )
+from magicmd.template_vars import build_article_template_vars, format_template
 
 app = typer.Typer(help="Convert public article links into Markdown packages.", no_args_is_help=True)
 
@@ -294,7 +295,11 @@ def convert_url(
         6,
         6,
         "Saving extraction report",
-        lambda: save_extraction_report(package_dir, article.to_metadata()["extraction"]),
+        lambda: save_extraction_report(
+            package_dir,
+            article.to_metadata()["extraction"],
+            format_template(config.output.naming.report, build_article_template_vars(article)),
+        ),
     )
     return package_dir
 

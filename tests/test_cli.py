@@ -254,6 +254,44 @@ def test_convert_command_uses_configured_output_names(monkeypatch, tmp_path: Pat
     assert not (package_dir / "metadata.json").exists()
 
 
+def test_convert_command_uses_configured_report_name(monkeypatch, tmp_path: Path):
+    html = """
+    <html>
+      <head><meta property="og:title" content="配置报告文章"></head>
+      <body><article><p>正文</p></article></body>
+    </html>
+    """
+    config_path = tmp_path / ".magicmd.toml"
+    config_path.write_text(
+        """
+        [output]
+        directory = "configured-output"
+
+        [output.naming]
+        report = "report.json"
+        """,
+        encoding="utf-8",
+    )
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr("magicmd.cli.fetch_for_platform", lambda url, platform, config_path: html)
+
+    result = runner.invoke(
+        app,
+        [
+            "convert",
+            "https://juejin.cn/post/demo",
+            "--config",
+            str(config_path),
+            "--no-images",
+        ],
+    )
+
+    package_dir = next((tmp_path / "configured-output").glob("*/"))
+    assert result.exit_code == 0
+    assert (package_dir / "report.json").exists()
+    assert not (package_dir / "extraction-report.json").exists()
+
+
 def test_convert_command_honors_markdown_config(monkeypatch, tmp_path: Path):
     html = """
     <html>
