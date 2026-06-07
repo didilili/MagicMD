@@ -213,17 +213,13 @@ type ConfigBuilderState = {
 
 使用 GitHub Actions 部署到 GitHub Pages。
 
-建议路径：
+正式入口：
 
 ```text
-https://didilili.github.io/MagicMD/
+https://magicmd.cn/
 ```
 
-如果后续绑定独立域名，可以再迁移到：
-
-```text
-https://magicmd.dev/
-```
+GitHub Pages 默认域名只作为底层托管能力，不再作为用户侧入口；文档、README 和对外传播统一使用 `magicmd.cn`。
 
 ## 第一阶段不做什么
 
