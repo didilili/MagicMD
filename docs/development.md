@@ -132,6 +132,7 @@ output.py 写入 article.md、metadata.json、extraction-report.json
 uv run ruff check .
 uv run pytest
 uv run magicmd doctor
+uv run magicmd doctor --json
 ```
 
 构建检查：

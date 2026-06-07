@@ -267,7 +267,11 @@ Check the runtime:
 magicmd doctor
 ```
 
-`doctor` checks the Python version, MagicMD version, config parsing, output writability, Camoufox availability, and each platform's default fetch mode.
+`doctor` checks the Python version, MagicMD version, config parsing, output writability, Camoufox availability, and each platform's default fetch mode. Scripts, CI jobs, or agents can use JSON output:
+
+```bash
+magicmd doctor --json
+```
 
 ## Before You Use
 

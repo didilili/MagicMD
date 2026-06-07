@@ -14,6 +14,12 @@ MagicMD 只处理公开文章页面。登录、付费墙、验证码、私有内
 magicmd doctor
 ```
 
+脚本、CI 或 Agent 需要机器可读结果时：
+
+```bash
+magicmd doctor --json
+```
+
 它会检查：
 
 - Python 和 MagicMD 版本
@@ -191,6 +197,12 @@ Check the runtime:
 
 ```bash
 magicmd doctor
+```
+
+For machine-readable output in scripts, CI, or agents:
+
+```bash
+magicmd doctor --json
 ```
 
 It checks:

@@ -17,6 +17,7 @@ from magicmd import __version__
 from magicmd.config import load_config
 from magicmd.detect import detect_platform
 from magicmd.diagnostics import (
+    build_doctor_json_payload,
     build_doctor_report,
     render_doctor_report,
     save_debug_html,
@@ -414,9 +415,13 @@ def config_init(path: Path = typer.Option(Path(".magicmd.toml"), "--path", help=
 def doctor(
     config_path: Optional[Path] = typer.Option(None, "--config", help="Config file path."),
     output: Optional[Path] = typer.Option(None, "--output", "-o", help="Output directory to check."),
+    json_output: bool = typer.Option(False, "--json", help="Print machine-readable JSON."),
 ):
     report = build_doctor_report(config_path=config_path, output_dir=output)
-    typer.echo(render_doctor_report(report), nl=False)
+    if json_output:
+        typer.echo(json.dumps(build_doctor_json_payload(report), ensure_ascii=False, indent=2))
+    else:
+        typer.echo(render_doctor_report(report), nl=False)
     if not report["ok"]:
         typer.echo("MagicMD doctor found issues.", err=True)
-        raise typer.Exit(1)
+        raise SystemExit(1)

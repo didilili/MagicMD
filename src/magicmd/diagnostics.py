@@ -72,21 +72,85 @@ def render_doctor_report(report: dict[str, Any]) -> str:
     return "\n".join(lines) + "\n"
 
 
+def build_doctor_json_payload(report: dict[str, Any]) -> dict[str, Any]:
+    config = report["config"]
+    output = report["output"]
+    camoufox_available = report["camoufox"] == "available"
+    errors: list[str] = []
+
+    if not config["ok"]:
+        errors.append(config["message"])
+    if not output["ok"]:
+        errors.append(output["message"])
+    if not camoufox_available:
+        errors.append("Camoufox missing")
+
+    return {
+        "ok": report["ok"],
+        "python": {"version": report["python"]},
+        "magicmd": {"version": report["magicmd"]},
+        "config": {
+            "ok": config["ok"],
+            "path": config.get("path"),
+            "loaded": config.get("loaded", False),
+            "message": config["message"],
+        },
+        "output": {
+            "ok": output["ok"],
+            "directory": output.get("directory"),
+            "writable": output["ok"],
+            "message": output["message"],
+        },
+        "camoufox": {"available": camoufox_available, "status": report["camoufox"]},
+        "platforms": [
+            {
+                "name": platform["name"],
+                "fetcher": platform["browser"],
+                "wait_selector": platform["wait_selector"],
+                "enabled": platform["enabled"],
+            }
+            for platform in report["platforms"]
+        ],
+        "warnings": [],
+        "errors": errors,
+    }
+
+
 def _load_doctor_config(config_path: str | Path | None) -> tuple[MagicMDConfig, dict[str, Any]]:
     if config_path:
         path = Path(config_path)
         try:
-            return load_config(path), {"ok": True, "message": f"{path} loaded"}
+            return load_config(path), {"ok": True, "path": str(path), "loaded": True, "message": f"{path} loaded"}
         except Exception as exc:
-            return MagicMDConfig(), {"ok": False, "message": f"{path} invalid: {exc}"}
+            return MagicMDConfig(), {
+                "ok": False,
+                "path": str(path),
+                "loaded": False,
+                "message": f"{path} invalid: {exc}",
+            }
 
     default_path = Path(".magicmd.toml")
     if default_path.exists():
         try:
-            return load_config(default_path), {"ok": True, "message": f"{default_path} loaded"}
+            return load_config(default_path), {
+                "ok": True,
+                "path": str(default_path),
+                "loaded": True,
+                "message": f"{default_path} loaded",
+            }
         except Exception as exc:
-            return MagicMDConfig(), {"ok": False, "message": f"{default_path} invalid: {exc}"}
-    return load_config(), {"ok": True, "message": ".magicmd.toml not found, using defaults"}
+            return MagicMDConfig(), {
+                "ok": False,
+                "path": str(default_path),
+                "loaded": False,
+                "message": f"{default_path} invalid: {exc}",
+            }
+    return load_config(), {
+        "ok": True,
+        "path": None,
+        "loaded": False,
+        "message": ".magicmd.toml not found, using defaults",
+    }
 
 
 def _check_output_writable(output_dir: Path) -> dict[str, Any]:
@@ -95,9 +159,9 @@ def _check_output_writable(output_dir: Path) -> dict[str, Any]:
         with tempfile.NamedTemporaryFile(prefix=".magicmd-doctor-", dir=target, delete=True):
             pass
         state = "writable" if output_dir.exists() else "creatable"
-        return {"ok": True, "message": f"{output_dir} {state}"}
+        return {"ok": True, "directory": str(output_dir), "message": f"{output_dir} {state}"}
     except Exception as exc:
-        return {"ok": False, "message": f"{output_dir} not writable: {exc}"}
+        return {"ok": False, "directory": str(output_dir), "message": f"{output_dir} not writable: {exc}"}
 
 
 def _nearest_existing_parent(path: Path) -> Path:
