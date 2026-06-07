@@ -6,11 +6,13 @@
 
 - 发布 `magicmd@0.1.0` npm wrapper，支持 `npm install -g magicmd` 和 `npx magicmd` 入口，底层转发到 PyPI 版 `magicmd` CLI。
 - 优化 npm wrapper 在缺少 `uvx` 时的错误提示，补充 macOS/Linux、Windows 和 PyPI 直装方式。
+- 新增 `docs/troubleshooting.md`，集中说明安装、Camoufox、微信访问限制、图片、CSDN/掘金转换问题和反馈格式。
 
 ### English
 
 - Published the `magicmd@0.1.0` npm wrapper, enabling `npm install -g magicmd` and `npx magicmd` while forwarding to the PyPI `magicmd` CLI.
 - Improved the npm wrapper message when `uvx` is missing, including macOS/Linux, Windows, and direct PyPI install options.
+- Added `docs/troubleshooting.md` for install, Camoufox, WeChat access limits, images, CSDN/Juejin conversion issues, and feedback format.
 
 ## v0.1.0 - 2026-06-06
 
