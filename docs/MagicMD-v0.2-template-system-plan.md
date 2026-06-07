@@ -285,7 +285,7 @@ Expected: all config tests pass.
 - Create: `src/magicmd/template_vars.py`
 - Test: `tests/test_template_vars.py`
 
-- [ ] **Step 1: Add tests for article and media template variables**
+- [x] **Step 1: Add tests for article and media template variables**
 
 Create `tests/test_template_vars.py`:
 
@@ -324,7 +324,7 @@ def test_format_template_raises_clear_error_for_unknown_field():
         format_template("{missing}", {"title": "demo"})
 ```
 
-- [ ] **Step 2: Run the failing tests**
+- [x] **Step 2: Run the failing tests**
 
 Run:
 
@@ -334,7 +334,7 @@ uv run pytest tests/test_template_vars.py -q
 
 Expected: fail because `magicmd.template_vars` does not exist.
 
-- [ ] **Step 3: Implement template helpers**
+- [x] **Step 3: Implement template helpers**
 
 Create `src/magicmd/template_vars.py`:
 
@@ -376,7 +376,7 @@ def format_template(template: str, variables: Mapping[str, object]) -> str:
         raise ValueError(f"Unknown template field: {exc.args[0]}") from exc
 ```
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 Run:
 
