@@ -20,12 +20,10 @@ from magicmd.diagnostics import (
     build_doctor_json_payload,
     build_doctor_report,
     render_doctor_report,
-    save_debug_html,
-    save_extraction_report,
 )
+from magicmd.exceptions import MagicMDError
 from magicmd.fetchers.browser import fetch_browser
 from magicmd.fetchers.http import fetch_http
-from magicmd.output import write_article_files, write_article_package
 from magicmd.platforms.registry import get_platform_adapter
 from magicmd.quality import (
     build_failure_quality,
@@ -33,7 +31,7 @@ from magicmd.quality import (
     build_skipped_quality,
     write_batch_report,
 )
-from magicmd.template_vars import build_article_template_vars, format_template
+from magicmd.sdk import convert_article, download_configured_media
 
 app = typer.Typer(help="Convert public article links into Markdown packages.", no_args_is_help=True)
 
@@ -82,22 +80,6 @@ class ProgressReporter:
         return result
 
 
-def _run_conversion_stage(
-    progress: ProgressReporter,
-    stage: str,
-    index: int,
-    total: int,
-    message: str,
-    operation,
-):
-    try:
-        return progress.run(index, total, message, operation)
-    except ConversionStageError:
-        raise
-    except Exception as exc:
-        raise ConversionStageError(stage, exc) from exc
-
-
 def parse_article(platform: str, html: str, url: str):
     try:
         adapter = get_platform_adapter(platform)
@@ -135,13 +117,6 @@ def _resolve_output(output: Path | None, config_path: Optional[Path]) -> Path:
     if output is not None:
         return output
     return Path(load_config(config_path).output.directory)
-
-
-def _ensure_platform_enabled(platform: str, config_path: Optional[Path]) -> None:
-    config = load_config(config_path)
-    platform_config = config.platforms.get(platform)
-    if platform_config and not platform_config.enabled:
-        raise click.ClickException(f"Platform disabled: {platform}")
 
 
 def _batch_context(url: str, platform: str, config_path: Optional[Path]) -> dict[str, Any]:
@@ -201,11 +176,6 @@ def _find_existing_package(
     return None
 
 
-def _should_save_debug_html(debug: bool, save_mode: str, warnings: list[str]) -> bool:
-    normalized = save_mode.lower()
-    return debug or normalized == "always" or (normalized == "on_failure" and bool(warnings))
-
-
 def convert_url(
     url: str,
     output: Path,
@@ -217,104 +187,28 @@ def convert_url(
     show_progress: bool = False,
 ) -> Path:
     progress = ProgressReporter(show_progress)
-    config = load_config(config_path)
-    resolved_platform = _run_conversion_stage(
-        progress,
-        "detect",
-        1,
-        6,
-        "Detecting platform",
-        lambda: detect_platform(url) if platform == "auto" else platform,
-    )
     try:
-        _ensure_platform_enabled(resolved_platform, config_path)
-    except Exception as exc:
-        raise ConversionStageError("detect", exc) from exc
-    html = _run_conversion_stage(
-        progress,
-        "fetch",
-        2,
-        6,
-        f"Fetching article ({resolved_platform})",
-        lambda: fetch_for_platform(url, resolved_platform, config_path),
-    )
-    article = _run_conversion_stage(
-        progress,
-        "parse",
-        3,
-        6,
-        "Parsing article",
-        lambda: parse_article(resolved_platform, html, url),
-    )
-    package_dir = _run_conversion_stage(
-        progress,
-        "write",
-        4,
-        6,
-        "Writing Markdown package",
-        lambda: write_article_package(
-            article,
-            output,
-            overwrite=overwrite or config.output.overwrite,
-            markdown_config=config.markdown,
-            output_config=config.output,
-        ),
-    )
-    if _should_save_debug_html(debug, config.output.save_debug_html, article.extraction.warnings):
-        save_debug_html(package_dir, html)
-    if download_images_enabled and (config.images.download or config.videos.download):
-        article = _run_conversion_stage(
-            progress,
-            "media",
-            5,
-            6,
-            "Downloading media",
-            lambda: _download_configured_media(article, package_dir, config),
-            )
-        write_article_files(
-            article,
-            package_dir,
-            markdown_config=config.markdown,
-            output_config=config.output,
+        result = convert_article(
+            url=url,
+            platform=platform,
+            output_dir=output,
+            download_images=download_images_enabled,
+            config_path=config_path,
+            _fetch_for_platform=fetch_for_platform,
+            _parse_article=parse_article,
+            _progress=progress.run,
+            _debug=debug,
+            _overwrite=overwrite,
         )
-    else:
-        progress.run(5, 6, "Skipping image download", lambda: article)
-    _run_conversion_stage(
-        progress,
-        "report",
-        6,
-        6,
-        "Saving extraction report",
-        lambda: save_extraction_report(
-            package_dir,
-            article.to_metadata()["extraction"],
-            format_template(config.output.naming.report, build_article_template_vars(article)),
-        ),
-    )
-    return package_dir
+    except MagicMDError as exc:
+        raise ConversionStageError(exc.stage, exc) from exc
+    if result.package_dir is None:
+        raise ConversionStageError("write", RuntimeError("package_dir missing"))
+    return Path(result.package_dir)
 
 
 def _download_configured_media(article, package_dir: Path, config):
-    from magicmd.assets import download_images, download_videos
-
-    next_article = article
-    if config.images.download:
-        next_article = download_images(
-            next_article,
-            package_dir,
-            config.images.directory,
-            config.images.filename_pattern,
-            config.images.markdown_path,
-        )
-    if config.videos.download:
-        next_article = download_videos(
-            next_article,
-            package_dir,
-            config.videos.directory,
-            config.videos.filename_pattern,
-            config.videos.markdown_path,
-        )
-    return next_article
+    return download_configured_media(article, package_dir, config)
 
 
 @app.command()

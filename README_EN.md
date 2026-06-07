@@ -181,6 +181,75 @@ Convert Markdown without downloading images:
 magicmd convert "https://blog.csdn.net/user/article/details/123" --no-images
 ```
 
+## Python SDK
+
+MagicMD can also be imported directly from Python. This is useful for web backends, CMS pipelines, scheduled jobs, and agent runtimes that want structured data instead of parsing CLI output. No extra MagicMD HTTP service is required.
+
+In-memory conversion:
+
+```python
+from magicmd import convert_article
+
+result = convert_article(
+    url="https://mp.weixin.qq.com/s/example",
+    platform="auto",
+    output_dir=None,
+    download_images=True,
+    config_path=None,
+)
+
+print(result.title)
+print(result.markdown)
+print(result.metadata)
+```
+
+Write a package and return the same structured result:
+
+```python
+from magicmd import convert_article
+
+result = convert_article(
+    url="https://juejin.cn/post/example",
+    output_dir="output",
+)
+
+print(result.package_dir)
+print(result.report)
+```
+
+`convert_article()` returns a stable Pydantic model named `ArticleConversionResult`:
+
+| Field | Meaning |
+| --- | --- |
+| `title` / `author` / `published_at` | Article title, author, and publish time. |
+| `platform` | Platform key such as `wechat`, `juejin`, `csdn`, or `generic`. |
+| `source_url` / `canonical_url` | Original URL and canonical URL. |
+| `excerpt` | Extracted page summary when available. |
+| `markdown` | Converted Markdown string. |
+| `content_hash` | Hash of the article body for deduplication. |
+| `images` | Image assets with `source_url`, `local_path`, `markdown_path`, and `alt`. `markdown_path` is the path currently referenced by Markdown; `local_path` is the downloaded filesystem path so external systems can copy the file into their own media directory and rewrite links. |
+| `warnings` | Fetch, parse, and media warnings. |
+| `metadata` | Structured data aligned with `metadata.json`. |
+| `report` | Extraction report aligned with `extraction-report.json`. |
+| `package_dir` | Set only when `output_dir` is provided and a package is written. |
+
+Backend code can catch explicit SDK errors:
+
+```python
+from magicmd import FetchError, ParseError, UnsupportedPlatformError, convert_article
+
+try:
+    result = convert_article("https://mp.weixin.qq.com/s/example")
+except UnsupportedPlatformError:
+    ...
+except FetchError:
+    ...
+except ParseError:
+    ...
+```
+
+Public errors include `UnsupportedPlatformError`, `FetchError`, `ParseError`, `MediaDownloadError`, and `ConversionError`. MagicMD does not include app-specific fields; external systems can store `result.markdown`, `result.metadata`, and `result.images` in their own database and media pipeline.
+
 ## Supported Sites
 
 | Site | Status | Default fetcher | Notes |
