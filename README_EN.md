@@ -91,7 +91,7 @@ npm install -g magicmd
 npx magicmd
 ```
 
-An npm entrypoint would be a lightweight wrapper around the MagicMD CLI. It is on the roadmap.
+An npm entrypoint would be a lightweight wrapper around the MagicMD CLI. v0.1 focuses on stabilizing the Python CLI first.
 
 ## Quick Start
 
@@ -148,7 +148,7 @@ magicmd convert "https://blog.csdn.net/user/article/details/123" --no-images
 | CSDN `blog.csdn.net` | Experimental support | `camoufox` | Ten complex live samples manually reviewed for code blocks, Mermaid/SVG, TOC links, and widget noise. |
 | Generic pages | Best effort | `http` | Basic extraction for pages with standard `article`, `main`, or Open Graph metadata. |
 
-See [docs/supported-sites.md](./docs/supported-sites.md) for detailed boundaries.
+See [docs/supported-sites.md](./docs/supported-sites.md) for more site notes.
 
 ## What MagicMD Writes
 
@@ -262,34 +262,22 @@ magicmd doctor
 
 `doctor` checks the Python version, MagicMD version, config parsing, output writability, Camoufox availability, and each platform's default fetch mode.
 
-## Quality Baseline
-
-v0.1 is not only tested against static fixtures. It has also been manually checked with live articles:
-
-- WeChat: images, video placeholders, rich text, recommendation sections, code blocks, and links.
-- Juejin: image download, code blocks, external links, and heading depth.
-- CSDN: code-block collisions, Mermaid/SVG, generated TOC dead links, and code-widget noise.
-
-Related records:
-
-- [CHANGELOG.md](./CHANGELOG.md)
-- [docs/wechat-regression-corpus.md](./docs/wechat-regression-corpus.md)
-- [tests/fixtures/site_validation_manifest.json](./tests/fixtures/site_validation_manifest.json)
-
-## Boundaries
+## Before You Use
 
 MagicMD only targets public article pages. It does not bypass login, paywalls, private content, CAPTCHA, or platform access controls.
 
 When a page hits 403, CAPTCHA, login restrictions, video hotlink protection, or expired dynamic resources, MagicMD keeps as much extractable content as possible and records warnings or failure reasons in the reports.
 
+If a platform changes its page structure and conversion quality drops, keep the package's `extraction-report.json` and reproduce the issue with the same URL. Live-sample records live in [docs/wechat-regression-corpus.md](./docs/wechat-regression-corpus.md) and [tests/fixtures/site_validation_manifest.json](./tests/fixtures/site_validation_manifest.json) instead of being expanded on the README homepage.
+
 ## Developer Docs
 
 - [docs/development.md](./docs/development.md): project structure, core modules, conversion flow, and verification commands.
-- [docs/supported-sites.md](./docs/supported-sites.md): supported sites and boundaries.
+- [docs/supported-sites.md](./docs/supported-sites.md): supported sites and notes.
 - [docs/wechat-regression-corpus.md](./docs/wechat-regression-corpus.md): WeChat live regression notes.
 - [docs/MagicMD-v0.1-design.md](./docs/MagicMD-v0.1-design.md): v0.1 design notes.
 
-## Roadmap
+## Next
 
 - Publish to PyPI for `uv tool install magicmd`.
 - Evaluate an npm wrapper for `npm install -g magicmd` or `npx magicmd`.
@@ -298,10 +286,6 @@ When a page hits 403, CAPTCHA, login restrictions, video hotlink protection, or 
 - Add HaoGit import support.
 - Expand live regression corpora for WeChat, Juejin, and CSDN.
 - Add more platform adapters.
-
-## Maintenance Rule
-
-The default README is Chinese and the English version lives in the root-level [README_EN.md](./README_EN.md). Future README changes should update both files together.
 
 ## License
 
