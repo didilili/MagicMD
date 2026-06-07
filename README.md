@@ -207,7 +207,9 @@ MagicMD 有两个入口。
 magicmd batch urls.txt -o output/
 ```
 
-第二个是给 Agent 用的 [SKILL.md](./SKILL.md)。Skill 把“什么时候使用 MagicMD、怎么运行、检查哪些文件、遇到失败看什么报告”写成固定流程。这样 Agent 不需要每次猜命令，也不会把登录页、付费墙、验证码页面当成正常文章处理。
+第二个是给 Agent 用的 [skills/magicmd/SKILL.md](./skills/magicmd/SKILL.md)。Skill 把“什么时候使用 MagicMD、怎么运行、检查哪些文件、遇到失败看什么报告”写成固定流程。这样 Agent 不需要每次猜命令，也不会把登录页、付费墙、验证码页面当成正常文章处理。
+
+安装 Skill 时使用仓库路径 `didilili/MagicMD`，Skill 路径 `skills/magicmd`。
 
 如果你未来要把 MagicMD 接入 HaoGit，建议让 Agent 先调用 Skill 完成采集和转换，再把 `article.md`、`metadata.json` 和图片交给发布流程。
 

@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### 中文
+
+- 新增可安装的 Agent Skill 目录 `skills/magicmd/`，并补充 `agents/openai.yaml`，用于从 GitHub 路径安装 MagicMD Skill。
+
+### English
+
+- Added the installable Agent Skill at `skills/magicmd/` with `agents/openai.yaml` so MagicMD can be installed as a GitHub-hosted skill.
+
 ## v0.1.1 - 2026-06-07
 
 ### 中文

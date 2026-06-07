@@ -207,7 +207,9 @@ The first one is the human-facing CLI:
 magicmd batch urls.txt -o output/
 ```
 
-The second one is [SKILL.md](./SKILL.md) for agents. The Skill records when to use MagicMD, how to run it, which files to check, and where to look when extraction fails. That way an agent does not need to guess the command, and it should not treat login pages, paywalls, or CAPTCHA pages as normal articles.
+The second one is [skills/magicmd/SKILL.md](./skills/magicmd/SKILL.md) for agents. The Skill records when to use MagicMD, how to run it, which files to check, and where to look when extraction fails. That way an agent does not need to guess the command, and it should not treat login pages, paywalls, or CAPTCHA pages as normal articles.
+
+Install the Skill from repository `didilili/MagicMD` with Skill path `skills/magicmd`.
 
 If you later connect MagicMD to HaoGit, the recommended path is: let the agent use the Skill to collect and convert articles first, then pass `article.md`, `metadata.json`, and local images into the publishing workflow.
 
