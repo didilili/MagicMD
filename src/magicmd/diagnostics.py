@@ -19,8 +19,12 @@ def save_debug_html(output_dir: str | Path, html: str) -> Path:
     return path
 
 
-def save_extraction_report(output_dir: str | Path, report: dict) -> Path:
-    path = Path(output_dir) / "extraction-report.json"
+def save_extraction_report(
+    output_dir: str | Path,
+    report: dict,
+    filename: str = "extraction-report.json",
+) -> Path:
+    path = Path(output_dir) / filename
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     return path
