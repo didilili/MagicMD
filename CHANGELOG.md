@@ -5,10 +5,12 @@
 ### 中文
 
 - 新增 v0.2 模板系统实现计划，并在配置示例中补充当前已生效字段说明和下一版命名/Front matter 设计提示。
+- 新增 v0.2 配置模型：`output.naming`、`markdown.preset`、自定义 front matter 字段、source block 模板和 `videos` 配置现在可以被 `.magicmd.toml` 正确读取。
 
 ### English
 
 - Added the v0.2 template-system implementation plan and expanded config examples with current-field notes plus upcoming naming/front-matter design hints.
+- Added v0.2 config models so `.magicmd.toml` can now read `output.naming`, `markdown.preset`, custom front matter fields, source block templates, and `videos` settings.
 
 ## v0.1.2 - 2026-06-07
 

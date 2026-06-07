@@ -41,6 +41,54 @@ def test_load_config_accepts_browser_fetch_options(tmp_path: Path):
     assert config.fetch.browser_attempts == 4
 
 
+def test_load_config_accepts_v02_output_and_markdown_templates(tmp_path: Path):
+    config_path = tmp_path / ".magicmd.toml"
+    config_path.write_text(
+        """
+        [output.naming]
+        package = "{date}/{slug}"
+        markdown = "index.md"
+        metadata = "meta.json"
+        report = "report.json"
+
+        [markdown]
+        preset = "hugo"
+        front_matter = "yaml"
+        include_title = false
+        source_block_template = "> From: {source_url}"
+
+        [markdown.front_matter_fields]
+        title = "{title}"
+        url = "{source_url}"
+
+        [videos]
+        download = false
+        directory = "media/videos"
+        filename_pattern = "clip_{index:03d}.{ext}"
+        markdown_path = "../videos/{filename}"
+        """,
+        encoding="utf-8",
+    )
+
+    config = load_config(config_path)
+
+    assert config.output.naming.package == "{date}/{slug}"
+    assert config.output.naming.markdown == "index.md"
+    assert config.output.naming.metadata == "meta.json"
+    assert config.output.naming.report == "report.json"
+    assert config.markdown.preset == "hugo"
+    assert config.markdown.include_title is False
+    assert config.markdown.source_block_template == "> From: {source_url}"
+    assert config.markdown.front_matter_fields == {
+        "title": "{title}",
+        "url": "{source_url}",
+    }
+    assert config.videos.download is False
+    assert config.videos.directory == "media/videos"
+    assert config.videos.filename_pattern == "clip_{index:03d}.{ext}"
+    assert config.videos.markdown_path == "../videos/{filename}"
+
+
 def test_default_platform_fetch_modes_match_live_validation_baseline():
     config = load_config()
 
