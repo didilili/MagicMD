@@ -267,7 +267,11 @@ browser_attempts = 2
 magicmd doctor
 ```
 
-`doctor` 会检查 Python 版本、MagicMD 版本、配置文件解析、输出目录可写性、Camoufox 是否可用，以及各平台默认抓取方式。
+`doctor` 会检查 Python 版本、MagicMD 版本、配置文件解析、输出目录可写性、Camoufox 是否可用，以及各平台默认抓取方式。脚本、CI 或 Agent 可以使用 JSON 输出：
+
+```bash
+magicmd doctor --json
+```
 
 ## 使用前知道
 

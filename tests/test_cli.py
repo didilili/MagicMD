@@ -70,6 +70,28 @@ def test_doctor_command_honors_config_and_output_options(tmp_path: Path):
     assert "juejin: http" in result.stdout
 
 
+def test_doctor_command_json_output(tmp_path: Path):
+    output_dir = tmp_path / "json-output"
+
+    result = runner.invoke(app, ["doctor", "--json", "--output", str(output_dir)])
+
+    assert result.exit_code == 0
+    payload = json.loads(result.stdout)
+    assert payload["ok"] is True
+    assert payload["python"]["version"]
+    assert payload["magicmd"]["version"] == __version__
+    assert payload["config"]["loaded"] is False
+    assert payload["output"]["directory"] == str(output_dir)
+    assert payload["output"]["writable"] is True
+    assert payload["camoufox"]["available"] is True
+    assert {"name": "wechat", "fetcher": "camoufox", "wait_selector": "#js_content", "enabled": True} in payload[
+        "platforms"
+    ]
+    assert payload["warnings"] == []
+    assert payload["errors"] == []
+    assert "MagicMD doctor" not in result.stdout
+
+
 def test_doctor_command_reports_invalid_config_without_traceback(tmp_path: Path):
     config_path = tmp_path / ".magicmd.toml"
     config_path.write_text("[output\n", encoding="utf-8")
@@ -81,6 +103,40 @@ def test_doctor_command_reports_invalid_config_without_traceback(tmp_path: Path)
     assert f"Config: {config_path} invalid" in rendered
     assert "MagicMD doctor found issues" in rendered
     assert "Traceback" not in rendered
+
+
+def test_doctor_command_json_reports_invalid_config_without_traceback(tmp_path: Path):
+    config_path = tmp_path / ".magicmd.toml"
+    config_path.write_text("[output\n", encoding="utf-8")
+
+    result = runner.invoke(app, ["doctor", "--json", "--config", str(config_path)])
+
+    rendered = result.stdout + result.stderr
+    assert result.exit_code != 0
+    payload = json.loads(result.stdout)
+    assert payload["ok"] is False
+    assert payload["config"]["path"] == str(config_path)
+    assert payload["config"]["loaded"] is False
+    assert any(str(config_path) in error for error in payload["errors"])
+    assert "MagicMD doctor found issues" in rendered
+    assert "Traceback" not in rendered
+
+
+def test_entrypoint_doctor_json_invalid_config_exits_nonzero(monkeypatch, capsys, tmp_path: Path):
+    config_path = tmp_path / ".magicmd.toml"
+    config_path.write_text("[output\n", encoding="utf-8")
+    monkeypatch.setattr(sys, "argv", ["magicmd", "doctor", "--json", "--config", str(config_path)])
+
+    with pytest.raises(SystemExit) as exc_info:
+        entrypoint()
+
+    captured = capsys.readouterr()
+    payload = json.loads(captured.out)
+    assert exc_info.value.code == 1
+    assert payload["ok"] is False
+    assert payload["config"]["path"] == str(config_path)
+    assert "MagicMD doctor found issues" in captured.err
+    assert "Traceback" not in captured.out + captured.err
 
 
 def test_convert_command_writes_package(monkeypatch, tmp_path: Path):
