@@ -1,6 +1,8 @@
 from pathlib import Path
 from importlib import resources
 
+import pytest
+
 from magicmd.config import load_config
 
 
@@ -91,6 +93,91 @@ def test_load_config_accepts_v02_output_and_markdown_templates(tmp_path: Path):
     assert config.videos.directory == "media/videos"
     assert config.videos.filename_pattern == "clip_{index:03d}.{ext}"
     assert config.videos.markdown_path == "../videos/{filename}"
+
+
+def test_load_config_applies_plain_preset(tmp_path: Path):
+    config_path = tmp_path / ".magicmd.toml"
+    config_path.write_text(
+        """
+        [markdown]
+        preset = "plain"
+        """,
+        encoding="utf-8",
+    )
+
+    config = load_config(config_path)
+
+    assert config.markdown.front_matter == "none"
+    assert config.markdown.include_source_block is False
+
+
+def test_load_config_applies_hugo_preset(tmp_path: Path):
+    config_path = tmp_path / ".magicmd.toml"
+    config_path.write_text(
+        """
+        [markdown]
+        preset = "hugo"
+        """,
+        encoding="utf-8",
+    )
+
+    config = load_config(config_path)
+
+    assert config.output.naming.markdown == "index.md"
+    assert config.markdown.front_matter == "yaml"
+    assert config.markdown.include_source_block is True
+
+
+def test_load_config_preserves_explicit_values_over_preset(tmp_path: Path):
+    config_path = tmp_path / ".magicmd.toml"
+    config_path.write_text(
+        """
+        [markdown]
+        preset = "hugo"
+        include_source_block = false
+
+        [output.naming]
+        markdown = "article.md"
+        """,
+        encoding="utf-8",
+    )
+
+    config = load_config(config_path)
+
+    assert config.output.naming.markdown == "article.md"
+    assert config.markdown.include_source_block is False
+
+
+def test_load_config_applies_docusaurus_preset(tmp_path: Path):
+    config_path = tmp_path / ".magicmd.toml"
+    config_path.write_text(
+        """
+        [markdown]
+        preset = "docusaurus"
+        """,
+        encoding="utf-8",
+    )
+
+    config = load_config(config_path)
+
+    assert config.output.naming.markdown == "index.md"
+    assert config.markdown.front_matter == "yaml"
+    assert config.markdown.include_source_block is False
+    assert config.images.markdown_path == "./{directory}/{filename}"
+
+
+def test_load_config_rejects_unknown_preset(tmp_path: Path):
+    config_path = tmp_path / ".magicmd.toml"
+    config_path.write_text(
+        """
+        [markdown]
+        preset = "mystery"
+        """,
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValueError, match="Unknown markdown preset: mystery"):
+        load_config(config_path)
 
 
 def test_default_platform_fetch_modes_match_live_validation_baseline():
