@@ -283,15 +283,11 @@ MagicMD 只处理公开文章页面。它不会绕过登录、付费墙、私有
 - [docs/supported-sites.md](./docs/supported-sites.md)：当前支持站点和注意事项。
 - [docs/wechat-regression-corpus.md](./docs/wechat-regression-corpus.md)：微信公众号真实样本回归说明。
 - [docs/MagicMD-v0.1-design.md](./docs/MagicMD-v0.1-design.md)：v0.1 设计说明。
+- [ROADMAP.md](./ROADMAP.md)：后续版本计划。GitHub Issues 主要用于真实用户反馈。
 
 ## 接下来
 
-- 完善 PyPI 发布自动化和 project-scoped token 流程。
-- 增加 Markdown 模板系统。
-- 增加 GitHub 发布能力。
-- 增加 HaoGit 导入能力。
-- 扩充微信公众号、掘金、CSDN 真实样本回归集。
-- 增加更多站点适配器。
+接下来先打磨 v0.1.1：npm 安装体验、排障文档、`doctor --json` 和站点支持说明。完整计划见 [ROADMAP.md](./ROADMAP.md)。
 
 ## License
 
