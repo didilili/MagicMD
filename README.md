@@ -1,10 +1,21 @@
 # MagicMD
 
+[![PyPI](https://img.shields.io/pypi/v/magicmd?label=PyPI)](https://pypi.org/project/magicmd/)
+[![npm](https://img.shields.io/npm/v/magicmd?label=npm)](https://www.npmjs.com/package/magicmd)
+[![CI](https://github.com/didilili/MagicMD/actions/workflows/ci.yml/badge.svg)](https://github.com/didilili/MagicMD/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
+
 中文 | [English](./README_EN.md)
 
 把散落在网页里的好文章，变成你仓库里的 Markdown。
 
 MagicMD 是一个面向公开文章链接的 Markdown 转换工具。你给它一条 URL，或者一整个 URL 列表，它把文章正文、图片、来源信息和转换报告整理成一个可长期保存的内容包。
+
+```bash
+uv tool install magicmd
+# 或者
+npm install -g magicmd
+```
 
 ```bash
 magicmd "https://mp.weixin.qq.com/s/example"
