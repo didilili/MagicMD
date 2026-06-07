@@ -3,6 +3,7 @@
 [![PyPI](https://img.shields.io/pypi/v/magicmd?label=PyPI)](https://pypi.org/project/magicmd/)
 [![npm](https://img.shields.io/npm/v/magicmd?label=npm)](https://www.npmjs.com/package/magicmd)
 [![CI](https://github.com/didilili/MagicMD/actions/workflows/ci.yml/badge.svg)](https://github.com/didilili/MagicMD/actions/workflows/ci.yml)
+[![Docs](https://img.shields.io/badge/docs-GitHub%20Pages-0f9f6e)](https://didilili.github.io/MagicMD/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
 
 中文 | [English](./README_EN.md)
@@ -35,6 +36,8 @@ output/article-title/
 ```
 
 MagicMD 可以当 CLI 用，也可以作为 Agent Skill 使用。人负责给链接，工具负责落盘；Agent 负责批量整理时，也走同一套规则。
+
+在线文档和配置生成器：[didilili.github.io/MagicMD](https://didilili.github.io/MagicMD/)
 
 ## 适合做什么
 

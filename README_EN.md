@@ -3,6 +3,7 @@
 [![PyPI](https://img.shields.io/pypi/v/magicmd?label=PyPI)](https://pypi.org/project/magicmd/)
 [![npm](https://img.shields.io/npm/v/magicmd?label=npm)](https://www.npmjs.com/package/magicmd)
 [![CI](https://github.com/didilili/MagicMD/actions/workflows/ci.yml/badge.svg)](https://github.com/didilili/MagicMD/actions/workflows/ci.yml)
+[![Docs](https://img.shields.io/badge/docs-GitHub%20Pages-0f9f6e)](https://didilili.github.io/MagicMD/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
 
 [中文](./README.md) | English
@@ -35,6 +36,8 @@ output/article-title/
 ```
 
 MagicMD works as a CLI and as an Agent Skill. Humans provide links and get files on disk; agents can use the same repeatable workflow for batch collection.
+
+Online docs and config builder: [didilili.github.io/MagicMD](https://didilili.github.io/MagicMD/)
 
 ## What It Is For
 
