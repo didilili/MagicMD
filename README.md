@@ -91,7 +91,7 @@ npm install -g magicmd
 npx magicmd
 ```
 
-npm 入口适合后续做成轻量 wrapper：用户通过 npm 安装，底层仍调用 MagicMD CLI。这个方向已经放进路线图。
+npm 入口适合后续做成轻量 wrapper：用户通过 npm 安装，底层仍调用 MagicMD CLI。v0.1 先把 Python CLI 稳住，再评估这个入口。
 
 ## 快速使用
 
@@ -148,7 +148,7 @@ magicmd convert "https://blog.csdn.net/user/article/details/123" --no-images
 | CSDN `blog.csdn.net` | 实验支持 | `camoufox` | 已人工检查 10 篇复杂样本，重点修过代码块、Mermaid/SVG、目录链接和控件噪声。 |
 | 通用网页 | 尽力支持 | `http` | 对标准 `article`、`main` 或 Open Graph 元信息页面做基础提取。 |
 
-详细边界见 [docs/supported-sites.md](./docs/supported-sites.md)。
+更多站点说明见 [docs/supported-sites.md](./docs/supported-sites.md)。
 
 ## MagicMD 会生成什么
 
@@ -262,34 +262,22 @@ magicmd doctor
 
 `doctor` 会检查 Python 版本、MagicMD 版本、配置文件解析、输出目录可写性、Camoufox 是否可用，以及各平台默认抓取方式。
 
-## 质量基线
-
-v0.1 不是只靠几个静态 fixture 通过测试。它已经用真实文章做过人工检查：
-
-- 微信公众号：图片、视频占位、富文本、推荐阅读区、代码块、链接。
-- 掘金：图片下载、代码块、外链、标题层级。
-- CSDN：代码块错位、Mermaid/SVG、目录死链、代码控件噪声。
-
-相关记录：
-
-- [CHANGELOG.md](./CHANGELOG.md)
-- [docs/wechat-regression-corpus.md](./docs/wechat-regression-corpus.md)
-- [tests/fixtures/site_validation_manifest.json](./tests/fixtures/site_validation_manifest.json)
-
-## 边界
+## 使用前知道
 
 MagicMD 只处理公开文章页面。它不会绕过登录、付费墙、私有内容、验证码或平台访问限制。
 
 如果遇到 403、验证码、登录限制、视频防盗链或动态资源失效，MagicMD 会尽量保留已经能提取的内容，并在报告里记录 warning 或失败原因。
 
+如果某个平台的页面结构变化导致转换效果下降，建议先保留输出目录里的 `extraction-report.json`，再用同一链接复现问题。真实样本记录放在 [docs/wechat-regression-corpus.md](./docs/wechat-regression-corpus.md) 和 [tests/fixtures/site_validation_manifest.json](./tests/fixtures/site_validation_manifest.json)，不放在首页展开。
+
 ## 开发文档
 
 - [docs/development.md](./docs/development.md)：项目结构、核心模块、转换流程和验证命令。
-- [docs/supported-sites.md](./docs/supported-sites.md)：当前支持站点和边界。
+- [docs/supported-sites.md](./docs/supported-sites.md)：当前支持站点和注意事项。
 - [docs/wechat-regression-corpus.md](./docs/wechat-regression-corpus.md)：微信公众号真实样本回归说明。
 - [docs/MagicMD-v0.1-design.md](./docs/MagicMD-v0.1-design.md)：v0.1 设计说明。
 
-## 路线图
+## 接下来
 
 - 发布到 PyPI，支持 `uv tool install magicmd`。
 - 评估 npm wrapper，支持 `npm install -g magicmd` 或 `npx magicmd`。
@@ -298,10 +286,6 @@ MagicMD 只处理公开文章页面。它不会绕过登录、付费墙、私有
 - 增加 HaoGit 导入能力。
 - 扩充微信公众号、掘金、CSDN 真实样本回归集。
 - 增加更多站点适配器。
-
-## 维护规则
-
-README 默认中文，英文版本放在根目录 [README_EN.md](./README_EN.md)。之后修改 README 时，中英文两个文件需要一起更新。
 
 ## License
 
