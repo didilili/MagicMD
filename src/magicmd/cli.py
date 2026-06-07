@@ -13,6 +13,7 @@ import click
 from rich.console import Console
 from rich.text import Text
 
+from magicmd import __version__
 from magicmd.config import load_config
 from magicmd.detect import detect_platform
 from magicmd.diagnostics import (
@@ -33,6 +34,25 @@ from magicmd.quality import (
 )
 
 app = typer.Typer(help="Convert public article links into Markdown packages.", no_args_is_help=True)
+
+
+def _version_callback(value: bool):
+    if value:
+        typer.echo(f"MagicMD {__version__}")
+        raise typer.Exit()
+
+
+@app.callback()
+def main(
+    version: bool = typer.Option(
+        False,
+        "--version",
+        callback=_version_callback,
+        is_eager=True,
+        help="Show MagicMD version and exit.",
+    ),
+):
+    return None
 
 
 class ConversionStageError(click.ClickException):
