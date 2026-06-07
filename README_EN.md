@@ -1,10 +1,21 @@
 # MagicMD
 
+[![PyPI](https://img.shields.io/pypi/v/magicmd?label=PyPI)](https://pypi.org/project/magicmd/)
+[![npm](https://img.shields.io/npm/v/magicmd?label=npm)](https://www.npmjs.com/package/magicmd)
+[![CI](https://github.com/didilili/MagicMD/actions/workflows/ci.yml/badge.svg)](https://github.com/didilili/MagicMD/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
+
 [中文](./README.md) | English
 
 Turn scattered web articles into Markdown you can keep in your own repository.
 
 MagicMD is a Markdown conversion tool for public article URLs. Give it one URL, or a whole URL list, and it writes the article body, images, source metadata, and extraction reports into a durable content package.
+
+```bash
+uv tool install magicmd
+# or
+npm install -g magicmd
+```
 
 ```bash
 magicmd "https://mp.weixin.qq.com/s/example"
