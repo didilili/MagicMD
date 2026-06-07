@@ -1,5 +1,7 @@
 from pathlib import Path
 import json
+import shutil
+import subprocess
 import tomllib
 
 
@@ -40,3 +42,23 @@ def test_npm_wrapper_metadata_matches_python_package():
     assert npm_package["private"] is False
     assert "uvx --from magicmd magicmd" in wrapper
     assert "uvx --from magicmd magicmd" in readme
+
+
+def test_npm_wrapper_explains_missing_uvx():
+    node = shutil.which("node")
+    assert node is not None
+
+    result = subprocess.run(
+        [node, "npm/magicmd/bin/magicmd.js", "--version"],
+        check=False,
+        capture_output=True,
+        text=True,
+        env={"PATH": "/tmp/magicmd-no-uvx"},
+    )
+
+    assert result.returncode == 127
+    assert "MagicMD npm package needs uv" in result.stderr
+    assert "curl -LsSf https://astral.sh/uv/install.sh | sh" in result.stderr
+    assert "powershell -ExecutionPolicy ByPass" in result.stderr
+    assert "uv tool install magicmd" in result.stderr
+    assert "pipx install magicmd" in result.stderr
