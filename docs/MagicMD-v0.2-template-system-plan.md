@@ -726,7 +726,7 @@ Expected: pass.
 - Modify: `src/magicmd/templates/magicmd.example.toml`
 - Test: `tests/test_config.py`
 
-- [ ] **Step 1: Move v0.2 fields from comments to active config**
+- [x] **Step 1: Move v0.2 fields from comments to active config**
 
 After implementation, make this active:
 
@@ -751,7 +751,7 @@ filename_pattern = "video_{index:03d}.{ext}"
 markdown_path = "{directory}/{filename}"
 ```
 
-- [ ] **Step 2: Keep root and packaged template identical**
+- [x] **Step 2: Keep root and packaged template identical**
 
 Run:
 
@@ -761,7 +761,7 @@ diff -u .magicmd.example.toml src/magicmd/templates/magicmd.example.toml
 
 Expected: no diff.
 
-- [ ] **Step 3: Update packaged template test**
+- [x] **Step 3: Update packaged template test**
 
 In `tests/test_config.py`, assert the template contains:
 

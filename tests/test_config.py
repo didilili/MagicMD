@@ -204,7 +204,30 @@ def test_packaged_config_template_is_available():
     assert 'wait_selector = "#content_views"' in template_text
     assert "browser_timeout_seconds = 15" in template_text
     assert "browser_attempts = 2" in template_text
-    assert "Output naming is configurable" in template_text
     assert "[output.naming]" in template_text
-    assert 'markdown = "index.md"' in template_text
+    assert 'package = "{date}-{slug}"' in template_text
+    assert 'markdown = "article.md"' in template_text
+    assert 'metadata = "metadata.json"' in template_text
+    assert 'report = "extraction-report.json"' in template_text
     assert "[markdown.front_matter_fields]" in template_text
+    assert "[videos]" in template_text
+    assert 'markdown_path = "{directory}/{filename}"' in template_text
+
+
+def test_root_and_packaged_config_templates_match():
+    root_template = Path(".magicmd.example.toml").read_text(encoding="utf-8")
+    packaged_template = resources.files("magicmd").joinpath("templates/magicmd.example.toml")
+
+    assert packaged_template.read_text(encoding="utf-8") == root_template
+
+
+def test_example_config_template_loads():
+    config = load_config(".magicmd.example.toml")
+
+    assert config.output.naming.package == "{date}-{slug}"
+    assert config.output.naming.markdown == "article.md"
+    assert config.markdown.preset == "default"
+    assert config.markdown.include_title is True
+    assert config.markdown.front_matter_fields["source_url"] == "{source_url}"
+    assert config.images.markdown_path == "{directory}/{filename}"
+    assert config.videos.filename_pattern == "video_{index:03d}.{ext}"
