@@ -8,23 +8,53 @@ overwrite = false
 # Options: "always", "on_failure", "never".
 save_debug_html = "on_failure"
 
+[output.naming]
+# Package directory relative to `output.directory`.
+package = "{date}-{slug}"
+markdown = "article.md"
+metadata = "metadata.json"
+report = "extraction-report.json"
+
 [markdown]
-# Current renderer preset. `default` keeps front matter, H1 title, and source block.
-# `clean` keeps front matter and title, but hides the source block.
+# Presets: "default", "plain", "hugo", "docusaurus".
+preset = "default"
+
+# Compatibility alias. `clean` keeps front matter and title, but hides the source block.
 template = "default"
 
 # Current options: "yaml", "none".
 front_matter = "yaml"
+include_title = true
 include_source_block = true
 
 # Shift generated Markdown heading levels. Example: 1 turns `##` into `###`.
 heading_offset = 0
 
+source_block_template = """
+> Source: {platform}
+> Author: {author}
+> Original: {source_url}
+"""
+
+[markdown.front_matter_fields]
+title = "{title}"
+author = "{author}"
+platform = "{platform}"
+source_url = "{source_url}"
+published_at = "{published_at}"
+
 [images]
 download = true
 directory = "images"
 filename_pattern = "img_{index:03d}.{ext}"
+markdown_path = "{directory}/{filename}"
 concurrency = 5
+
+[videos]
+download = true
+directory = "videos"
+filename_pattern = "video_{index:03d}.{ext}"
+markdown_path = "{directory}/{filename}"
 
 [fetch]
 timeout_seconds = 20
@@ -50,20 +80,3 @@ wait_selector = "#content_views"
 [platforms.generic]
 enabled = true
 browser = "http"
-
-# Output naming is configurable. Uncomment these fields when you want blog-style
-# packages such as `2026-06-07/my-article/index.md`.
-# [output.naming]
-# package = "{date}-{slug}"
-# markdown = "index.md"
-# metadata = "metadata.json"
-# report = "extraction-report.json"
-#
-# Upcoming Markdown template examples:
-#
-# [markdown.front_matter_fields]
-# title = "{title}"
-# date = "{published_at}"
-# author = "{author}"
-# source = "{platform}"
-# original_url = "{source_url}"

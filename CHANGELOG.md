@@ -12,6 +12,7 @@
 - 让 Markdown front matter、正文标题和来源信息块支持配置模板，便于直接适配个人博客和静态站。
 - 让图片和视频 Markdown 路径支持模板配置，文件仍保存到本地媒体目录，Markdown 可写成站点需要的 `/static/...`、`./images/...` 等路径。
 - 新增 `plain`、`hugo`、`docusaurus` Markdown 预设，常见发布目标可以一行配置启用，并保留用户显式配置优先级。
+- 激活 `.magicmd.example.toml` 和内置配置模板中的 v0.2 字段，`magicmd config init` 生成的示例现在可直接复制修改。
 
 ### English
 
@@ -23,6 +24,7 @@
 - Made Markdown front matter, title rendering, and the source block configurable for blog and static-site workflows.
 - Made image and video Markdown paths configurable while still saving files into local media directories.
 - Added `plain`, `hugo`, and `docusaurus` Markdown presets for common publishing targets while keeping explicit user settings in control.
+- Activated v0.2 fields in `.magicmd.example.toml` and the packaged config template so `magicmd config init` creates a ready-to-edit example.
 
 ## v0.1.2 - 2026-06-07
 
