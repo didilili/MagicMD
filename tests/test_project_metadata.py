@@ -37,6 +37,6 @@ def test_npm_wrapper_metadata_matches_python_package():
     assert npm_package["name"] == "magicmd"
     assert npm_package["version"] == python_metadata["project"]["version"]
     assert npm_package["bin"] == {"magicmd": "bin/magicmd.js"}
-    assert npm_package["private"] is True
+    assert npm_package["private"] is False
     assert "uvx --from magicmd magicmd" in wrapper
     assert "uvx --from magicmd magicmd" in readme
