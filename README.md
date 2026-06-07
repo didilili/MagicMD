@@ -181,6 +181,75 @@ magicmd batch urls.txt -o output/ --overwrite
 magicmd convert "https://blog.csdn.net/user/article/details/123" --no-images
 ```
 
+## Python SDK 使用方式
+
+除了 CLI，MagicMD 也可以被其他 Python 项目直接 `import`。这适合 Web 后端、内容管理系统、定时任务或 Agent Runtime：你不需要额外启动一个 MagicMD 服务，也不需要从命令行解析输出目录。
+
+只在内存中返回结果：
+
+```python
+from magicmd import convert_article
+
+result = convert_article(
+    url="https://mp.weixin.qq.com/s/example",
+    platform="auto",
+    output_dir=None,
+    download_images=True,
+    config_path=None,
+)
+
+print(result.title)
+print(result.markdown)
+print(result.metadata)
+```
+
+同时生成内容包：
+
+```python
+from magicmd import convert_article
+
+result = convert_article(
+    url="https://juejin.cn/post/example",
+    output_dir="output",
+)
+
+print(result.package_dir)
+print(result.report)
+```
+
+`convert_article()` 返回的是稳定的 Pydantic 对象 `ArticleConversionResult`，常用字段包括：
+
+| 字段 | 说明 |
+| --- | --- |
+| `title` / `author` / `published_at` | 文章标题、作者和发布时间。 |
+| `platform` | `wechat`、`juejin`、`csdn`、`generic` 等平台标识。 |
+| `source_url` / `canonical_url` | 原始链接和规范链接。 |
+| `excerpt` | 页面能提取到的摘要。 |
+| `markdown` | 转换后的 Markdown 字符串。 |
+| `content_hash` | 基于正文内容生成的 hash，方便去重。 |
+| `images` | 图片资产列表，包含 `source_url`、`local_path`、`markdown_path`、`alt`。`markdown_path` 是 Markdown 中实际引用的路径；`local_path` 是本地已下载图片的文件系统路径，方便外部系统复制到自己的 media 目录后重写链接。 |
+| `warnings` | 抓取、解析、媒体下载中的 warning。 |
+| `metadata` | 与 `metadata.json` 对齐的结构化数据。 |
+| `report` | 与 `extraction-report.json` 对齐的转换报告。 |
+| `package_dir` | 只有传入 `output_dir` 并成功写出内容包时才有值。 |
+
+错误类型也可以被后端明确捕获：
+
+```python
+from magicmd import FetchError, ParseError, UnsupportedPlatformError, convert_article
+
+try:
+    result = convert_article("https://mp.weixin.qq.com/s/example")
+except UnsupportedPlatformError:
+    ...
+except FetchError:
+    ...
+except ParseError:
+    ...
+```
+
+公开错误类型包括 `UnsupportedPlatformError`、`FetchError`、`ParseError`、`MediaDownloadError` 和 `ConversionError`。MagicMD 不包含 HaoGit 专属字段；HaoGit 或其他系统可以自行把 `result.markdown`、`result.metadata`、`result.images` 写入自己的数据表和媒体目录。
+
 ## 支持站点
 
 | 站点 | 状态 | 默认抓取 | 说明 |
