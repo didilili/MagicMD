@@ -51,20 +51,15 @@ wait_selector = "#content_views"
 enabled = true
 browser = "http"
 
-# v0.2 design notes
-#
-# The next release will make naming and Markdown templates configurable.
-# The target shape is documented in docs/MagicMD-v0.2-template-system-plan.md.
-# These fields are intentionally not active here yet, so the example only shows
-# configuration that works in the current CLI.
-#
-# Planned examples:
-#
+# Output naming is configurable. Uncomment these fields when you want blog-style
+# packages such as `2026-06-07/my-article/index.md`.
 # [output.naming]
 # package = "{date}-{slug}"
 # markdown = "index.md"
 # metadata = "metadata.json"
 # report = "extraction-report.json"
+#
+# Upcoming Markdown template examples:
 #
 # [markdown.front_matter_fields]
 # title = "{title}"

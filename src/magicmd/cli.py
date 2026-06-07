@@ -177,12 +177,17 @@ def _quality_failure_stage(item: dict[str, Any], fallback: str) -> str:
     return fallback
 
 
-def _find_existing_package(output: Path, url: str) -> Path | None:
+def _find_existing_package(
+    output: Path,
+    url: str,
+    markdown_filename: str = "article.md",
+    metadata_filename: str = "metadata.json",
+) -> Path | None:
     if not output.exists():
         return None
-    for metadata_path in sorted(output.glob("*/metadata.json")):
+    for metadata_path in sorted(output.rglob(metadata_filename)):
         package_dir = metadata_path.parent
-        if not (package_dir / "article.md").exists():
+        if not (package_dir / markdown_filename).exists():
             continue
         try:
             metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
@@ -251,6 +256,7 @@ def convert_url(
             output,
             overwrite=overwrite or config.output.overwrite,
             markdown_config=config.markdown,
+            output_config=config.output,
         ),
     )
     if _should_save_debug_html(debug, config.output.save_debug_html, article.extraction.warnings):
@@ -274,7 +280,12 @@ def convert_url(
                 package_dir,
             ),
             )
-        write_article_files(article, package_dir, markdown_config=config.markdown)
+        write_article_files(
+            article,
+            package_dir,
+            markdown_config=config.markdown,
+            output_config=config.output,
+        )
     else:
         progress.run(5, 6, "Skipping image download", lambda: article)
     _run_conversion_stage(
@@ -309,7 +320,13 @@ def convert(
         download_images_enabled=not no_images,
         show_progress=True,
     )
-    quality = build_package_quality(url, package_dir)
+    config = load_config(config_path)
+    quality = build_package_quality(
+        url,
+        package_dir,
+        markdown_filename=config.output.naming.markdown,
+        metadata_filename=config.output.naming.metadata,
+    )
     if quality["status"] == "fail":
         raise click.ClickException(
             f"Extraction failed: {quality.get('error')}. Debug package saved at: {package_dir}"
@@ -334,18 +351,29 @@ def batch(
         for line in file.read_text(encoding="utf-8").splitlines()
         if line.strip() and not line.strip().startswith("#")
     ]
+    config = load_config(config_path)
     results = []
     for url in urls:
         started_at = perf_counter()
         context = _batch_context(url, platform, config_path)
         try:
             if skip_existing:
-                existing_package = _find_existing_package(resolved_output, url)
+                existing_package = _find_existing_package(
+                    resolved_output,
+                    url,
+                    markdown_filename=config.output.naming.markdown,
+                    metadata_filename=config.output.naming.metadata,
+                )
                 if existing_package:
                     elapsed_ms = int((perf_counter() - started_at) * 1000)
                     results.append(
                         _decorate_batch_result(
-                            build_skipped_quality(url, existing_package),
+                            build_skipped_quality(
+                                url,
+                                existing_package,
+                                markdown_filename=config.output.naming.markdown,
+                                metadata_filename=config.output.naming.metadata,
+                            ),
                             context,
                             elapsed_ms,
                             "skip",
@@ -366,7 +394,12 @@ def batch(
             elapsed_ms = int((perf_counter() - started_at) * 1000)
             results.append(
                 _decorate_batch_result(
-                    build_package_quality(url, package_dir),
+                    build_package_quality(
+                        url,
+                        package_dir,
+                        markdown_filename=config.output.naming.markdown,
+                        metadata_filename=config.output.naming.metadata,
+                    ),
                     context,
                     elapsed_ms,
                     "complete",

@@ -393,7 +393,7 @@ Expected: pass.
 - Modify: `src/magicmd/output.py`
 - Test: `tests/test_output.py`
 
-- [ ] **Step 1: Add failing output naming test**
+- [x] **Step 1: Add failing output naming test**
 
 Add this test:
 
@@ -426,7 +426,7 @@ def test_write_article_package_uses_configured_output_names(tmp_path: Path):
     assert (package_dir / "meta.json").exists()
 ```
 
-- [ ] **Step 2: Run the failing test**
+- [x] **Step 2: Run the failing test**
 
 Run:
 
@@ -436,7 +436,7 @@ uv run pytest tests/test_output.py::test_write_article_package_uses_configured_o
 
 Expected: fail because `write_article_package` does not accept `output_config`.
 
-- [ ] **Step 3: Implement naming**
+- [x] **Step 3: Implement naming**
 
 Update `write_article_package` and `write_article_files` to accept `output_config: OutputConfig | None`.
 
@@ -464,11 +464,11 @@ config = output_config or OutputConfig()
 (package_path / format_template(config.naming.metadata, variables)).write_text(...)
 ```
 
-- [ ] **Step 4: Update existing callers**
+- [x] **Step 4: Update existing callers**
 
 In `src/magicmd/cli.py`, pass `output_config=config.output` when calling `write_article_package` and `write_article_files`.
 
-- [ ] **Step 5: Run output and CLI tests**
+- [x] **Step 5: Run output and CLI tests**
 
 Run:
 
