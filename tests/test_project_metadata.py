@@ -62,3 +62,21 @@ def test_npm_wrapper_explains_missing_uvx():
     assert "powershell -ExecutionPolicy ByPass" in result.stderr
     assert "uv tool install magicmd" in result.stderr
     assert "pipx install magicmd" in result.stderr
+
+
+def test_publishable_skill_exists():
+    skill_path = Path("skills/magicmd/SKILL.md")
+    openai_yaml_path = Path("skills/magicmd/agents/openai.yaml")
+
+    assert skill_path.exists()
+    assert openai_yaml_path.exists()
+
+    skill = skill_path.read_text(encoding="utf-8")
+    openai_yaml = openai_yaml_path.read_text(encoding="utf-8")
+
+    assert "name: magicmd" in skill
+    assert "uvx --from magicmd magicmd" in skill
+    assert "extraction-report.json" in skill
+    assert "Do not use it to bypass login" in skill
+    assert 'display_name: "MagicMD"' in openai_yaml
+    assert "allow_implicit_invocation: true" in openai_yaml

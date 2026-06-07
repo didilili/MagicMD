@@ -1,0 +1,6 @@
+interface:
+  display_name: "MagicMD"
+  short_description: "Convert public articles into clean Markdown"
+  default_prompt: "Use $magicmd to convert these article links into Markdown packages."
+policy:
+  allow_implicit_invocation: true

@@ -12,7 +12,7 @@ magicmd/
 ├── README_EN.md               # English documentation
 ├── CHANGELOG.md               # 中英文版本变更记录
 ├── LICENSE                    # MIT 开源许可证
-├── SKILL.md                   # Agent Skill 使用说明
+├── SKILL.md                   # 兼容入口；正式 Skill 位于 skills/magicmd/
 ├── .magicmd.example.toml       # MagicMD 配置示例
 ├── pyproject.toml             # Python 包配置、依赖和 CLI 入口
 ├── uv.lock                    # uv 锁定依赖版本
@@ -31,6 +31,11 @@ magicmd/
 │       ├── README.md
 │       └── bin/
 │           └── magicmd.js
+├── skills/
+│   └── magicmd/               # 可安装的 Agent Skill
+│       ├── SKILL.md
+│       └── agents/
+│           └── openai.yaml
 ├── samples/                   # 真实站点验证 URL 样本
 ├── src/
 │   └── magicmd/
