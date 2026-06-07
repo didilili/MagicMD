@@ -4,11 +4,11 @@
 
 ### 中文
 
-- 新增 `npm/magicmd` 轻量 npm wrapper 准备项，后续发布 npm 包时可转发到 PyPI 版 `magicmd` CLI。
+- 发布 `magicmd@0.1.0` npm wrapper，支持 `npm install -g magicmd` 和 `npx magicmd` 入口，底层转发到 PyPI 版 `magicmd` CLI。
 
 ### English
 
-- Added the `npm/magicmd` thin npm wrapper scaffold for a future npm package that forwards to the PyPI `magicmd` CLI.
+- Published the `magicmd@0.1.0` npm wrapper, enabling `npm install -g magicmd` and `npx magicmd` while forwarding to the PyPI `magicmd` CLI.
 
 ## v0.1.0 - 2026-06-06
 
