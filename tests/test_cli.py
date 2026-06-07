@@ -8,11 +8,19 @@ import pytest
 from rich.console import Console
 from typer.testing import CliRunner
 
+from magicmd import __version__
 from magicmd.cli import ConversionStageError, ProgressReporter, app, entrypoint
 from magicmd.cli import convert_url, fetch_for_platform
 
 
 runner = CliRunner()
+
+
+def test_version_option():
+    result = runner.invoke(app, ["--version"])
+
+    assert result.exit_code == 0
+    assert f"MagicMD {__version__}" in result.stdout
 
 
 def test_doctor_command():

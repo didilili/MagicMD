@@ -21,6 +21,7 @@ MagicMD v0.1.0 固化为可用的独立 CLI 基线，重点覆盖公开文章链
 - 批量命令新增 `--skip-existing` 和 `--overwrite`，支持重复跑回归集时跳过已有内容包，或显式覆盖同名输出包。
 - 浏览器抓取层会对瞬时 Camoufox/Playwright 失败自动重试一次，降低批量转换中的偶发中断。
 - `magicmd doctor` 已升级为环境诊断命令，可检查 Python 版本、MagicMD 版本、配置解析、输出目录可写性、Camoufox 可用性和平台默认抓取方式。
+- 根命令新增 `--version`，方便安装后快速确认当前 CLI 版本。
 - 建立微信公众号回归样本清单：`tests/fixtures/wechat_regression_manifest.json`。
 - 建立跨站点验证清单：`tests/fixtures/site_validation_manifest.json`。
 - 发布前构建检查通过：`uv build`、wheel/sdist 内容检查、临时 wheel 安装 smoke test 和 `twine check` 均已验证。
@@ -44,6 +45,7 @@ MagicMD v0.1.0 is the first usable standalone CLI baseline for converting public
 - The batch command now supports `--skip-existing` and `--overwrite` for repeated regression runs and explicit output replacement.
 - Browser fetching now retries transient Camoufox/Playwright failures once, reducing intermittent interruptions during batch conversion.
 - `magicmd doctor` is now a real runtime diagnostic command that checks Python version, MagicMD version, config parsing, output writability, Camoufox availability, and platform defaults.
+- Adds a root `--version` option so installed CLI environments can quickly confirm the active MagicMD version.
 - Adds the WeChat regression corpus manifest: `tests/fixtures/wechat_regression_manifest.json`.
 - Adds the cross-site validation manifest: `tests/fixtures/site_validation_manifest.json`.
 - Pre-release build checks passed: `uv build`, wheel/sdist content inspection, temporary wheel-install smoke tests, and `twine check` have all been verified.
