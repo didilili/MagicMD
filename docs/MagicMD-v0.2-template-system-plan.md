@@ -665,7 +665,7 @@ Expected: pass.
 - Create: `src/magicmd/presets.py`
 - Test: `tests/test_config.py`
 
-- [ ] **Step 1: Add preset tests**
+- [x] **Step 1: Add preset tests**
 
 Add tests asserting:
 
@@ -673,7 +673,7 @@ Add tests asserting:
 - `hugo` uses `index.md` and YAML front matter.
 - `docusaurus` uses `index.md`, YAML front matter, and `./{directory}/{filename}` image paths.
 
-- [ ] **Step 2: Implement preset application**
+- [x] **Step 2: Implement preset application**
 
 Create `src/magicmd/presets.py`:
 
@@ -708,7 +708,7 @@ def apply_preset(config: MagicMDConfig) -> MagicMDConfig:
 
 Expose `_deep_merge` or move it to a shared helper. Apply preset after TOML load, before returning config.
 
-- [ ] **Step 3: Run config tests**
+- [x] **Step 3: Run config tests**
 
 Run:
 

@@ -105,11 +105,13 @@ def _deep_merge(base: dict, override: dict, path: tuple[str, ...] = ()) -> dict:
 
 
 def load_config(path: str | Path | None = None) -> MagicMDConfig:
+    from magicmd.presets import apply_preset
+
     default = MagicMDConfig().model_dump()
     if not path:
-        return MagicMDConfig.model_validate(default)
+        return apply_preset(MagicMDConfig.model_validate(default))
     config_path = Path(path)
     if not config_path.exists():
-        return MagicMDConfig.model_validate(default)
+        return apply_preset(MagicMDConfig.model_validate(default))
     loaded = tomllib.loads(config_path.read_text(encoding="utf-8"))
-    return MagicMDConfig.model_validate(_deep_merge(default, loaded))
+    return apply_preset(MagicMDConfig.model_validate(_deep_merge(default, loaded)), loaded)
