@@ -13,9 +13,17 @@ uvx --from magicmd magicmd
 - Node.js 18+
 - `uv` available on `PATH`
 
-## Usage
+If `uvx` is missing, install `uv` first:
 
-After the npm package is published:
+```bash
+# macOS/Linux
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Windows
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
+
+## Usage
 
 ```bash
 npm install -g magicmd
@@ -23,10 +31,11 @@ magicmd --version
 magicmd batch urls.txt -o output/
 ```
 
-Until then, install MagicMD directly from PyPI:
+You can also install MagicMD directly from PyPI:
 
 ```bash
 uv tool install magicmd
+pipx install magicmd
 magicmd doctor
 ```
 
