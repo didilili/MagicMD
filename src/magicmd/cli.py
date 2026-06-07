@@ -262,24 +262,14 @@ def convert_url(
     )
     if _should_save_debug_html(debug, config.output.save_debug_html, article.extraction.warnings):
         save_debug_html(package_dir, html)
-    if download_images_enabled and config.images.download:
-        from magicmd.assets import download_images, download_videos
-
+    if download_images_enabled and (config.images.download or config.videos.download):
         article = _run_conversion_stage(
             progress,
             "media",
             5,
             6,
             "Downloading media",
-            lambda: download_videos(
-                download_images(
-                    article,
-                    package_dir,
-                    config.images.directory,
-                    config.images.filename_pattern,
-                ),
-                package_dir,
-            ),
+            lambda: _download_configured_media(article, package_dir, config),
             )
         write_article_files(
             article,
@@ -302,6 +292,29 @@ def convert_url(
         ),
     )
     return package_dir
+
+
+def _download_configured_media(article, package_dir: Path, config):
+    from magicmd.assets import download_images, download_videos
+
+    next_article = article
+    if config.images.download:
+        next_article = download_images(
+            next_article,
+            package_dir,
+            config.images.directory,
+            config.images.filename_pattern,
+            config.images.markdown_path,
+        )
+    if config.videos.download:
+        next_article = download_videos(
+            next_article,
+            package_dir,
+            config.videos.directory,
+            config.videos.filename_pattern,
+            config.videos.markdown_path,
+        )
+    return next_article
 
 
 @app.command()

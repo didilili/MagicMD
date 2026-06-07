@@ -85,6 +85,33 @@ def test_download_images_honors_filename_pattern(monkeypatch, tmp_path):
     assert "![Image](images/asset-1.jpg)" in next_article.content_markdown
 
 
+def test_download_images_honors_markdown_path_template(monkeypatch, tmp_path):
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, headers={"content-type": "image/png"}, content=b"image")
+
+    article = Article(
+        title="图片路径文章",
+        platform="wechat",
+        source_url="https://mp.weixin.qq.com/s/demo",
+        content_markdown="![Image](https://example.com/a.png)",
+        images=[ImageAsset(source_url="https://example.com/a.png")],
+        extraction=ExtractionInfo(platform="wechat", parser="wechat"),
+    )
+    monkeypatch.setattr("magicmd.assets._image_transport", lambda: httpx.MockTransport(handler))
+
+    next_article = download_images(
+        article,
+        tmp_path,
+        image_dir_name="assets/images",
+        filename_pattern="cover_{index:02d}.{ext}",
+        markdown_path_pattern="/static/{directory}/{filename}",
+    )
+
+    assert (tmp_path / "assets" / "images" / "cover_01.png").exists()
+    assert next_article.images[0].local_path == "/static/assets/images/cover_01.png"
+    assert "![Image](/static/assets/images/cover_01.png)" in next_article.content_markdown
+
+
 def test_download_videos_saves_local_file_and_rewrites_markdown(monkeypatch, tmp_path):
     article = Article(
         title="视频文章",
@@ -105,3 +132,29 @@ def test_download_videos_saves_local_file_and_rewrites_markdown(monkeypatch, tmp
 
     assert next_article.content_markdown == "[视频](videos/video_001.mp4)"
     assert (tmp_path / "videos" / "video_001.mp4").read_bytes() == b"mp4-data"
+
+
+def test_download_videos_honors_media_path_templates(monkeypatch, tmp_path):
+    article = Article(
+        title="视频路径文章",
+        platform="wechat",
+        source_url="https://mp.weixin.qq.com/s/demo",
+        content_markdown="[视频](https://mpvideo.qpic.cn/demo.mp4)",
+        extraction=ExtractionInfo(platform="wechat", parser="wechat"),
+    )
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, headers={"content-type": "video/mp4"}, content=b"mp4-data")
+
+    monkeypatch.setattr("magicmd.assets._video_transport", lambda: httpx.MockTransport(handler))
+
+    next_article = download_videos(
+        article,
+        tmp_path,
+        video_dir_name="assets/videos",
+        filename_pattern="clip_{index:02d}.{ext}",
+        markdown_path_pattern="/static/{directory}/{filename}",
+    )
+
+    assert next_article.content_markdown == "[视频](/static/assets/videos/clip_01.mp4)"
+    assert (tmp_path / "assets" / "videos" / "clip_01.mp4").read_bytes() == b"mp4-data"

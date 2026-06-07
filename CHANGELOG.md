@@ -10,6 +10,7 @@
 - 让 `output.naming` 开始控制真实输出：内容包目录、Markdown 文件名、metadata 文件名以及批量 `--skip-existing` 检测都会使用配置值。
 - 让 `output.naming.report` 控制提取报告文件名，并支持同一套模板变量。
 - 让 Markdown front matter、正文标题和来源信息块支持配置模板，便于直接适配个人博客和静态站。
+- 让图片和视频 Markdown 路径支持模板配置，文件仍保存到本地媒体目录，Markdown 可写成站点需要的 `/static/...`、`./images/...` 等路径。
 
 ### English
 
@@ -19,6 +20,7 @@
 - Made `output.naming` affect real output: package directories, Markdown filenames, metadata filenames, and batch `--skip-existing` detection now use configured values.
 - Made `output.naming.report` control the extraction report filename with the same template variables.
 - Made Markdown front matter, title rendering, and the source block configurable for blog and static-site workflows.
+- Made image and video Markdown paths configurable while still saving files into local media directories.
 
 ## v0.1.2 - 2026-06-07
 

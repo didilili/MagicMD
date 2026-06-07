@@ -67,7 +67,13 @@ def _infer_video_extension(url: str, content_type: str = "") -> str:
     return "mp4"
 
 
-def download_videos(article: Article, package_dir: Path, video_dir_name: str = "videos") -> Article:
+def download_videos(
+    article: Article,
+    package_dir: Path,
+    video_dir_name: str = "videos",
+    filename_pattern: str = "video_{index:03d}.{ext}",
+    markdown_path_pattern: str = "{directory}/{filename}",
+) -> Article:
     matches = list(re.finditer(r"\[视频\]\((https?://[^)\n]+)\)", article.content_markdown))
     if not matches:
         return article
@@ -98,8 +104,15 @@ def download_videos(article: Article, package_dir: Path, video_dir_name: str = "
                     )
                     response.raise_for_status()
                     ext = _infer_video_extension(url, response.headers.get("content-type", ""))
-                    local_path = f"{video_dir_name}/video_{len(seen) + 1:03d}.{ext}"
-                    (package_dir / local_path).write_bytes(response.content)
+                    filename = filename_pattern.format(index=len(seen) + 1, ext=ext)
+                    saved_path = video_dir / filename
+                    local_path = markdown_path_pattern.format(
+                        directory=video_dir_name,
+                        filename=filename,
+                        index=len(seen) + 1,
+                        ext=ext,
+                    )
+                    saved_path.write_bytes(response.content)
                     seen[url] = local_path
                 except Exception as exc:
                     warnings.append(f"video_download_failed:{url}:{exc}")
@@ -116,6 +129,7 @@ def download_images(
     package_dir: Path,
     image_dir_name: str = "images",
     filename_pattern: str = "img_{index:03d}.{ext}",
+    markdown_path_pattern: str = "{directory}/{filename}",
 ) -> Article:
     if not article.images:
         return article
@@ -135,8 +149,14 @@ def download_images(
                 response.raise_for_status()
                 ext = infer_image_extension(url, response.headers.get("content-type", ""))
                 filename = filename_pattern.format(index=index, ext=ext)
-                local_path = f"{image_dir_name}/{filename}"
-                (package_dir / local_path).write_bytes(response.content)
+                saved_path = image_dir / filename
+                local_path = markdown_path_pattern.format(
+                    directory=image_dir_name,
+                    filename=filename,
+                    index=index,
+                    ext=ext,
+                )
+                saved_path.write_bytes(response.content)
                 next_images.append(image.model_copy(update={"local_path": local_path}))
             except Exception as exc:
                 warnings.append(f"image_download_failed:{url}:{exc}")

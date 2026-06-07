@@ -607,7 +607,7 @@ Expected: pass.
 - Modify: `src/magicmd/cli.py`
 - Test: `tests/test_assets.py`
 
-- [ ] **Step 1: Add image path template test**
+- [x] **Step 1: Add image path template test**
 
 Add a unit test around `download_images` using the existing test transport pattern. Configure:
 
@@ -619,7 +619,7 @@ markdown_path = "/static/{directory}/{filename}"
 
 Assert Markdown image links become `/static/assets/images/cover_01.png`.
 
-- [ ] **Step 2: Modify `download_images` signature**
+- [x] **Step 2: Modify `download_images` signature**
 
 Add:
 
@@ -641,13 +641,13 @@ local_path = markdown_path_pattern.format(
 
 Still write bytes to `package_dir / image_dir_name / filename`.
 
-- [ ] **Step 3: Add video config wiring**
+- [x] **Step 3: Add video config wiring**
 
 Add `video_dir_name`, `filename_pattern`, and `markdown_path_pattern` to `download_videos`.
 
 In `convert_url`, call with `config.videos.*`.
 
-- [ ] **Step 4: Run asset tests**
+- [x] **Step 4: Run asset tests**
 
 Run:
 
