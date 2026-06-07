@@ -100,6 +100,27 @@ The npm wrapper lives in [npm/magicmd](./npm/magicmd). It does not reimplement c
 uvx --from magicmd magicmd
 ```
 
+### Agent Skill
+
+MagicMD can also be installed as an Agent Skill. The Skill does not duplicate the converter; it tells the agent when to call MagicMD, how to run batch jobs, what files to verify, and which reports to inspect when extraction fails.
+
+Install source:
+
+```text
+Repository: didilili/MagicMD
+Skill path: skills/magicmd
+```
+
+With Codex's skill installer:
+
+```bash
+python3 ~/.codex/skills/.system/skill-installer/scripts/install-skill-from-github.py \
+  --repo didilili/MagicMD \
+  --path skills/magicmd
+```
+
+Restart Codex after installing so `$magicmd` is available.
+
 ## Quick Start
 
 Convert one article:

@@ -100,6 +100,27 @@ npm wrapper 位于 [npm/magicmd](./npm/magicmd)。它不会重新实现转换逻
 uvx --from magicmd magicmd
 ```
 
+### Agent Skill
+
+MagicMD 也可以作为 Agent Skill 安装。Skill 不复制转换逻辑，只规定 Agent 什么时候调用 MagicMD、怎么批量运行、转换后检查哪些文件，以及遇到失败时查看哪些报告。
+
+安装源：
+
+```text
+Repository: didilili/MagicMD
+Skill path: skills/magicmd
+```
+
+使用 Codex 的 skill installer：
+
+```bash
+python3 ~/.codex/skills/.system/skill-installer/scripts/install-skill-from-github.py \
+  --repo didilili/MagicMD \
+  --path skills/magicmd
+```
+
+安装后重启 Codex，让 `$magicmd` 生效。
+
 ## 快速使用
 
 转换单篇文章：
