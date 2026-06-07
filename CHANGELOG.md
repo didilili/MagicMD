@@ -1,5 +1,27 @@
 # Changelog
 
+## v0.3.0 - 2026-06-08
+
+### 中文
+
+- 新增公开 Python SDK：外部项目现在可以直接 `from magicmd import convert_article`，无需通过 CLI 或 Agent Skill 间接调用。
+- 新增结构化返回对象 `ArticleConversionResult`，包含标题、作者、平台、来源链接、发布时间、摘要、Markdown、内容 hash、图片资产、warning、metadata、转换报告和可选内容包目录。
+- 新增图片资产对象 `ConvertedImage`，明确区分 `markdown_path` 和 `local_path`：前者表示 Markdown 中实际引用的路径，后者表示本地已下载图片的文件系统路径。
+- 新增公开错误类型：`UnsupportedPlatformError`、`FetchError`、`ParseError`、`MediaDownloadError` 和 `ConversionError`，方便 Web 后端和自动化任务按失败阶段处理。
+- 支持 `output_dir=None` 的纯内存转换，适合业务系统直接保存 Markdown 和 metadata；传入 `output_dir` 时仍会生成原有内容包。
+- CLI 的单篇转换流程改为复用 SDK，不再与 Python API 维护两套转换逻辑。
+- README / README_EN 新增 Python SDK 使用说明和错误处理示例。
+
+### English
+
+- Added the public Python SDK: external projects can now call `from magicmd import convert_article` directly without shelling out to the CLI or relying on the Agent Skill.
+- Added the structured `ArticleConversionResult` model with title, author, platform, source URL, publish time, excerpt, Markdown, content hash, image assets, warnings, metadata, extraction report, and optional package directory.
+- Added `ConvertedImage` and clarified image paths: `markdown_path` is the path referenced by generated Markdown, while `local_path` is the downloaded filesystem path.
+- Added public error types: `UnsupportedPlatformError`, `FetchError`, `ParseError`, `MediaDownloadError`, and `ConversionError` for backend-friendly failure handling.
+- Added in-memory conversion with `output_dir=None`, while keeping the existing package-writing behavior when `output_dir` is provided.
+- Updated the CLI single-conversion path to reuse the SDK instead of maintaining separate conversion logic.
+- Added Python SDK usage and error-handling examples to README / README_EN.
+
 ## v0.2.0 - 2026-06-07
 
 ### 中文

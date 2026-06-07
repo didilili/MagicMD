@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "magicmd"
-version = "0.2.0"
+version = "0.3.0"
 description = "Convert public article links into configurable Markdown packages."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -37,6 +37,15 @@ packages = ["src/magicmd"]
 
 [tool.hatch.build.targets.wheel.force-include]
 "src/magicmd/templates/magicmd.example.toml" = "magicmd/templates/magicmd.example.toml"
+
+[tool.hatch.build.targets.sdist]
+exclude = [
+  "/dist",
+  "/output",
+  "/website/.vitepress/cache",
+  "/website/.vitepress/dist",
+  "/website/node_modules",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
