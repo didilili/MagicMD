@@ -49,28 +49,30 @@ MagicMD 的优势不是“抓全网”，而是把中文技术内容归档这件
 
 ## 安装
 
-当前 v0.1 推荐从源码安装或开发安装。Clone 仓库后运行：
+推荐用 `uv` 全局安装：
 
 ```bash
-cd magicmd
-uv sync --extra dev
-uv run magicmd doctor
-```
-
-安装成全局命令后，可以直接运行 `magicmd`：
-
-```bash
-uv tool install --editable .
+uv tool install magicmd
 magicmd doctor
 ```
 
 如果你习惯 `pipx`：
 
 ```bash
-pipx install .
+pipx install magicmd
+magicmd doctor
 ```
 
-还没有全局安装时，把下面命令里的 `magicmd` 换成 `uv run magicmd` 即可。
+参与开发或想使用当前源码时，再使用 editable 安装：
+
+```bash
+git clone https://github.com/didilili/MagicMD.git
+cd MagicMD
+uv sync --extra dev
+uv run magicmd doctor
+```
+
+还没有安装成全局命令时，把下面命令里的 `magicmd` 换成 `uv run magicmd` 即可。
 
 ```bash
 uv run magicmd batch urls.txt -o output/
@@ -78,10 +80,11 @@ uv run magicmd batch urls.txt -o output/
 
 ### PyPI 和 npm
 
-MagicMD 目前还没有发布到 PyPI，所以暂时不能直接运行：
+MagicMD 已发布到 PyPI：
 
 ```bash
 uv tool install magicmd
+pipx install magicmd
 ```
 
 MagicMD 目前也不是 npm 包，所以暂时不支持：
@@ -279,8 +282,8 @@ MagicMD 只处理公开文章页面。它不会绕过登录、付费墙、私有
 
 ## 接下来
 
-- 发布到 PyPI，支持 `uv tool install magicmd`。
 - 评估 npm wrapper，支持 `npm install -g magicmd` 或 `npx magicmd`。
+- 完善 PyPI 发布自动化和 project-scoped token 流程。
 - 增加 Markdown 模板系统。
 - 增加 GitHub 发布能力。
 - 增加 HaoGit 导入能力。
