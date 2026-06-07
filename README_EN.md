@@ -2,245 +2,219 @@
 
 [中文](./README.md) | English
 
-MagicMD is a CLI tool that turns public article links into Markdown content packages.
+Turn scattered web articles into Markdown you can keep in your own repository.
 
-It borrows proven ideas from single-platform article converters, but aims to be more complete: cleaner architecture, stronger configuration, multi-platform adapters, normalized metadata, and room for future publishing to GitHub or ingestion into HaoGit.
+MagicMD is a Markdown conversion tool for public article URLs. Give it one URL, or a whole URL list, and it writes the article body, images, source metadata, and extraction reports into a durable content package.
 
-## Features
+```bash
+magicmd "https://mp.weixin.qq.com/s/example"
+magicmd batch urls.txt -o output/
+```
 
-- Convert one article URL into a Markdown package.
-- Stable support for WeChat public account articles; experimental support for Juejin and CSDN, with browser mode enabled by default for these dynamic pages.
-- CSDN has been validated against ten complex live samples, with manual review for code blocks, Mermaid/SVG diagrams, generated table-of-contents links, and site-widget cleanup.
-- Juejin has been validated against homepage samples and complex technical articles, covering body content, images, code blocks, external links, and heading depth.
-- Best-effort extraction for generic public article pages.
-- Support batch URL conversion.
-- Support configurable Markdown front matter and output structure.
-- Download article images and rewrite Markdown image links to local paths.
-- Generate `metadata.json` for future publishing to GitHub, HaoGit, or other sites.
-- Generate an extraction report for debugging fetch and parsing issues.
-- Generate `batch-report.json` and `batch-report.md` after batch conversion to surface failed URLs, extraction warnings, and Markdown quality signals.
-- Browser mode automatically retries transient Camoufox/Playwright fetch failures once, reducing intermittent interruptions during batch conversion.
-- Include `SKILL.md` so MagicMD can be used as an Agent Skill.
+The output is not a temporary blob of text. It is a directory ready for a publishing or archiving workflow:
+
+```text
+output/article-title/
+├── article.md
+├── metadata.json
+├── extraction-report.json
+└── images/
+    ├── img_001.png
+    └── img_002.png
+```
+
+MagicMD works as a CLI and as an Agent Skill. Humans provide links and get files on disk; agents can use the same repeatable workflow for batch collection.
+
+## What It Is For
+
+- Saving WeChat Official Account articles as Markdown.
+- Moving Juejin and CSDN technical articles into a local knowledge base.
+- Preparing public articles for GitHub, Hugo, Docusaurus, HaoGit, or your own site.
+- Giving agents a stable "article URL to Markdown" capability instead of rewriting prompts every time.
+
+MagicMD is not a bookmark manager and not a general-purpose crawler framework. Its goal is narrower: **turn public article pages into clean, traceable, reusable Markdown packages.**
+
+## How It Differs From Similar Tools
+
+Many tools can turn web pages or files into Markdown. MagicMD is focused on a more specific problem: **turning Chinese content-platform articles into Markdown that can be maintained over time.**
+
+| Tool type | Common focus | MagicMD's difference |
+| --- | --- | --- |
+| Generic URL-to-Markdown tools | Great for standard web pages, docs, English sites, or LLM input cleanup. | MagicMD has platform adapters for WeChat, Juejin, and CSDN, with cleanup for rich text, redirect links, code widgets, and editor noise common on Chinese content platforms. |
+| WeChat-only conversion scripts | Often extract body text and images, but have limited config, batch reporting, and multi-platform extensibility. | MagicMD keeps `metadata.json`, `extraction-report.json`, batch reports, and configurable Markdown output, so the result can feed publishing or automation workflows. |
+| Crawler frameworks | Powerful, but usually require custom parsing, cleanup rules, and output conventions. | MagicMD gives article-collection workflows a ready CLI: links in, content packages on disk. |
+| Manual copy to Markdown | Precise, but slow; images, links, code blocks, and source metadata are easy to lose. | MagicMD handles local images, heading depth, code blocks, links, source metadata, and failure warnings automatically. |
+
+MagicMD's advantage is not "crawl the whole web." It is doing the Chinese technical-content archiving work carefully: WeChat video links are extracted and local download is attempted; Juejin redirect links are normalized back to direct target URLs where possible; CSDN code blocks are cleaned of copy buttons, line counters, and editor widgets; batch conversion leaves a report so you know which articles need review.
 
 ## Installation
 
+For v0.1, install from source or use an editable development install. After cloning the repository, run:
+
 ```bash
+cd magicmd
 uv sync --extra dev
+uv run magicmd doctor
 ```
 
-## Usage
-
-Convert a single article:
+Install it as a global command:
 
 ```bash
-uv run magicmd "https://mp.weixin.qq.com/s/example"
+uv tool install --editable .
+magicmd doctor
 ```
 
-Use the explicit `convert` command:
+If you prefer `pipx`:
 
 ```bash
-uv run magicmd convert "https://juejin.cn/post/example" -o output/
+pipx install .
 ```
 
-Convert a CSDN article:
-
-```bash
-uv run magicmd convert "https://blog.csdn.net/user/article/details/123" -o output/
-```
-
-Batch conversion:
+If MagicMD is not globally installed yet, replace `magicmd` with `uv run magicmd`:
 
 ```bash
 uv run magicmd batch urls.txt -o output/
 ```
 
-Skip links that already have an output package, useful for repeated regression runs:
+### PyPI and npm
+
+MagicMD has not been published to PyPI yet, so this is not available today:
 
 ```bash
-uv run magicmd batch urls.txt -o output/ --skip-existing
+uv tool install magicmd
+```
+
+MagicMD is not an npm package yet, so these are not currently supported:
+
+```bash
+npm install -g magicmd
+npx magicmd
+```
+
+An npm entrypoint would be a lightweight wrapper around the MagicMD CLI. It is on the roadmap.
+
+## Quick Start
+
+Convert one article:
+
+```bash
+magicmd "https://mp.weixin.qq.com/s/example"
+```
+
+Choose an output directory:
+
+```bash
+magicmd convert "https://juejin.cn/post/example" -o output/
+```
+
+Batch conversion:
+
+```bash
+magicmd batch urls.txt -o output/
+```
+
+`urls.txt` uses one link per line:
+
+```text
+https://mp.weixin.qq.com/s/example
+https://juejin.cn/post/example
+https://blog.csdn.net/user/article/details/123
+```
+
+Skip packages that already exist:
+
+```bash
+magicmd batch urls.txt -o output/ --skip-existing
 ```
 
 Overwrite matching output packages:
 
 ```bash
-uv run magicmd batch urls.txt -o output/ --overwrite
+magicmd batch urls.txt -o output/ --overwrite
 ```
 
-After batch conversion, MagicMD writes:
-
-```text
-output/
-├── batch-report.json
-└── batch-report.md
-```
-
-The report records `status`, `platform`, `fetcher`, `stage`, `elapsed_ms`, `max_attempts`, `retry_enabled`, media counts, warnings, and quality issues for each URL. `stage` helps locate whether a failure happened during `detect`, `fetch`, `parse`, `write`, `media`, `report`, or the broader `convert` step. `max_attempts` is the configured upper bound, not the actual attempt number that succeeded.
-
-Initialize config:
+Convert Markdown without downloading images:
 
 ```bash
-uv run magicmd config init
+magicmd convert "https://blog.csdn.net/user/article/details/123" --no-images
 ```
-
-Check the runtime:
-
-```bash
-uv run magicmd doctor
-```
-
-`doctor` checks the Python version, MagicMD version, config parsing, output writability, Camoufox availability, and default fetch mode for each platform. You can also pass an explicit config and output directory:
-
-```bash
-uv run magicmd doctor --config .magicmd.toml --output output/
-```
-
-## Output Structure
-
-```text
-output/
-├── batch-report.json          # Generated by batch, machine-readable quality report
-├── batch-report.md            # Generated by batch, human-readable quality report
-└── undated-article-title/
-    ├── article.md
-    ├── metadata.json
-    ├── extraction-report.json
-    └── images/
-        ├── img_001.png
-        └── img_002.png
-```
-
-## Project Structure
-
-```text
-magicmd/
-├── README.md                 # Chinese documentation
-├── README_EN.md              # English documentation
-├── CHANGELOG.md              # Bilingual changelog
-├── LICENSE                   # MIT open-source license
-├── SKILL.md                  # Agent Skill instructions
-├── .magicmd.example.toml      # Example MagicMD config
-├── pyproject.toml            # Python package metadata, dependencies, and CLI entry
-├── uv.lock                   # Locked dependency versions from uv
-├── .github/
-│   └── workflows/
-│       └── ci.yml            # GitHub Actions: tests, lint, and build
-├── docs/
-│   ├── MagicMD-v0.1-design.md
-│   ├── MagicMD-v0.1-implementation-plan.md
-│   ├── supported-sites.md
-│   └── wechat-regression-corpus.md
-├── src/
-│   └── magicmd/
-│       ├── cli.py            # CLI commands and conversion orchestration
-│       ├── config.py         # Config loading and defaults
-│       ├── detect.py         # URL-based platform detection
-│       ├── models.py         # Article, ImageAsset, and ExtractionInfo models
-│       ├── output.py         # Output folder, article.md, and metadata.json writing
-│       ├── quality.py        # Batch quality reports and Markdown quality scanning
-│       ├── assets.py         # Image downloading and Markdown image link rewriting
-│       ├── diagnostics.py    # debug.html and extraction-report.json writing
-│       ├── fetchers/
-│       │   ├── http.py       # Plain HTTP fetching
-│       │   └── browser.py    # Camoufox browser-rendered fetching
-│       ├── platforms/
-│       │   ├── base.py       # Compatibility entrypoint for shared cleanup and Markdown conversion
-│       │   ├── wechat.py     # WeChat public account parser
-│       │   ├── juejin.py     # Juejin parser
-│       │   ├── csdn.py       # CSDN parser
-│       │   ├── generic.py    # Generic web page parser
-│       │   ├── registry.py   # Platform registry, default fetch modes, and parser mapping
-│       │   └── shared/
-│       │       ├── content.py # DOM cleanup, image detection, and code block preservation
-│       │       ├── markdown.py# HTML-to-Markdown conversion and Markdown post-processing
-│       │       └── metadata.py# Metadata, text, and timestamp extraction helpers
-│       ├── renderers/
-│       │   └── markdown.py   # Final Markdown file template
-│       └── templates/
-│           └── magicmd.example.toml # Config template bundled in the wheel
-└── tests/
-    ├── fixtures/             # HTML fixtures, the WeChat regression manifest, and the site validation manifest
-    ├── test_platform_wechat.py
-    ├── test_platform_juejin.py
-    ├── test_platform_csdn.py
-    ├── test_platform_generic.py
-    └── test_*.py             # Unit, CLI, and regression tests
-```
-
-## Core Files
-
-| File | Purpose |
-| --- | --- |
-| `src/magicmd/cli.py` | Defines `magicmd`, `convert`, `batch`, `config init`, and `doctor`, and controls dynamic progress output. |
-| `src/magicmd/config.py` | Reads `.magicmd.toml` and merges user config with defaults. |
-| `src/magicmd/detect.py` | Detects `wechat`, `juejin`, `csdn`, or `generic` from a URL. |
-| `src/magicmd/fetchers/browser.py` | Uses Camoufox for browser-rendered pages, currently WeChat public account articles, Juejin, and CSDN. |
-| `src/magicmd/fetchers/http.py` | Uses HTTP for regular pages, currently generic pages and statically accessible pages. |
-| `src/magicmd/platforms/wechat.py` | Extracts WeChat title, author, publish time, body, images, and code blocks. |
-| `src/magicmd/platforms/registry.py` | Centralizes supported platforms, URL matching rules, default fetch modes, and parser entrypoints. |
-| `src/magicmd/platforms/base.py` | Compatibility entrypoint that keeps exporting shared helpers used by platform parsers. |
-| `src/magicmd/platforms/shared/content.py` | Provides DOM cleanup, image collection, and code block preservation. |
-| `src/magicmd/platforms/shared/markdown.py` | Provides HTML-to-Markdown conversion and Markdown post-processing. |
-| `src/magicmd/platforms/shared/metadata.py` | Provides metadata, script-variable, text, and timestamp extraction helpers. |
-| `src/magicmd/renderers/markdown.py` | Controls the final `article.md` format, including front matter, title, source block, and body placement. |
-| `src/magicmd/output.py` | Controls output folder naming, `article.md`, `metadata.json`, and content hash writing. |
-| `src/magicmd/quality.py` | Scans Markdown quality signals and generates `batch-report.json` and `batch-report.md` for the batch command. |
-| `src/magicmd/assets.py` | Downloads images into local `images/` and rewrites remote Markdown image links to local paths. |
-| `src/magicmd/models.py` | Defines the standard article structure used by future GitHub publishing and HaoGit imports. |
-
-## v0.1 Quality Baseline
-
-The current v0.1 baseline is recorded in [CHANGELOG.md](./CHANGELOG.md). The live WeChat regression workflow is documented in [docs/wechat-regression-corpus.md](./docs/wechat-regression-corpus.md), and the corpus manifest lives at [tests/fixtures/wechat_regression_manifest.json](./tests/fixtures/wechat_regression_manifest.json). The site support status is documented in [docs/supported-sites.md](./docs/supported-sites.md), and the live site validation manifest lives at [tests/fixtures/site_validation_manifest.json](./tests/fixtures/site_validation_manifest.json).
-
-The manually reviewed live baselines currently include:
-
-- WeChat regression samples covering images, video placeholders, rich text, recommendation sections, code blocks, and links.
-- CSDN complex samples: ten live articles covering code-block collisions, Mermaid/SVG diagrams, generated table-of-contents links, and code-widget noise.
-- Juejin samples covering homepage articles and complex technical articles, with image download, code block, external link, and heading-depth checks.
-
-After changing the WeChat parser, run:
-
-```bash
-uv run pytest -q
-uv run ruff check .
-uv run magicmd batch urls-regression.txt -o output/wechat-regression-check
-```
-
-Then review `output/wechat-regression-check/batch-report.md`.
 
 ## Supported Sites
 
-| Site | Current status | Default fetch mode |
-| --- | --- | --- |
-| WeChat Official Account `mp.weixin.qq.com` | Stable primary target | `camoufox` |
-| CSDN `blog.csdn.net` | Experimental support, ten complex samples manually reviewed | `camoufox` |
-| Juejin `juejin.cn` | Experimental support, homepage and complex samples validated | `camoufox` |
-| Generic pages | Best effort | `http` |
+| Site | Status | Default fetcher | Notes |
+| --- | --- | --- | --- |
+| WeChat Official Account `mp.weixin.qq.com` | Stable primary target | `camoufox` | Main v0.1 validation target with multiple rounds of live formatting fixes. |
+| Juejin `juejin.cn` | Experimental support | `camoufox` | Homepage and complex technical samples checked for images, code blocks, external links, and heading depth. |
+| CSDN `blog.csdn.net` | Experimental support | `camoufox` | Ten complex live samples manually reviewed for code blocks, Mermaid/SVG, TOC links, and widget noise. |
+| Generic pages | Best effort | `http` | Basic extraction for pages with standard `article`, `main`, or Open Graph metadata. |
 
-See [docs/supported-sites.md](./docs/supported-sites.md) for details.
+See [docs/supported-sites.md](./docs/supported-sites.md) for detailed boundaries.
 
-## Conversion Flow
+## What MagicMD Writes
+
+A single conversion writes one content package:
 
 ```text
-URL
-  ↓
-detect.py detects the platform
-  ↓
-fetchers/http.py or fetchers/browser.py fetches HTML
-  ↓
-platforms/<platform>.py parses HTML into Article
-  ↓
-platforms/base.py cleans content and converts it to Markdown
-  ↓
-assets.py downloads images and rewrites links
-  ↓
-renderers/markdown.py renders article.md
-  ↓
-output.py writes article.md, metadata.json, and extraction-report.json
+output/
+└── article-title/
+    ├── article.md              # Markdown article
+    ├── metadata.json           # Title, author, time, source, hash, and more
+    ├── extraction-report.json  # Fetch, parse, media, and warning details
+    └── images/                 # Downloaded local images
 ```
+
+Batch conversion also writes:
+
+```text
+output/
+├── batch-report.json           # Machine-readable report
+└── batch-report.md             # Human-readable report
+```
+
+The default `article.md` looks like this:
+
+```md
+---
+title: "Example Article"
+author: "Example Author"
+platform: "wechat"
+source_url: "https://mp.weixin.qq.com/s/example"
+---
+
+# Example Article
+
+> Source: wechat
+> Author: Example Author
+> Original: https://mp.weixin.qq.com/s/example
+
+Article body...
+```
+
+## CLI and Skill
+
+MagicMD has two entrypoints.
+
+The first one is the human-facing CLI:
+
+```bash
+magicmd batch urls.txt -o output/
+```
+
+The second one is [SKILL.md](./SKILL.md) for agents. The Skill records when to use MagicMD, how to run it, which files to check, and where to look when extraction fails. That way an agent does not need to guess the command, and it should not treat login pages, paywalls, or CAPTCHA pages as normal articles.
+
+If you later connect MagicMD to HaoGit, the recommended path is: let the agent use the Skill to collect and convert articles first, then pass `article.md`, `metadata.json`, and local images into the publishing workflow.
 
 ## Configuration
 
-Example config file: [.magicmd.example.toml](./.magicmd.example.toml)
+Create a config file:
+
+```bash
+magicmd config init
+```
+
+See [.magicmd.example.toml](./.magicmd.example.toml) for the full example.
+
+Common configuration:
 
 ```toml
 [output]
@@ -258,66 +232,77 @@ heading_offset = 0
 download = true
 directory = "images"
 filename_pattern = "img_{index:03d}.{ext}"
-concurrency = 5
 
 [fetch]
 timeout_seconds = 20
 browser_timeout_seconds = 15
 browser_attempts = 2
-user_agent = "default"
-
-[platforms.csdn]
-enabled = true
-browser = "camoufox"
-wait_selector = "#content_views"
-
-[platforms.juejin]
-enabled = true
-browser = "camoufox"
-wait_selector = "article"
 ```
 
-Currently active configuration fields:
+Useful options:
 
 | Config | Meaning |
 | --- | --- |
-| `output.directory` | Default output directory when `--output` is not provided. |
-| `output.overwrite` | Whether to overwrite an existing output package. |
+| `output.directory` | Default output directory. |
+| `output.overwrite` | Whether to overwrite an existing package. |
 | `output.save_debug_html` | `always`, `on_failure`, or `never`; controls `debug.html` output. |
-| `markdown.front_matter` | `yaml` or `none`; controls YAML front matter output. |
-| `markdown.include_source_block` | Controls the source block below the title. |
+| `markdown.front_matter` | `yaml` or `none`. |
+| `markdown.template` | `default` or `clean`. |
 | `markdown.heading_offset` | Shifts Markdown heading levels. |
-| `markdown.template` | `default` or `clean`; `clean` omits the source block. |
 | `images.download` | Whether images are downloaded. |
-| `images.directory` | Directory used for downloaded images. |
-| `images.filename_pattern` | Filename pattern for downloaded images. |
-| `fetch.timeout_seconds` | HTTP fetch timeout. |
-| `fetch.browser_timeout_seconds` | Timeout for waiting on selectors during Camoufox browser fetching. |
-| `fetch.browser_attempts` | Total attempts after Camoufox browser fetch failures. |
-| `fetch.user_agent` | HTTP fetch User-Agent. |
-| `platforms.<name>.enabled` | Whether a platform is enabled. |
-| `platforms.<name>.browser` | Uses `http` or `camoufox` fetching. |
+| `fetch.browser_attempts` | Total browser-mode attempts after failures. |
+| `platforms.<name>.browser` | Uses `http` or `camoufox`. |
 | `platforms.<name>.wait_selector` | Selector to wait for during browser fetching. |
 
-`images.concurrency` is reserved for future concurrent downloads. Current downloads are sequential.
+Check the runtime:
 
-## Agent Skill
+```bash
+magicmd doctor
+```
 
-This repository includes [SKILL.md](./SKILL.md). Agents that support skills can use it to call MagicMD and convert public article links into Markdown packages.
+`doctor` checks the Python version, MagicMD version, config parsing, output writability, Camoufox availability, and each platform's default fetch mode.
 
-## Safety
+## Quality Baseline
+
+v0.1 is not only tested against static fixtures. It has also been manually checked with live articles:
+
+- WeChat: images, video placeholders, rich text, recommendation sections, code blocks, and links.
+- Juejin: image download, code blocks, external links, and heading depth.
+- CSDN: code-block collisions, Mermaid/SVG, generated TOC dead links, and code-widget noise.
+
+Related records:
+
+- [CHANGELOG.md](./CHANGELOG.md)
+- [docs/wechat-regression-corpus.md](./docs/wechat-regression-corpus.md)
+- [tests/fixtures/site_validation_manifest.json](./tests/fixtures/site_validation_manifest.json)
+
+## Boundaries
 
 MagicMD only targets public article pages. It does not bypass login, paywalls, private content, CAPTCHA, or platform access controls.
 
+When a page hits 403, CAPTCHA, login restrictions, video hotlink protection, or expired dynamic resources, MagicMD keeps as much extractable content as possible and records warnings or failure reasons in the reports.
+
+## Developer Docs
+
+- [docs/development.md](./docs/development.md): project structure, core modules, conversion flow, and verification commands.
+- [docs/supported-sites.md](./docs/supported-sites.md): supported sites and boundaries.
+- [docs/wechat-regression-corpus.md](./docs/wechat-regression-corpus.md): WeChat live regression notes.
+- [docs/MagicMD-v0.1-design.md](./docs/MagicMD-v0.1-design.md): v0.1 design notes.
+
 ## Roadmap
 
-- Improve batch conversion reports with attempt counts, retry-success markers, and clearer failure reasons.
-- Keep expanding WeChat, CSDN, and Juejin live samples as regression corpora rather than one-off manual checks.
-- Finish the v0.1 release wrap-up with a tag, release notes, and explicit support boundaries.
+- Publish to PyPI for `uv tool install magicmd`.
+- Evaluate an npm wrapper for `npm install -g magicmd` or `npx magicmd`.
 - Add a Markdown template system.
 - Add GitHub publishing.
 - Add HaoGit import support.
+- Expand live regression corpora for WeChat, Juejin, and CSDN.
+- Add more platform adapters.
 
 ## Maintenance Rule
 
-The default README is Chinese and the English version lives in the root-level [README_EN.md](./README_EN.md). Future README changes should update both files together so the two versions stay consistent.
+The default README is Chinese and the English version lives in the root-level [README_EN.md](./README_EN.md). Future README changes should update both files together.
+
+## License
+
+[MIT](./LICENSE)
