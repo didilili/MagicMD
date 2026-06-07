@@ -1,12 +1,23 @@
 [output]
+# Base output directory. CLI `-o/--output` overrides this value.
 directory = "output"
+
+# When false, MagicMD appends a short content hash if the package directory exists.
 overwrite = false
+
+# Options: "always", "on_failure", "never".
 save_debug_html = "on_failure"
 
 [markdown]
+# Current renderer preset. `default` keeps front matter, H1 title, and source block.
+# `clean` keeps front matter and title, but hides the source block.
 template = "default"
+
+# Current options: "yaml", "none".
 front_matter = "yaml"
 include_source_block = true
+
+# Shift generated Markdown heading levels. Example: 1 turns `##` into `###`.
 heading_offset = 0
 
 [images]
@@ -39,3 +50,25 @@ wait_selector = "#content_views"
 [platforms.generic]
 enabled = true
 browser = "http"
+
+# v0.2 design notes
+#
+# The next release will make naming and Markdown templates configurable.
+# The target shape is documented in docs/MagicMD-v0.2-template-system-plan.md.
+# These fields are intentionally not active here yet, so the example only shows
+# configuration that works in the current CLI.
+#
+# Planned examples:
+#
+# [output.naming]
+# package = "{date}-{slug}"
+# markdown = "index.md"
+# metadata = "metadata.json"
+# report = "extraction-report.json"
+#
+# [markdown.front_matter_fields]
+# title = "{title}"
+# date = "{published_at}"
+# author = "{author}"
+# source = "{platform}"
+# original_url = "{source_url}"

@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### 中文
+
+- 新增 v0.2 模板系统实现计划，并在配置示例中补充当前已生效字段说明和下一版命名/Front matter 设计提示。
+
+### English
+
+- Added the v0.2 template-system implementation plan and expanded config examples with current-field notes plus upcoming naming/front-matter design hints.
+
 ## v0.1.2 - 2026-06-07
 
 ### 中文

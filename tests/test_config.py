@@ -65,3 +65,6 @@ def test_packaged_config_template_is_available():
     assert 'wait_selector = "#content_views"' in template_text
     assert "browser_timeout_seconds = 15" in template_text
     assert "browser_attempts = 2" in template_text
+    assert "v0.2 design notes" in template_text
+    assert "[output.naming]" in template_text
+    assert "[markdown.front_matter_fields]" in template_text
