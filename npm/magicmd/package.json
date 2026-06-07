@@ -1,6 +1,6 @@
 {
   "name": "magicmd",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "npm wrapper for the MagicMD article-to-Markdown CLI.",
   "license": "MIT",
   "private": false,

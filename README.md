@@ -292,7 +292,7 @@ MagicMD 只处理公开文章页面。它不会绕过登录、付费墙、私有
 
 ## 接下来
 
-接下来先打磨 v0.1.1：npm 安装体验、排障文档、`doctor --json` 和站点支持说明。完整计划见 [ROADMAP.md](./ROADMAP.md)。
+v0.1.1 主要补齐 npm 安装入口、排障文档、`doctor --json` 和站点支持说明。下一步会进入 v0.2：Markdown 模板、批量报告增强和更多真实样本回归。完整计划见 [ROADMAP.md](./ROADMAP.md)。
 
 ## License
 

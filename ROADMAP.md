@@ -4,7 +4,7 @@
 
 MagicMD 的 GitHub Issues 主要留给真实问题：某篇文章转换错了、安装失败、平台页面变了、文档看不懂。内部计划放在这里，避免 Issues 页面变成待办清单。
 
-## v0.1.1
+## v0.1.1 - done
 
 这个版本不做大功能，只补发布后最容易影响新用户体验的地方。
 
@@ -48,7 +48,7 @@ MagicMD 的 GitHub Issues 主要留给真实问题：某篇文章转换错了、
 
 GitHub Issues are mainly for real user reports: bad conversions, failed installs, platform changes, or confusing docs. Internal planning lives here instead of filling the issue tracker with project chores.
 
-## v0.1.1
+## v0.1.1 - done
 
 This release stays small and focuses on post-release user experience.
 
