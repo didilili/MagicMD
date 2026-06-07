@@ -326,7 +326,7 @@ If a platform changes its page structure and conversion quality drops, keep the 
 
 ## Next
 
-v0.1.2 adds the GitHub-installable Agent Skill. Next comes v0.2: Markdown templates, stronger batch reports, and more live regression samples. See [ROADMAP.md](./ROADMAP.md).
+v0.2.0 adds configurable output names, front matter, source blocks, media paths, and publishing presets. Next up: more live regression samples, release polish, and broader site support. See [ROADMAP.md](./ROADMAP.md).
 
 ## License
 

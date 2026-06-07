@@ -782,7 +782,7 @@ wheels = [
 
 [[package]]
 name = "magicmd"
-version = "0.1.2"
+version = "0.2.0"
 source = { editable = "." }
 dependencies = [
     { name = "beautifulsoup4" },
