@@ -49,6 +49,7 @@ class ImagesConfig(BaseModel):
     download: bool = True
     directory: str = "images"
     filename_pattern: str = "img_{index:03d}.{ext}"
+    markdown_path: str = "{directory}/{filename}"
     concurrency: int = 5
 
 

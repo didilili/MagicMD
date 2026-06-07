@@ -61,6 +61,9 @@ def test_load_config_accepts_v02_output_and_markdown_templates(tmp_path: Path):
         title = "{title}"
         url = "{source_url}"
 
+        [images]
+        markdown_path = "../images/{filename}"
+
         [videos]
         download = false
         directory = "media/videos"
@@ -83,6 +86,7 @@ def test_load_config_accepts_v02_output_and_markdown_templates(tmp_path: Path):
         "title": "{title}",
         "url": "{source_url}",
     }
+    assert config.images.markdown_path == "../images/{filename}"
     assert config.videos.download is False
     assert config.videos.directory == "media/videos"
     assert config.videos.filename_pattern == "clip_{index:03d}.{ext}"

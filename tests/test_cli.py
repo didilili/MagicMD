@@ -803,7 +803,13 @@ def test_duplicate_url_with_image_download_does_not_overwrite_first_package(
 
     monkeypatch.setattr("magicmd.cli.fetch_for_platform", lambda url, platform, config_path: html)
 
-    def fake_download_images(article, package_dir, image_dir_name, filename_pattern="img_{index:03d}.{ext}"):
+    def fake_download_images(
+        article,
+        package_dir,
+        image_dir_name,
+        filename_pattern="img_{index:03d}.{ext}",
+        markdown_path_pattern="{directory}/{filename}",
+    ):
         nonlocal download_calls
         download_calls += 1
         return article.model_copy(
@@ -833,10 +839,20 @@ def test_convert_url_downloads_videos_in_media_step(monkeypatch, tmp_path: Path)
     monkeypatch.setattr("magicmd.cli.fetch_for_platform", lambda url, platform, config_path: html)
     monkeypatch.setattr(
         "magicmd.assets.download_images",
-        lambda article, package_dir, image_dir_name, filename_pattern="img_{index:03d}.{ext}": article,
+        lambda article,
+        package_dir,
+        image_dir_name,
+        filename_pattern="img_{index:03d}.{ext}",
+        markdown_path_pattern="{directory}/{filename}": article,
     )
 
-    def fake_download_videos(article, package_dir):
+    def fake_download_videos(
+        article,
+        package_dir,
+        video_dir_name="videos",
+        filename_pattern="video_{index:03d}.{ext}",
+        markdown_path_pattern="{directory}/{filename}",
+    ):
         return article.model_copy(update={"content_markdown": article.content_markdown + "\nvideo-downloaded"})
 
     monkeypatch.setattr("magicmd.assets.download_videos", fake_download_videos)
@@ -844,3 +860,71 @@ def test_convert_url_downloads_videos_in_media_step(monkeypatch, tmp_path: Path)
     package_dir = convert_url("https://mp.weixin.qq.com/s/demo", tmp_path)
 
     assert "video-downloaded" in (package_dir / "article.md").read_text(encoding="utf-8")
+
+
+def test_convert_url_passes_configured_media_path_templates(monkeypatch, tmp_path: Path):
+    html = """
+    <html>
+      <body>
+        <h1 id="activity-name">媒体配置文章</h1>
+        <div id="js_content">
+          <p>正文</p>
+          <img src="https://example.com/a.png" />
+          <p>[视频](https://mpvideo.qpic.cn/demo.mp4)</p>
+        </div>
+      </body>
+    </html>
+    """
+    config_path = tmp_path / ".magicmd.toml"
+    config_path.write_text(
+        """
+        [images]
+        directory = "assets/images"
+        filename_pattern = "cover_{index:02d}.{ext}"
+        markdown_path = "/static/{directory}/{filename}"
+
+        [videos]
+        directory = "assets/videos"
+        filename_pattern = "clip_{index:02d}.{ext}"
+        markdown_path = "/static/{directory}/{filename}"
+        """,
+        encoding="utf-8",
+    )
+    seen = {}
+    monkeypatch.setattr("magicmd.cli.fetch_for_platform", lambda url, platform, config_path: html)
+
+    def fake_download_images(
+        article,
+        package_dir,
+        image_dir_name,
+        filename_pattern="img_{index:03d}.{ext}",
+        markdown_path_pattern="{directory}/{filename}",
+    ):
+        seen["images"] = (image_dir_name, filename_pattern, markdown_path_pattern)
+        return article
+
+    def fake_download_videos(
+        article,
+        package_dir,
+        video_dir_name="videos",
+        filename_pattern="video_{index:03d}.{ext}",
+        markdown_path_pattern="{directory}/{filename}",
+    ):
+        seen["videos"] = (video_dir_name, filename_pattern, markdown_path_pattern)
+        return article
+
+    monkeypatch.setattr("magicmd.assets.download_images", fake_download_images)
+    monkeypatch.setattr("magicmd.assets.download_videos", fake_download_videos)
+
+    convert_url("https://mp.weixin.qq.com/s/demo", tmp_path, config_path=config_path)
+
+    assert seen["images"] == (
+        "assets/images",
+        "cover_{index:02d}.{ext}",
+        "/static/{directory}/{filename}",
+    )
+    assert seen["videos"] == (
+        "assets/videos",
+        "clip_{index:02d}.{ext}",
+        "/static/{directory}/{filename}",
+    )
