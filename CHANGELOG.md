@@ -8,6 +8,7 @@
 - 优化 npm wrapper 在缺少 `uvx` 时的错误提示，补充 macOS/Linux、Windows 和 PyPI 直装方式。
 - 新增 `docs/troubleshooting.md`，集中说明安装、Camoufox、微信访问限制、图片、CSDN/掘金转换问题和反馈格式。
 - 新增 `magicmd doctor --json`，为脚本、CI 和 Agent 提供机器可读的环境诊断结果。
+- 完善 `docs/supported-sites.md`，按站点说明支持状态、已优化内容、已知限制和反馈格式。
 
 ### English
 
@@ -15,6 +16,7 @@
 - Improved the npm wrapper message when `uvx` is missing, including macOS/Linux, Windows, and direct PyPI install options.
 - Added `docs/troubleshooting.md` for install, Camoufox, WeChat access limits, images, CSDN/Juejin conversion issues, and feedback format.
 - Added `magicmd doctor --json` for machine-readable diagnostics in scripts, CI, and agents.
+- Expanded `docs/supported-sites.md` with per-site status, optimizations, known limits, and feedback guidance.
 
 ## v0.1.0 - 2026-06-06
 
