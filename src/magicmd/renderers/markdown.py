@@ -4,6 +4,7 @@ import re
 
 from magicmd.config import MarkdownConfig
 from magicmd.models import Article
+from magicmd.template_vars import build_article_template_vars, format_template
 
 
 def _quote(value: str) -> str:
@@ -27,36 +28,24 @@ def _shift_body_headings(markdown: str, offset: int) -> str:
 
 def render_markdown(article: Article, markdown_config: MarkdownConfig | None = None) -> str:
     config = markdown_config or MarkdownConfig()
+    variables = build_article_template_vars(article)
     offset = config.heading_offset
     body = _shift_body_headings(article.content_markdown.strip(), offset)
 
     lines: list[str] = []
     if config.front_matter != "none":
-        lines.extend(
-            [
-                "---",
-                f"title: {_quote(article.title)}",
-                f"author: {_quote(article.author)}",
-                f"platform: {_quote(article.platform)}",
-                f"source_url: {_quote(article.source_url)}",
-                f"published_at: {_quote(article.published_at)}",
-                "---",
-                "",
-            ]
-        )
+        lines.append("---")
+        for key, value_template in config.front_matter_fields.items():
+            value = format_template(value_template, variables)
+            lines.append(f"{key}: {_quote(value)}")
+        lines.extend(["---", ""])
 
-    lines.extend([_heading(1, article.title, offset), ""])
+    if config.include_title:
+        lines.extend([_heading(1, article.title, offset), ""])
     if config.include_source_block and config.template != "clean":
-        lines.extend(
-            [
-                f"> Source: {article.platform}",
-                f"> Author: {article.author}" if article.author else "> Author:",
-                f"> Original: {article.source_url}",
-                "",
-                "---",
-                "",
-            ]
-        )
+        source_block = format_template(config.source_block_template, variables).strip()
+        if source_block:
+            lines.extend([source_block, "", "---", ""])
 
     lines.extend([body, ""])
     return "\n".join(lines)
