@@ -78,6 +78,69 @@
   padding: 0 24px;
 }
 
+.mm-start {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 18px;
+  border: 1px solid rgba(15, 159, 110, 0.18);
+  border-radius: 12px;
+  background:
+    radial-gradient(circle at 12% 18%, rgba(19, 200, 132, 0.17), transparent 38%),
+    linear-gradient(135deg, rgba(31, 111, 235, 0.08), transparent 58%),
+    var(--vp-c-bg-soft);
+  padding: 20px 22px;
+}
+
+.mm-start-copy {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+}
+
+.mm-start-copy span,
+.mm-command p {
+  margin: 0;
+  color: #67e8b9;
+  font-size: 12px;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.mm-start-copy h2 {
+  margin: 0;
+  color: var(--vp-c-text-1);
+  font-size: clamp(24px, 3.5vw, 38px);
+  line-height: 1.08;
+  letter-spacing: 0;
+}
+
+.mm-start-copy p {
+  max-width: 720px;
+  margin: 0;
+  color: var(--vp-c-text-2);
+  font-size: 16px;
+  line-height: 1.75;
+}
+
+.mm-copy-button {
+  flex: 0 0 auto;
+  min-height: 42px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: #0f9f6e;
+  color: #fff;
+  padding: 0 18px;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.mm-copy-button:hover {
+  background: #0b8d61;
+}
+
 .mm-flow {
   display: grid;
   grid-template-columns: minmax(0, 1.02fr) minmax(0, 0.98fr);
@@ -99,6 +162,9 @@
 }
 
 .mm-command {
+  display: grid;
+  align-content: start;
+  gap: 12px;
   padding: 54px 26px 26px;
 }
 
@@ -144,14 +210,40 @@
   text-transform: uppercase;
 }
 
-.mm-platforms {
+.mm-output strong {
+  display: block;
+  margin-bottom: 14px;
+  color: #e7fff4;
+  font-size: 24px;
+  line-height: 1.15;
+  letter-spacing: 0;
+}
+
+.mm-use-cases {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.mm-use-cases span {
+  border: 1px solid rgba(15, 159, 110, 0.18);
+  border-radius: 999px;
+  background: rgba(15, 159, 110, 0.08);
+  color: var(--vp-c-brand-1);
+  padding: 6px 10px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.mm-features {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 14px;
   margin-top: 16px;
 }
 
-.mm-platforms article {
+.mm-features article {
   display: grid;
   gap: 8px;
   min-height: 132px;
@@ -161,12 +253,12 @@
   padding: 18px;
 }
 
-.mm-platforms strong {
+.mm-features strong {
   color: var(--vp-c-text-1);
   font-size: 17px;
 }
 
-.mm-platforms span {
+.mm-features span {
   color: var(--vp-c-text-2);
   line-height: 1.7;
 }
@@ -455,6 +547,7 @@
 .toml-toolbar button:focus,
 .preset-strip button:focus,
 .preview-tabs button:focus,
+.mm-copy-button:focus,
 .advanced-toggle:focus {
   outline: 3px solid rgba(15, 159, 110, 0.28);
   outline-offset: 2px;
@@ -705,37 +798,40 @@
   }
 }
 
-.side-metrics strong {
-  color: var(--vp-c-text-1);
-  font-size: 17px;
-}
-
-@media (min-width: 960px) {
-  .VPDoc:has(._MagicMD_config-builder) .container {
-    max-width: none;
-  }
-
-  .VPDoc:has(._MagicMD_config-builder) .content {
-    padding-right: 48px;
-  }
-
-  .VPDoc:has(._MagicMD_config-builder) .content-container {
-    max-width: 1320px;
-  }
-
-  .VPDoc:has(._MagicMD_config-builder) .main {
-    width: 100%;
-  }
-}
-
 @media (max-width: 860px) {
+  .VPHomeHero {
+    padding-top: 30px !important;
+    padding-bottom: 22px !important;
+  }
+
   .VPHomeHero .text {
     font-size: clamp(34px, 12vw, 48px);
   }
 
+  .VPHomeHero .tagline {
+    font-size: 16px;
+    line-height: 1.55;
+  }
+
+  .mm-start {
+    display: grid;
+    align-items: start;
+    gap: 14px;
+    padding: 16px;
+  }
+
+  .mm-start-copy p {
+    font-size: 15px;
+    line-height: 1.55;
+  }
+
+  .mm-copy-button {
+    width: 100%;
+  }
+
   .mm-flow,
-  .mm-platforms,
-  .config-builder,
+  .mm-features,
+  .builder-workspace,
   .field-grid {
     grid-template-columns: 1fr;
   }
