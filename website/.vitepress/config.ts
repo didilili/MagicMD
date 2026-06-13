@@ -3,7 +3,7 @@ import { defineConfig } from 'vitepress';
 export default defineConfig({
   lang: 'zh-CN',
   title: 'MagicMD',
-  description: '强大易用的文章转 Markdown 工具，一键转换微信公众号、掘金、CSDN 等公开文章。',
+  description: '极速文章转 Markdown 工具，深度优化微信公众号、掘金、CSDN 等公开文章，支持批量转换和自定义输出。',
   base: '/',
   outDir: 'dist',
   srcExclude: ['README.md'],
@@ -14,6 +14,11 @@ export default defineConfig({
     ['meta', { property: 'og:type', content: 'website' }],
     ['meta', { property: 'og:site_name', content: 'MagicMD' }],
     ['meta', { property: 'og:locale', content: 'zh_CN' }],
+    ['meta', { property: 'og:title', content: 'MagicMD - 极速文章转 Markdown 内容包' }],
+    ['meta', { property: 'og:description', content: '深度优化图片、视频、代码块和跳转链接，支持批量转换与自定义输出规则。' }],
+    ['meta', { property: 'og:url', content: 'https://magicmd.cn/' }],
+    ['meta', { name: 'twitter:title', content: 'MagicMD - Fast article-to-Markdown packages' }],
+    ['meta', { name: 'twitter:description', content: 'Optimized media, cleaner code blocks, batch conversion, and configurable output rules.' }],
     ['link', { rel: 'alternate', hreflang: 'zh-CN', href: 'https://magicmd.cn/' }],
     ['link', { rel: 'alternate', hreflang: 'en-US', href: 'https://magicmd.cn/en/' }]
   ],
@@ -22,14 +27,14 @@ export default defineConfig({
       label: '简体中文',
       lang: 'zh-CN',
       title: 'MagicMD',
-      description: '强大易用的文章转 Markdown 工具，一键转换微信公众号、掘金、CSDN 等公开文章。'
+      description: '极速文章转 Markdown 工具，深度优化微信公众号、掘金、CSDN 等公开文章，支持批量转换和自定义输出。'
     },
     en: {
       label: 'English',
       lang: 'en-US',
       link: '/en/',
       title: 'MagicMD',
-      description: 'Turn public article links into clean, configurable Markdown packages.',
+      description: 'Fast article-to-Markdown conversion with optimized media, batch processing, and configurable output.',
       themeConfig: {
         nav: [
           { text: 'Quick Start', link: '/en/quick-start' },
