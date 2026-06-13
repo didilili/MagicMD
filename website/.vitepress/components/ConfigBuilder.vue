@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, reactive, ref } from 'vue';
+import { useData } from 'vitepress';
 
 type Preset = 'default' | 'plain' | 'hugo' | 'docusaurus';
 type FrontMatter = 'yaml' | 'none';
@@ -65,20 +66,104 @@ const state = reactive<BuilderState>({
 
 const copyState = ref<'idle' | 'copied' | 'failed'>('idle');
 
-const presetLabels: Record<Preset, string> = {
-  default: '通用 Markdown',
-  plain: '纯净 Markdown',
-  hugo: 'Hugo 内容包',
-  docusaurus: 'Docusaurus 文档'
-};
+const { lang } = useData();
+
+const isEnglish = computed(() => lang.value.startsWith('en'));
+
+const ui = computed(() =>
+  isEnglish.value
+    ? {
+        step: 'Step 1',
+        panelTitle: 'Lock in your output rules',
+        panelDescription: 'Pick a publishing target, then tune filenames and media paths.',
+        preset: 'Publishing target',
+        presetOptions: {
+          default: 'Default Markdown',
+          plain: 'Plain Markdown',
+          hugo: 'Hugo content bundle',
+          docusaurus: 'Docusaurus docs'
+        },
+        packageName: 'Package directory',
+        markdownName: 'Markdown filename',
+        metadataName: 'Metadata filename',
+        reportName: 'Report filename',
+        frontMatter: 'Front matter',
+        yaml: 'Generate YAML',
+        none: 'Do not generate',
+        imagePath: 'Image Markdown path',
+        videoPath: 'Video Markdown path',
+        includeSourceBlock: 'Show source block',
+        downloadImages: 'Download images',
+        downloadVideos: 'Download videos',
+        generated: 'Generated in real time. Save it at your project root.',
+        copied: 'Copied',
+        copyFailed: 'Copy failed',
+        copy: 'Copy',
+        download: 'Download',
+        cliHint: 'Save it, then run: magicmd URL --config .magicmd.toml',
+        currentPreset: 'Current preset',
+        localOnly: 'remote links only',
+        imagesAndVideos: 'images/ + videos/',
+        markdownPreviewTitle: (name: string) => `Preview of ${name}`,
+        markdownPreviewHint: 'Updates as you change the config',
+        sampleTitle: 'A sample article converted by MagicMD',
+        sampleAuthor: 'Article Author',
+        sampleHeading: 'Converted content',
+        sampleBody:
+          'MagicMD turns article body text, headings, links, images, videos, and code blocks into maintainable Markdown.',
+        sampleLink: 'Read original'
+      }
+    : {
+        step: 'Step 1',
+        panelTitle: '把输出规则定下来',
+        panelDescription: '选择发布目标后，再微调文件名和媒体路径。',
+        preset: '发布目标',
+        presetOptions: {
+          default: '通用 Markdown',
+          plain: '纯净 Markdown',
+          hugo: 'Hugo 内容包',
+          docusaurus: 'Docusaurus 文档'
+        },
+        packageName: '内容包目录',
+        markdownName: 'Markdown 文件名',
+        metadataName: 'Metadata 文件名',
+        reportName: '报告文件名',
+        frontMatter: 'Front matter',
+        yaml: '生成 YAML',
+        none: '不生成',
+        imagePath: '图片 Markdown 路径',
+        videoPath: '视频 Markdown 路径',
+        includeSourceBlock: '显示来源信息块',
+        downloadImages: '下载图片',
+        downloadVideos: '下载视频',
+        generated: '实时生成，可直接落到项目根目录',
+        copied: '已复制',
+        copyFailed: '复制失败',
+        copy: '复制',
+        download: '下载',
+        cliHint: '保存后运行：magicmd URL --config .magicmd.toml',
+        currentPreset: '当前预设',
+        localOnly: '只保留远程链接',
+        imagesAndVideos: 'images/ + videos/',
+        markdownPreviewTitle: (name: string) => `生成后的 ${name} 示例`,
+        markdownPreviewHint: '随左侧配置实时变化',
+        sampleTitle: 'MagicMD 示例文章',
+        sampleAuthor: '公众号作者',
+        sampleHeading: '转换后的正文',
+        sampleBody: 'MagicMD 会把文章正文、标题、链接、图片、视频和代码块整理成可维护的 Markdown。',
+        sampleLink: '查看原文'
+      }
+);
+
+const presetLabels = computed<Record<Preset, string>>(() => ui.value.presetOptions);
 
 const outputPreview = computed(() => {
   return `${state.packageName}/${state.markdownName}`;
 });
 
 const mediaPreview = computed(() => {
-  if (!state.downloadImages && !state.downloadVideos) return '只保留远程链接';
-  if (state.downloadImages && state.downloadVideos) return 'images/ + videos/';
+  if (!state.downloadImages && !state.downloadVideos) return ui.value.localOnly;
+  if (state.downloadImages && state.downloadVideos) return ui.value.imagesAndVideos;
   return state.downloadImages ? 'images/' : 'videos/';
 });
 
@@ -112,8 +197,8 @@ const markdownExample = computed(() => {
     state.frontMatter === 'yaml'
       ? [
           '---',
-          'title: "MagicMD 示例文章"',
-          'author: "公众号作者"',
+          `title: "${ui.value.sampleTitle}"`,
+          `author: "${ui.value.sampleAuthor}"`,
           'platform: "wechat"',
           'source_url: "https://mp.weixin.qq.com/s/example"',
           'published_at: "2026-06-07T09:30:00+08:00"',
@@ -125,7 +210,7 @@ const markdownExample = computed(() => {
   const sourceBlock = state.includeSourceBlock
     ? [
         '> Source: wechat',
-        '> Author: 公众号作者',
+        `> Author: ${ui.value.sampleAuthor}`,
         '> Original: https://mp.weixin.qq.com/s/example',
         ''
       ]
@@ -140,18 +225,18 @@ const markdownExample = computed(() => {
 
   return [
     ...frontMatter,
-    '# MagicMD 示例文章',
+    `# ${ui.value.sampleTitle}`,
     '',
     ...sourceBlock,
-    '## 转换后的正文',
+    `## ${ui.value.sampleHeading}`,
     '',
-    'MagicMD 会把文章正文、标题、链接、图片、视频和代码块整理成可维护的 Markdown。',
+    ui.value.sampleBody,
     '',
-    '[查看原文](https://mp.weixin.qq.com/s/example)',
+    `[${ui.value.sampleLink}](https://mp.weixin.qq.com/s/example)`,
     '',
-    `![文章配图](${imagePath})`,
+    `![${isEnglish.value ? 'Article image' : '文章配图'}](${imagePath})`,
     '',
-    `[视频](${videoPath})`,
+    `[${isEnglish.value ? 'Video' : '视频'}](${videoPath})`,
     '',
     '```ts',
     "const url = 'https://mp.weixin.qq.com/s/example';",
@@ -190,54 +275,54 @@ function downloadToml() {
   <section class="config-builder">
     <div class="builder-panel">
       <div class="panel-heading">
-        <span>Step 1</span>
-        <strong>把输出规则定下来</strong>
-        <p>选择发布目标后，再微调文件名和媒体路径。</p>
+        <span>{{ ui.step }}</span>
+        <strong>{{ ui.panelTitle }}</strong>
+        <p>{{ ui.panelDescription }}</p>
       </div>
 
       <div class="field-group">
-        <label for="preset">发布目标</label>
+        <label for="preset">{{ ui.preset }}</label>
         <select id="preset" v-model="state.preset" @change="applyPreset(state.preset)">
-          <option value="default">默认 Markdown</option>
-          <option value="plain">Plain Markdown</option>
-          <option value="hugo">Hugo</option>
-          <option value="docusaurus">Docusaurus</option>
+          <option value="default">{{ ui.presetOptions.default }}</option>
+          <option value="plain">{{ ui.presetOptions.plain }}</option>
+          <option value="hugo">{{ ui.presetOptions.hugo }}</option>
+          <option value="docusaurus">{{ ui.presetOptions.docusaurus }}</option>
         </select>
       </div>
 
       <div class="field-grid">
         <label class="wide-field">
-          内容包目录
+          {{ ui.packageName }}
           <input v-model="state.packageName" />
         </label>
         <label>
-          Markdown 文件名
+          {{ ui.markdownName }}
           <input v-model="state.markdownName" />
         </label>
         <label>
-          Metadata 文件名
+          {{ ui.metadataName }}
           <input v-model="state.metadataName" />
         </label>
         <label>
-          报告文件名
+          {{ ui.reportName }}
           <input v-model="state.reportName" />
         </label>
       </div>
 
       <div class="field-grid">
         <label>
-          Front matter
+          {{ ui.frontMatter }}
           <select v-model="state.frontMatter">
-            <option value="yaml">生成 YAML</option>
-            <option value="none">不生成</option>
+            <option value="yaml">{{ ui.yaml }}</option>
+            <option value="none">{{ ui.none }}</option>
           </select>
         </label>
         <label class="wide-field">
-          图片 Markdown 路径
+          {{ ui.imagePath }}
           <input v-model="state.imagePath" />
         </label>
         <label class="wide-field">
-          视频 Markdown 路径
+          {{ ui.videoPath }}
           <input v-model="state.videoPath" />
         </label>
       </div>
@@ -245,15 +330,15 @@ function downloadToml() {
       <div class="toggle-row">
         <label>
           <input v-model="state.includeSourceBlock" type="checkbox" />
-          显示来源信息块
+          {{ ui.includeSourceBlock }}
         </label>
         <label>
           <input v-model="state.downloadImages" type="checkbox" />
-          下载图片
+          {{ ui.downloadImages }}
         </label>
         <label>
           <input v-model="state.downloadVideos" type="checkbox" />
-          下载视频
+          {{ ui.downloadVideos }}
         </label>
       </div>
     </div>
@@ -262,22 +347,22 @@ function downloadToml() {
       <div class="toml-toolbar">
         <div>
           <span>.magicmd.toml</span>
-          <small>实时生成，可直接落到项目根目录</small>
+          <small>{{ ui.generated }}</small>
         </div>
         <div>
           <button type="button" @click="copyToml">
-            {{ copyState === 'copied' ? '已复制' : copyState === 'failed' ? '复制失败' : '复制' }}
+            {{ copyState === 'copied' ? ui.copied : copyState === 'failed' ? ui.copyFailed : ui.copy }}
           </button>
-          <button type="button" @click="downloadToml">下载</button>
+          <button type="button" @click="downloadToml">{{ ui.download }}</button>
         </div>
       </div>
       <pre>{{ toml }}</pre>
-      <p class="cli-hint">保存后运行：magicmd URL --config .magicmd.toml</p>
+      <p class="cli-hint">{{ ui.cliHint }}</p>
     </div>
 
     <aside class="builder-side">
       <div class="side-card side-card-primary">
-        <span>当前预设</span>
+        <span>{{ ui.currentPreset }}</span>
         <strong>{{ presetLabels[state.preset] }}</strong>
         <p>{{ outputPreview }}</p>
         <div class="preset-chip-list">
@@ -288,8 +373,8 @@ function downloadToml() {
 
       <div class="side-card markdown-preview-card">
         <div class="markdown-preview-heading">
-          <span>生成后的 {{ state.markdownName }} 示例</span>
-          <small>随左侧配置实时变化</small>
+          <span>{{ ui.markdownPreviewTitle(state.markdownName) }}</span>
+          <small>{{ ui.markdownPreviewHint }}</small>
         </div>
         <pre>{{ markdownExample }}</pre>
       </div>
