@@ -13,8 +13,81 @@ export default defineConfig({
     ['meta', { name: 'theme-color', content: '#0f9f6e' }],
     ['meta', { property: 'og:type', content: 'website' }],
     ['meta', { property: 'og:site_name', content: 'MagicMD' }],
-    ['meta', { property: 'og:locale', content: 'zh_CN' }]
+    ['meta', { property: 'og:locale', content: 'zh_CN' }],
+    ['link', { rel: 'alternate', hreflang: 'zh-CN', href: 'https://magicmd.cn/' }],
+    ['link', { rel: 'alternate', hreflang: 'en-US', href: 'https://magicmd.cn/en/' }]
   ],
+  locales: {
+    root: {
+      label: '简体中文',
+      lang: 'zh-CN',
+      title: 'MagicMD',
+      description: '强大易用的文章转 Markdown 工具，一键转换微信公众号、掘金、CSDN 等公开文章。'
+    },
+    en: {
+      label: 'English',
+      lang: 'en-US',
+      link: '/en/',
+      title: 'MagicMD',
+      description: 'Turn public article links into clean, configurable Markdown packages.',
+      themeConfig: {
+        nav: [
+          { text: 'Quick Start', link: '/en/quick-start' },
+          { text: 'Config Builder', link: '/en/config-builder' },
+          { text: 'Supported Sites', link: '/en/supported-sites' },
+          {
+            text: 'Docs',
+            items: [
+              { text: 'Configuration', link: '/en/config' },
+              { text: 'Troubleshooting', link: '/en/troubleshooting' },
+              { text: 'Release Notes', link: 'https://github.com/didilili/MagicMD/releases' }
+            ]
+          }
+        ],
+        sidebar: [
+          {
+            text: 'Get Started',
+            items: [
+              { text: 'Quick Start', link: '/en/quick-start' },
+              { text: 'Config Builder', link: '/en/config-builder' },
+              { text: 'Configuration', link: '/en/config' }
+            ]
+          },
+          {
+            text: 'Reference',
+            items: [
+              { text: 'Supported Sites', link: '/en/supported-sites' },
+              { text: 'Troubleshooting', link: '/en/troubleshooting' }
+            ]
+          }
+        ],
+        search: {
+          provider: 'local'
+        },
+        outline: {
+          label: 'On This Page',
+          level: [2, 3]
+        },
+        docFooter: {
+          prev: 'Previous page',
+          next: 'Next page'
+        },
+        lastUpdated: {
+          text: 'Last updated'
+        },
+        editLink: {
+          pattern: 'https://github.com/didilili/MagicMD/edit/main/website/:path',
+          text: 'Edit this page on GitHub'
+        },
+        darkModeSwitchLabel: 'Appearance',
+        lightModeSwitchTitle: 'Switch to light theme',
+        darkModeSwitchTitle: 'Switch to dark theme',
+        sidebarMenuLabel: 'Menu',
+        returnToTopLabel: 'Return to top',
+        skipToContentLabel: 'Skip to content'
+      }
+    }
+  },
   themeConfig: {
     logo: '/favicon.svg',
     siteTitle: 'MagicMD',
