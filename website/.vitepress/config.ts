@@ -38,6 +38,7 @@ export default defineConfig({
       themeConfig: {
         nav: [
           { text: 'Quick Start', link: '/en/quick-start' },
+          { text: 'SDK', link: '/en/sdk' },
           { text: 'Config Builder', link: '/en/config-builder' },
           { text: 'Supported Sites', link: '/en/supported-sites' },
           {
@@ -54,6 +55,7 @@ export default defineConfig({
             text: 'Get Started',
             items: [
               { text: 'Quick Start', link: '/en/quick-start' },
+              { text: 'SDK Integration', link: '/en/sdk' },
               { text: 'Config Builder', link: '/en/config-builder' },
               { text: 'Configuration', link: '/en/config' }
             ]
@@ -98,6 +100,7 @@ export default defineConfig({
     siteTitle: 'MagicMD',
     nav: [
       { text: '快速开始', link: '/quick-start' },
+      { text: 'SDK 接入', link: '/sdk' },
       { text: '配置生成器', link: '/config-builder' },
       { text: '支持站点', link: '/supported-sites' },
       {
@@ -114,6 +117,7 @@ export default defineConfig({
         text: '开始使用',
         items: [
           { text: '快速开始', link: '/quick-start' },
+          { text: 'SDK 接入', link: '/sdk' },
           { text: '配置生成器', link: '/config-builder' },
           { text: '配置说明', link: '/config' }
         ]

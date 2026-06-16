@@ -250,6 +250,8 @@ except ParseError:
 
 Public errors include `UnsupportedPlatformError`, `FetchError`, `ParseError`, `MediaDownloadError`, and `ConversionError`. MagicMD does not include app-specific fields; external systems can store `result.markdown`, `result.metadata`, and `result.images` in their own database and media pipeline.
 
+See [docs/integrations/python-sdk.md](./docs/integrations/python-sdk.md) for the full SDK contract. For CMS, Django, or HaoGit-style import pipelines, see [docs/integrations/haogit-import.md](./docs/integrations/haogit-import.md) and [examples/python](./examples/python).
+
 ## Supported Sites
 
 | Site | Status | Default fetcher | Notes |

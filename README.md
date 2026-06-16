@@ -250,6 +250,8 @@ except ParseError:
 
 公开错误类型包括 `UnsupportedPlatformError`、`FetchError`、`ParseError`、`MediaDownloadError` 和 `ConversionError`。MagicMD 不包含 HaoGit 专属字段；HaoGit 或其他系统可以自行把 `result.markdown`、`result.metadata`、`result.images` 写入自己的数据表和媒体目录。
 
+更完整的接入说明见 [docs/integrations/python-sdk.md](./docs/integrations/python-sdk.md)。如果你要接入 CMS、Django 或 HaoGit 一类业务系统，可以参考 [docs/integrations/haogit-import.md](./docs/integrations/haogit-import.md) 和 [examples/python](./examples/python)。
+
 ## 支持站点
 
 | 站点 | 状态 | 默认抓取 | 说明 |

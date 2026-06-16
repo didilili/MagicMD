@@ -14,6 +14,9 @@ hero:
     - theme: alt
       text: 在线生成配置
       link: /config-builder
+    - theme: alt
+      text: SDK 接入
+      link: /sdk
 ---
 
 <HomeShowcase />

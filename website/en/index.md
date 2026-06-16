@@ -14,6 +14,9 @@ hero:
     - theme: alt
       text: Build a Config
       link: /en/config-builder
+    - theme: alt
+      text: SDK Integration
+      link: /en/sdk
 ---
 
 <HomeShowcase />

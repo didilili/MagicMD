@@ -1,5 +1,7 @@
 # MagicMD 官网与配置生成器方案
 
+> 历史说明：这份文档最早按 Astro + Starlight 设想编写。当前官网已经改为 VitePress，并部署到 GitHub Pages / magicmd.cn。下面保留原始思路作为产品设计记录；实际实现以 `website/` 为准。
+
 ## 目标
 
 MagicMD 需要一个长期可维护的官网，而不是只有 README。

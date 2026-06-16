@@ -23,8 +23,14 @@ magicmd/
 │   ├── MagicMD-v0.1-design.md
 │   ├── MagicMD-v0.1-implementation-plan.md
 │   ├── development.md
+│   ├── integrations/
+│   │   ├── python-sdk.md
+│   │   └── haogit-import.md
+│   ├── releases/
 │   ├── supported-sites.md
 │   └── wechat-regression-corpus.md
+├── examples/
+│   └── python/                # SDK 接入示例
 ├── npm/
 │   └── magicmd/               # npm wrapper，转发到 PyPI 版 CLI
 │       ├── package.json
@@ -39,6 +45,8 @@ magicmd/
 ├── samples/                   # 真实站点验证 URL 样本
 ├── src/
 │   └── magicmd/
+│       ├── __init__.py
+│       ├── sdk.py
 │       ├── cli.py
 │       ├── config.py
 │       ├── detect.py
@@ -78,6 +86,8 @@ magicmd/
 
 | 文件 | 作用 |
 | --- | --- |
+| `src/magicmd/__init__.py` | 对外导出稳定 Python SDK 入口、结果模型和错误类型。 |
+| `src/magicmd/sdk.py` | 定义 `convert_article()`、`ArticleConversionResult`、`ConvertedImage` 和 SDK 错误映射；CLI 单篇转换也复用这里。 |
 | `src/magicmd/cli.py` | 定义 `magicmd`、`convert`、`batch`、`config init`、`doctor` 命令，并控制动态进度状态。 |
 | `src/magicmd/config.py` | 读取 `.magicmd.toml`，合并默认配置和用户配置。 |
 | `src/magicmd/detect.py` | 根据 URL 自动识别 `wechat`、`juejin`、`csdn` 或 `generic`。 |
@@ -99,6 +109,10 @@ magicmd/
 | `src/magicmd/platforms/shared/metadata.py` | 元数据、脚本变量、文本和时间提取工具。 |
 | `src/magicmd/renderers/markdown.py` | 控制最终 `article.md` 的整体格式，包括 front matter、标题、来源信息和正文插入位置。 |
 | `npm/magicmd/bin/magicmd.js` | npm wrapper 入口，调用 `uvx --from magicmd magicmd ...`，不复制 Python 转换逻辑。 |
+| `docs/integrations/python-sdk.md` | SDK 字段、错误、媒体路径和后端接入契约。 |
+| `docs/integrations/haogit-import.md` | HaoGit/CMS 风格导入建议，只描述映射和流程，不写业务系统专属逻辑。 |
+| `examples/python/convert_to_json.py` | 调用 SDK 并输出完整 JSON 结果。 |
+| `examples/python/convert_for_cms.py` | 演示把图片复制到业务 media 目录并重写 Markdown 链接。 |
 
 ## 转换流程 / Conversion Flow
 
@@ -113,11 +127,15 @@ platforms/<platform>.py 解析为 Article
   ↓
 platforms/shared/* 清洗正文并转换 Markdown
   ↓
-assets.py 下载图片并改写链接
+output.py 写入初始内容包（output_dir 有值时）
   ↓
-renderers/markdown.py 生成 article.md
+assets.py 下载图片并改写链接（output_dir 有值时）
   ↓
-output.py 写入 article.md、metadata.json、extraction-report.json
+renderers/markdown.py 生成最终 Markdown
+  ↓
+output.py / diagnostics.py 写入 article.md、metadata.json、extraction-report.json
+  ↓
+sdk.py 返回 ArticleConversionResult
 ```
 
 ## 添加新平台 / Adding a Platform
@@ -156,3 +174,10 @@ uv run magicmd batch samples/csdn-complex-10.txt -o output/csdn-check --skip-exi
 ```
 
 如果修改了 README，必须同时更新 `README.md` 和 `README_EN.md`。
+
+如果修改公开 SDK 字段或错误类型，必须同步更新：
+
+- [README.md](../README.md)
+- [README_EN.md](../README_EN.md)
+- [docs/integrations/python-sdk.md](./integrations/python-sdk.md)
+- `tests/test_sdk.py`

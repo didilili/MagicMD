@@ -98,3 +98,7 @@ magicmd "https://mp.weixin.qq.com/s/example" --config .magicmd.toml
 ```
 
 You can also use the [Config Builder](/en/config-builder) to choose the publishing target, filenames, and media paths, then save the generated `.magicmd.toml` at your project root.
+
+## 6. Call MagicMD from Python
+
+If you are integrating MagicMD into a Python backend, CMS, HaoGit-style project, or scheduled job, do not parse CLI output. Use [SDK Integration](/en/sdk) and call `from magicmd import convert_article` to receive structured Markdown, metadata, images, and extraction reports.
