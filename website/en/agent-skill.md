@@ -20,17 +20,25 @@ Use it when you want an agent to:
 
 After installing the Skill, you can send these requests to Codex, Claude Code, or another Skill-capable agent tool:
 
+Single conversion: use this when you already have one public article link and want a Markdown package.
+
 ```text
 Use MagicMD to convert this public article link into a Markdown package, then tell me which files and warnings were produced.
 ```
+
+Batch collection: use this when multiple links are already listed in `urls.txt` and you want resumable conversion plus failure reporting.
 
 ```text
 Read urls.txt, batch convert the links into output/articles with MagicMD, skip packages that already exist, and report failures from batch-report.md.
 ```
 
+Environment check: use this before the first run on a new machine or workspace.
+
 ```text
 Run MagicMD doctor and check whether this workspace can convert WeChat, Juejin, CSDN, and generic article links.
 ```
+
+Pre-publish review: use this after conversion when you want the agent to identify articles that need manual review.
 
 ```text
 Inspect this MagicMD output directory and tell me which articles need manual review before publishing.
