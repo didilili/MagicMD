@@ -14,4 +14,3 @@ from magicmd.detect import detect_platform
 )
 def test_detect_platform(url, expected):
     assert detect_platform(url) == expected
-

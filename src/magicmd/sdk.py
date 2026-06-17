@@ -71,7 +71,9 @@ def fetch_for_platform(url: str, platform: str, config_path: Optional[Path] = No
             timeout_ms=config.fetch.browser_timeout_seconds * 1000,
             attempts=config.fetch.browser_attempts,
         )
-    return fetch_http(url, timeout_seconds=config.fetch.timeout_seconds, user_agent=config.fetch.user_agent)
+    return fetch_http(
+        url, timeout_seconds=config.fetch.timeout_seconds, user_agent=config.fetch.user_agent
+    )
 
 
 def parse_article(platform: str, html: str, url: str) -> Article:
@@ -160,7 +162,9 @@ def convert_article(
             ),
             ConversionError,
         )
-        if _should_save_debug_html(_debug, config.output.save_debug_html, article.extraction.warnings):
+        if _should_save_debug_html(
+            _debug, config.output.save_debug_html, article.extraction.warnings
+        ):
             save_debug_html(package_dir, html)
     else:
         article = ensure_content_hash(article)
@@ -174,7 +178,11 @@ def convert_article(
             ConversionError,
         )
 
-    if package_dir is not None and download_images and (config.images.download or config.videos.download):
+    if (
+        package_dir is not None
+        and download_images
+        and (config.images.download or config.videos.download)
+    ):
         article = _run_stage(
             _progress,
             "media",
@@ -245,7 +253,9 @@ def convert_article(
     return _build_result(article, markdown, metadata, report, package_dir, config)
 
 
-def download_configured_media(article: Article, package_dir: Path, config: MagicMDConfig) -> Article:
+def download_configured_media(
+    article: Article, package_dir: Path, config: MagicMDConfig
+) -> Article:
     from magicmd.assets import download_images, download_videos
 
     next_article = article

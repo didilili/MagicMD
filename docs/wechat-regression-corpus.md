@@ -29,15 +29,15 @@ output/wechat-regression-v0.1/batch-report.json
 
 ## 当前重点问题标签
 
-| 标签 | 说明 |
-| --- | --- |
-| `video_extraction` | 微信视频提取、占位、下载和链接可访问性。 |
-| `linked_image` | 图片外层超链接是否保留，Markdown 是否断裂。 |
-| `non_code_pre` | 非代码样式块不应被误转成代码块。 |
-| `fragmented_bold` | 微信富文本把一个加粗词拆成多个 span 时，Markdown 加粗应合并。 |
-| `decorative_gif` | 动态修饰图、空白小 GIF、占位图不应输出成正文图片。 |
-| `wide_block_link` | 整段外层链接应收窄到真正有链接样式的文字范围。 |
-| `layout_heading` | 视觉排版容器不应误升格为 Markdown 标题。 |
+| 标签               | 说明                                                          |
+| ------------------ | ------------------------------------------------------------- |
+| `video_extraction` | 微信视频提取、占位、下载和链接可访问性。                      |
+| `linked_image`     | 图片外层超链接是否保留，Markdown 是否断裂。                   |
+| `non_code_pre`     | 非代码样式块不应被误转成代码块。                              |
+| `fragmented_bold`  | 微信富文本把一个加粗词拆成多个 span 时，Markdown 加粗应合并。 |
+| `decorative_gif`   | 动态修饰图、空白小 GIF、占位图不应输出成正文图片。            |
+| `wide_block_link`  | 整段外层链接应收窄到真正有链接样式的文字范围。                |
+| `layout_heading`   | 视觉排版容器不应误升格为 Markdown 标题。                      |
 
 ## v0.1 验收建议
 

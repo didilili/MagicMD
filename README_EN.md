@@ -52,12 +52,12 @@ MagicMD is not a bookmark manager and not a general-purpose crawler framework. I
 
 Many tools can turn web pages or files into Markdown. MagicMD is focused on a more specific problem: **turning Chinese content-platform articles into Markdown that can be maintained over time.**
 
-| Tool type | Common focus | MagicMD's difference |
-| --- | --- | --- |
-| Generic URL-to-Markdown tools | Great for standard web pages, docs, English sites, or LLM input cleanup. | MagicMD has platform adapters for WeChat, Juejin, and CSDN, with cleanup for rich text, redirect links, code widgets, and editor noise common on Chinese content platforms. |
-| WeChat-only conversion scripts | Often extract body text and images, but have limited config, batch reporting, and multi-platform extensibility. | MagicMD keeps `metadata.json`, `extraction-report.json`, batch reports, and configurable Markdown output, so the result can feed publishing or automation workflows. |
-| Crawler frameworks | Powerful, but usually require custom parsing, cleanup rules, and output conventions. | MagicMD gives article-collection workflows a ready CLI: links in, content packages on disk. |
-| Manual copy to Markdown | Precise, but slow; images, links, code blocks, and source metadata are easy to lose. | MagicMD handles local images, heading depth, code blocks, links, source metadata, and failure warnings automatically. |
+| Tool type                      | Common focus                                                                                                    | MagicMD's difference                                                                                                                                                        |
+| ------------------------------ | --------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Generic URL-to-Markdown tools  | Great for standard web pages, docs, English sites, or LLM input cleanup.                                        | MagicMD has platform adapters for WeChat, Juejin, and CSDN, with cleanup for rich text, redirect links, code widgets, and editor noise common on Chinese content platforms. |
+| WeChat-only conversion scripts | Often extract body text and images, but have limited config, batch reporting, and multi-platform extensibility. | MagicMD keeps `metadata.json`, `extraction-report.json`, batch reports, and configurable Markdown output, so the result can feed publishing or automation workflows.        |
+| Crawler frameworks             | Powerful, but usually require custom parsing, cleanup rules, and output conventions.                            | MagicMD gives article-collection workflows a ready CLI: links in, content packages on disk.                                                                                 |
+| Manual copy to Markdown        | Precise, but slow; images, links, code blocks, and source metadata are easy to lose.                            | MagicMD handles local images, heading depth, code blocks, links, source metadata, and failure warnings automatically.                                                       |
 
 MagicMD's advantage is not "crawl the whole web." It is doing the Chinese technical-content archiving work carefully: WeChat video links are extracted and local download is attempted; Juejin redirect links are normalized back to direct target URLs where possible; CSDN code blocks are cleaned of copy buttons, line counters, and editor widgets; batch conversion leaves a report so you know which articles need review.
 
@@ -219,19 +219,19 @@ print(result.report)
 
 `convert_article()` returns a stable Pydantic model named `ArticleConversionResult`:
 
-| Field | Meaning |
-| --- | --- |
-| `title` / `author` / `published_at` | Article title, author, and publish time. |
-| `platform` | Platform key such as `wechat`, `juejin`, `csdn`, or `generic`. |
-| `source_url` / `canonical_url` | Original URL and canonical URL. |
-| `excerpt` | Extracted page summary when available. |
-| `markdown` | Converted Markdown string. |
-| `content_hash` | Hash of the article body for deduplication. |
-| `images` | Image assets with `source_url`, `local_path`, `markdown_path`, and `alt`. `markdown_path` is the path currently referenced by Markdown; `local_path` is the downloaded filesystem path so external systems can copy the file into their own media directory and rewrite links. |
-| `warnings` | Fetch, parse, and media warnings. |
-| `metadata` | Structured data aligned with `metadata.json`. |
-| `report` | Extraction report aligned with `extraction-report.json`. |
-| `package_dir` | Set only when `output_dir` is provided and a package is written. |
+| Field                               | Meaning                                                                                                                                                                                                                                                                        |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `title` / `author` / `published_at` | Article title, author, and publish time.                                                                                                                                                                                                                                       |
+| `platform`                          | Platform key such as `wechat`, `juejin`, `csdn`, or `generic`.                                                                                                                                                                                                                 |
+| `source_url` / `canonical_url`      | Original URL and canonical URL.                                                                                                                                                                                                                                                |
+| `excerpt`                           | Extracted page summary when available.                                                                                                                                                                                                                                         |
+| `markdown`                          | Converted Markdown string.                                                                                                                                                                                                                                                     |
+| `content_hash`                      | Hash of the article body for deduplication.                                                                                                                                                                                                                                    |
+| `images`                            | Image assets with `source_url`, `local_path`, `markdown_path`, and `alt`. `markdown_path` is the path currently referenced by Markdown; `local_path` is the downloaded filesystem path so external systems can copy the file into their own media directory and rewrite links. |
+| `warnings`                          | Fetch, parse, and media warnings.                                                                                                                                                                                                                                              |
+| `metadata`                          | Structured data aligned with `metadata.json`.                                                                                                                                                                                                                                  |
+| `report`                            | Extraction report aligned with `extraction-report.json`.                                                                                                                                                                                                                       |
+| `package_dir`                       | Set only when `output_dir` is provided and a package is written.                                                                                                                                                                                                               |
 
 Backend code can catch explicit SDK errors:
 
@@ -254,12 +254,12 @@ See [docs/integrations/python-sdk.md](./docs/integrations/python-sdk.md) for the
 
 ## Supported Sites
 
-| Site | Status | Default fetcher | Notes |
-| --- | --- | --- | --- |
-| WeChat Official Account `mp.weixin.qq.com` | Stable primary target | `camoufox` | Main v0.1 validation target with multiple rounds of live formatting fixes. |
-| Juejin `juejin.cn` | Experimental support | `camoufox` | Homepage and complex technical samples checked for images, code blocks, external links, and heading depth. |
-| CSDN `blog.csdn.net` | Experimental support | `camoufox` | Ten complex live samples manually reviewed for code blocks, Mermaid/SVG, TOC links, and widget noise. |
-| Generic pages | Best effort | `http` | Basic extraction for pages with standard `article`, `main`, or Open Graph metadata. |
+| Site                                       | Status                | Default fetcher | Notes                                                                                                      |
+| ------------------------------------------ | --------------------- | --------------- | ---------------------------------------------------------------------------------------------------------- |
+| WeChat Official Account `mp.weixin.qq.com` | Stable primary target | `camoufox`      | Main v0.1 validation target with multiple rounds of live formatting fixes.                                 |
+| Juejin `juejin.cn`                         | Experimental support  | `camoufox`      | Homepage and complex technical samples checked for images, code blocks, external links, and heading depth. |
+| CSDN `blog.csdn.net`                       | Experimental support  | `camoufox`      | Ten complex live samples manually reviewed for code blocks, Mermaid/SVG, TOC links, and widget noise.      |
+| Generic pages                              | Best effort           | `http`          | Basic extraction for pages with standard `article`, `main`, or Open Graph metadata.                        |
 
 See [docs/supported-sites.md](./docs/supported-sites.md) for more site notes.
 
@@ -359,19 +359,19 @@ language = "en-US"
 
 Useful options:
 
-| Config | Meaning |
-| --- | --- |
-| `output.directory` | Default output directory. |
-| `output.overwrite` | Whether to overwrite an existing package. |
-| `output.save_debug_html` | `always`, `on_failure`, or `never`; controls `debug.html` output. |
-| `markdown.front_matter` | `yaml` or `none`. |
-| `markdown.template` | `default` or `clean`. |
-| `markdown.heading_offset` | Shifts Markdown heading levels. |
-| `images.download` | Whether images are downloaded. |
-| `fetch.browser_attempts` | Total browser-mode attempts after failures. |
-| `ui.language` | CLI terminal language. MagicMD defaults to Chinese-first `zh-CN`; set `en-US` for English messages. |
-| `platforms.<name>.browser` | Uses `http` or `camoufox`. |
-| `platforms.<name>.wait_selector` | Selector to wait for during browser fetching. |
+| Config                           | Meaning                                                                                             |
+| -------------------------------- | --------------------------------------------------------------------------------------------------- |
+| `output.directory`               | Default output directory.                                                                           |
+| `output.overwrite`               | Whether to overwrite an existing package.                                                           |
+| `output.save_debug_html`         | `always`, `on_failure`, or `never`; controls `debug.html` output.                                   |
+| `markdown.front_matter`          | `yaml` or `none`.                                                                                   |
+| `markdown.template`              | `default` or `clean`.                                                                               |
+| `markdown.heading_offset`        | Shifts Markdown heading levels.                                                                     |
+| `images.download`                | Whether images are downloaded.                                                                      |
+| `fetch.browser_attempts`         | Total browser-mode attempts after failures.                                                         |
+| `ui.language`                    | CLI terminal language. MagicMD defaults to Chinese-first `zh-CN`; set `en-US` for English messages. |
+| `platforms.<name>.browser`       | Uses `http` or `camoufox`.                                                                          |
+| `platforms.<name>.wait_selector` | Selector to wait for during browser fetching.                                                       |
 
 Check the runtime:
 

@@ -73,7 +73,9 @@ def test_scan_markdown_quality_allows_adjacent_inline_bold_terms():
 def test_build_package_quality_reads_metadata_and_article(tmp_path: Path):
     package = tmp_path / "article-package"
     package.mkdir()
-    (package / "article.md").write_text("# Demo\n\n![Image](images/img_001.png)\n", encoding="utf-8")
+    (package / "article.md").write_text(
+        "# Demo\n\n![Image](images/img_001.png)\n", encoding="utf-8"
+    )
     (package / "metadata.json").write_text(
         json.dumps(
             {

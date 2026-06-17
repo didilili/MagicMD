@@ -96,9 +96,7 @@ def test_convert_article_writes_package_when_output_dir_is_set(tmp_path: Path):
     assert result.markdown == (package_dir / "article.md").read_text(encoding="utf-8")
 
 
-def test_convert_article_separates_image_local_path_from_markdown_path(
-    monkeypatch, tmp_path: Path
-):
+def test_convert_article_separates_image_local_path_from_markdown_path(monkeypatch, tmp_path: Path):
     def fake_fetch(url, platform, config_path):
         return "<html>ok</html>"
 

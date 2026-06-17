@@ -59,8 +59,13 @@ def test_parse_wechat_html_normalizes_rich_sections_styles_and_images():
     assert "## 不再从零开始，ChatGPT 全新记忆系统登场" in article.content_markdown
     assert "## 01 把代码变成知识图谱" in article.content_markdown
     assert "## 3 GPU 之外，视频模型还有一张更贵的账单" in article.content_markdown
-    assert "根据 Karpathy 观察 LLM 写代码的坑。**\n\n**mattpocock/skills：" in article.content_markdown
-    assert "![Image](https://example.com/cover.png)\n\n图片后的下一行文字。" in article.content_markdown
+    assert (
+        "根据 Karpathy 观察 LLM 写代码的坑。**\n\n**mattpocock/skills：" in article.content_markdown
+    )
+    assert (
+        "![Image](https://example.com/cover.png)\n\n图片后的下一行文字。"
+        in article.content_markdown
+    )
 
 
 def test_parse_wechat_html_does_not_promote_ordinary_bold_paragraphs_to_headings():
@@ -120,7 +125,10 @@ def test_parse_wechat_html_handles_linked_images_without_broken_brackets():
 
     assert "[\n\n![Image]" not in article.content_markdown
     assert "\n\n](https://mp.weixin.qq.com/mp/appmsgalbum" not in article.content_markdown
-    assert "[![Image](https://example.com/album.png)](https://mp.weixin.qq.com/mp/appmsgalbum?album_id=1)" in article.content_markdown
+    assert (
+        "[![Image](https://example.com/album.png)](https://mp.weixin.qq.com/mp/appmsgalbum?album_id=1)"
+        in article.content_markdown
+    )
 
 
 def test_parse_wechat_html_treats_non_code_pre_as_plain_content():
@@ -241,7 +249,10 @@ def test_parse_wechat_html_narrows_block_link_to_colored_span():
 
     assert "[根据相关规定" not in article.content_markdown
     assert "根据相关规定，将视为" in article.content_markdown
-    assert "[《微信公众平台运营规范》4.20 第三方商业营销内容违规](https://example.com/rule" in article.content_markdown
+    assert (
+        "[《微信公众平台运营规范》4.20 第三方商业营销内容违规](https://example.com/rule"
+        in article.content_markdown
+    )
     assert "。平台将按照规范限制。" in article.content_markdown
 
 

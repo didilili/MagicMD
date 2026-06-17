@@ -143,7 +143,11 @@ def download_images(
         client_kwargs["transport"] = transport
     with httpx.Client(**client_kwargs) as client:
         for index, image in enumerate(article.images, start=1):
-            url = image.source_url if not image.source_url.startswith("//") else f"https:{image.source_url}"
+            url = (
+                image.source_url
+                if not image.source_url.startswith("//")
+                else f"https:{image.source_url}"
+            )
             try:
                 response = client.get(url, headers={"Referer": article.source_url})
                 response.raise_for_status()

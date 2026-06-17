@@ -113,7 +113,10 @@ def test_parse_csdn_html_preserves_highlighted_code_line_breaks():
 
     article = parse_csdn_html(html, "https://blog.csdn.net/demo/article/details/highlighted-code")
 
-    assert 'def foo():\n    print("starting...")\n    while True:\n        res = yield 4' in article.content_markdown
+    assert (
+        'def foo():\n    print("starting...")\n    while True:\n        res = yield 4'
+        in article.content_markdown
+    )
     assert 'def foo():    print("starting...")' not in article.content_markdown
 
 

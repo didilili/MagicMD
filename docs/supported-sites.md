@@ -8,12 +8,12 @@ MagicMD 只处理公开文章页面。登录、付费墙、验证码、私有内
 
 ## 支持矩阵
 
-| 站点 | 状态 | 默认抓取 | 适合场景 |
-| --- | --- | --- | --- |
-| 微信公众号 `mp.weixin.qq.com` | 稳定主目标 | `camoufox` | 公众号文章归档、图片本地化、后续发布到知识库或网站。 |
-| 掘金 `juejin.cn` | 实验支持 | `camoufox` | 技术文章归档，重点保留图片、代码块、外链和标题层级。 |
-| CSDN `blog.csdn.net` | 实验支持 | `camoufox` | 技术文章归档，重点清理代码块、目录链接、Mermaid/SVG 和页面控件噪声。 |
-| 通用网页 | 尽力支持 | `http` | 标准 `article`、`main` 或 Open Graph 元信息比较完整的公开页面。 |
+| 站点                          | 状态       | 默认抓取   | 适合场景                                                             |
+| ----------------------------- | ---------- | ---------- | -------------------------------------------------------------------- |
+| 微信公众号 `mp.weixin.qq.com` | 稳定主目标 | `camoufox` | 公众号文章归档、图片本地化、后续发布到知识库或网站。                 |
+| 掘金 `juejin.cn`              | 实验支持   | `camoufox` | 技术文章归档，重点保留图片、代码块、外链和标题层级。                 |
+| CSDN `blog.csdn.net`          | 实验支持   | `camoufox` | 技术文章归档，重点清理代码块、目录链接、Mermaid/SVG 和页面控件噪声。 |
+| 通用网页                      | 尽力支持   | `http`     | 标准 `article`、`main` 或 Open Graph 元信息比较完整的公开页面。      |
 
 ## 微信公众号
 
@@ -177,12 +177,12 @@ MagicMD only targets public article pages. Login-only pages, paywalls, CAPTCHA, 
 
 ## Support Matrix
 
-| Site | Status | Default fetcher | Good fit |
-| --- | --- | --- | --- |
-| WeChat Official Account `mp.weixin.qq.com` | Stable primary target | `camoufox` | Article archiving, local images, later publishing to a knowledge base or website. |
-| Juejin `juejin.cn` | Experimental support | `camoufox` | Technical-article archiving with images, code blocks, external links, and heading structure. |
-| CSDN `blog.csdn.net` | Experimental support | `camoufox` | Technical-article archiving with code cleanup, TOC links, Mermaid/SVG, and widget noise removal. |
-| Generic pages | Best effort | `http` | Public pages with standard `article`, `main`, or Open Graph metadata. |
+| Site                                       | Status                | Default fetcher | Good fit                                                                                         |
+| ------------------------------------------ | --------------------- | --------------- | ------------------------------------------------------------------------------------------------ |
+| WeChat Official Account `mp.weixin.qq.com` | Stable primary target | `camoufox`      | Article archiving, local images, later publishing to a knowledge base or website.                |
+| Juejin `juejin.cn`                         | Experimental support  | `camoufox`      | Technical-article archiving with images, code blocks, external links, and heading structure.     |
+| CSDN `blog.csdn.net`                       | Experimental support  | `camoufox`      | Technical-article archiving with code cleanup, TOC links, Mermaid/SVG, and widget noise removal. |
+| Generic pages                              | Best effort           | `http`          | Public pages with standard `article`, `main`, or Open Graph metadata.                            |
 
 ## WeChat Official Account
 

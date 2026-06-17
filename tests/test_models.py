@@ -33,6 +33,8 @@ def test_article_metadata_dump_uses_stable_keys():
 
 
 def test_extraction_info_marks_content_not_found_warning_as_failed():
-    extraction = ExtractionInfo(platform="juejin", parser="juejin", warnings=["juejin_content_not_found"])
+    extraction = ExtractionInfo(
+        platform="juejin", parser="juejin", warnings=["juejin_content_not_found"]
+    )
 
     assert extraction.status == "failed"

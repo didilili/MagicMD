@@ -38,11 +38,11 @@ report = "extraction-report.json"
 
 常见选择：
 
-| 目标 | 建议 |
-| --- | --- |
+| 目标               | 建议                      |
+| ------------------ | ------------------------- |
 | 普通 Markdown 归档 | `markdown = "article.md"` |
-| Hugo 内容目录 | `markdown = "index.md"` |
-| Docusaurus 文档 | `markdown = "index.md"` |
+| Hugo 内容目录      | `markdown = "index.md"`   |
+| Docusaurus 文档    | `markdown = "index.md"`   |
 
 ## Markdown 格式
 

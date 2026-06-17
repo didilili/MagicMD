@@ -31,7 +31,8 @@ const heroCopy = computed(() =>
     : {
         eyebrow: '极速上手',
         title: '2 条命令，生成第一份高质量 Markdown 内容包',
-        description: '安装 CLI，粘贴公开文章链接，MagicMD 会自动完成正文提取、媒体本地化、代码块清理、来源信息和转换报告生成。',
+        description:
+          '安装 CLI，粘贴公开文章链接，MagicMD 会自动完成正文提取、媒体本地化、代码块清理、来源信息和转换报告生成。',
         single: '极速单篇转换',
         batch: '批量模式',
         copy: '复制命令',
@@ -46,11 +47,13 @@ const features = computed(() =>
     ? [
         {
           title: 'Deep WeChat optimization',
-          detail: 'Downloads images, extracts video links, filters editor assets, and keeps source metadata.'
+          detail:
+            'Downloads images, extracts video links, filters editor assets, and keeps source metadata.'
         },
         {
           title: 'Direct, cleaner links',
-          detail: 'Restores redirect wrappers where possible, so Markdown links open the real target.'
+          detail:
+            'Restores redirect wrappers where possible, so Markdown links open the real target.'
         },
         {
           title: 'Polished code blocks',
@@ -58,7 +61,8 @@ const features = computed(() =>
         },
         {
           title: 'Traceable batch runs',
-          detail: 'Convert a urls.txt file and inspect a report for failures, warnings, and review items.'
+          detail:
+            'Convert a urls.txt file and inspect a report for failures, warnings, and review items.'
         },
         {
           title: 'Custom output rules',
@@ -126,7 +130,13 @@ async function copyCommand() {
         <p>{{ heroCopy.description }}</p>
       </div>
       <button type="button" class="mm-copy-button" @click="copyCommand">
-        {{ copyState === 'copied' ? heroCopy.copied : copyState === 'failed' ? heroCopy.failed : heroCopy.copy }}
+        {{
+          copyState === 'copied'
+            ? heroCopy.copied
+            : copyState === 'failed'
+              ? heroCopy.failed
+              : heroCopy.copy
+        }}
       </button>
     </div>
 

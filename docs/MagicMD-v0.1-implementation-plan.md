@@ -70,6 +70,7 @@ magicmd/
 ## Task 1: Scaffold Repository and Package
 
 **Files:**
+
 - Create: `/Users/tools/Desktop/magicmd/pyproject.toml`
 - Create: `/Users/tools/Desktop/magicmd/.gitignore`
 - Create: `/Users/tools/Desktop/magicmd/src/magicmd/__init__.py`
@@ -110,7 +111,7 @@ dependencies = [
   "httpx>=0.27",
   "markdownify>=0.13",
   "pydantic>=2.8",
-  "typer>=0.12",
+  "typer>=0.12"
 ]
 keywords = ["markdown", "article", "wechat", "juejin", "crawler"]
 
@@ -118,20 +119,14 @@ keywords = ["markdown", "article", "wechat", "juejin", "crawler"]
 magicmd = "magicmd.cli:app"
 
 [project.optional-dependencies]
-dev = [
-  "pytest>=8.2",
-  "pytest-asyncio>=0.23",
-  "ruff>=0.6",
-]
+dev = ["pytest>=8.2", "pytest-asyncio>=0.23", "ruff>=0.6"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/magicmd"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-markers = [
-  "e2e: live tests that require network and browser runtime",
-]
+markers = ["e2e: live tests that require network and browser runtime"]
 
 [tool.ruff]
 line-length = 100
@@ -179,6 +174,7 @@ Expected: pytest reports no tests collected or all current tests pass.
 ## Task 2: Data Models
 
 **Files:**
+
 - Create: `/Users/tools/Desktop/magicmd/src/magicmd/models.py`
 - Test: `/Users/tools/Desktop/magicmd/tests/test_models.py`
 
@@ -298,6 +294,7 @@ Expected: PASS.
 ## Task 3: Platform Detection and Config
 
 **Files:**
+
 - Create: `/Users/tools/Desktop/magicmd/src/magicmd/detect.py`
 - Create: `/Users/tools/Desktop/magicmd/src/magicmd/config.py`
 - Create: `/Users/tools/Desktop/magicmd/.magicmd.example.toml`
@@ -463,6 +460,7 @@ Expected: PASS.
 ## Task 4: Markdown Renderer and Output Writer
 
 **Files:**
+
 - Create: `/Users/tools/Desktop/magicmd/src/magicmd/renderers/markdown.py`
 - Create: `/Users/tools/Desktop/magicmd/src/magicmd/output.py`
 - Test: `/Users/tools/Desktop/magicmd/tests/test_markdown.py`
@@ -625,6 +623,7 @@ Expected: PASS.
 ## Task 5: Platform Parsers
 
 **Files:**
+
 - Create: `/Users/tools/Desktop/magicmd/src/magicmd/platforms/wechat.py`
 - Create: `/Users/tools/Desktop/magicmd/src/magicmd/platforms/juejin.py`
 - Create: `/Users/tools/Desktop/magicmd/src/magicmd/platforms/generic.py`
@@ -684,8 +683,10 @@ Use:
 ```html
 <html>
   <head>
-    <meta property="og:description" content="微信摘要">
-    <script>var create_time = "1780000000";</script>
+    <meta property="og:description" content="微信摘要" />
+    <script>
+      var create_time = "1780000000";
+    </script>
   </head>
   <body>
     <h1 id="activity-name">微信文章标题</h1>
@@ -727,6 +728,7 @@ Expected: PASS.
 ## Task 6: Fetchers, Image Assets, and CLI
 
 **Files:**
+
 - Create: `/Users/tools/Desktop/magicmd/src/magicmd/fetchers/http.py`
 - Create: `/Users/tools/Desktop/magicmd/src/magicmd/fetchers/browser.py`
 - Create: `/Users/tools/Desktop/magicmd/src/magicmd/assets.py`
@@ -758,6 +760,7 @@ Expected: PASS.
 ## Task 7: Documentation and Skill
 
 **Files:**
+
 - Create: `/Users/tools/Desktop/magicmd/README.md`
 - Create: `/Users/tools/Desktop/magicmd/SKILL.md`
 - Copy: `/Users/tools/Desktop/MagicMD-v0.1-design.md` to `/Users/tools/Desktop/magicmd/docs/MagicMD-v0.1-design.md`
@@ -769,7 +772,7 @@ Expected: PASS.
 
 Use:
 
-```markdown
+````markdown
 ---
 name: magicmd
 description: Use when converting public article URLs such as WeChat, Juejin, CSDN, RSS, or technical blog pages into clean Markdown with metadata and local images.
@@ -794,7 +797,9 @@ magicmd "https://mp.weixin.qq.com/s/example" -o output/
 magicmd batch urls.txt -o output/
 magicmd config init
 ```
-```
+````
+
+````
 
 - [ ] Run package verification.
 
@@ -804,13 +809,14 @@ Run:
 uv run pytest -q
 uv run ruff check .
 uv run magicmd doctor
-```
+````
 
 Expected: all commands pass.
 
 ## Task 8: Live Smoke Test
 
 **Files:**
+
 - No source edits unless the smoke test reveals a real bug.
 
 - [ ] Run one live WeChat conversion using a public URL chosen by the user or a known test URL.

@@ -5,7 +5,12 @@ import re
 from bs4 import BeautifulSoup
 
 from magicmd.models import Article, ExtractionInfo
-from magicmd.platforms.base import clean_content_element, html_to_markdown, meta_content, normalize_text
+from magicmd.platforms.base import (
+    clean_content_element,
+    html_to_markdown,
+    meta_content,
+    normalize_text,
+)
 
 
 def _published_at(soup: BeautifulSoup) -> str:
@@ -38,11 +43,17 @@ def parse_csdn_html(html: str, url: str) -> Article:
 
     title = (
         meta_content(soup, "og:title", "twitter:title")
-        or normalize_text((soup.select_one(".title-article") or soup.select_one("h1") or soup.new_tag("span")).get_text())
+        or normalize_text(
+            (
+                soup.select_one(".title-article") or soup.select_one("h1") or soup.new_tag("span")
+            ).get_text()
+        )
         or url
     )
     author = meta_content(soup, "author") or normalize_text(
-        (soup.select_one(".follow-nickName") or soup.select_one(".name") or soup.new_tag("span")).get_text()
+        (
+            soup.select_one(".follow-nickName") or soup.select_one(".name") or soup.new_tag("span")
+        ).get_text()
     )
     excerpt = meta_content(soup, "description", "og:description")
     published_at = _published_at(soup)

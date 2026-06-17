@@ -14,4 +14,3 @@ def fetch_http(url: str, timeout_seconds: int = 20, user_agent: str = "default")
     response = httpx.get(url, timeout=timeout_seconds, follow_redirects=True, headers=headers)
     response.raise_for_status()
     return response.text
-

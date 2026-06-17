@@ -107,16 +107,16 @@ magicmd doctor
 
 ### Common Options
 
-| Option | Meaning |
-| --- | --- |
-| `-o, --output <dir>` | Output directory. Default: `./output` |
-| `--platform <name>` | Force platform: `auto`, `wechat`, `juejin`, `generic` |
-| `--template <name>` | Markdown template name |
-| `--config <path>` | Config file path |
-| `--no-images` | Do not download images |
-| `--debug` | Always save debug HTML and extraction report |
-| `--overwrite` | Replace existing output directory |
-| `--dry-run` | Fetch and parse, but do not write final article files |
+| Option               | Meaning                                               |
+| -------------------- | ----------------------------------------------------- |
+| `-o, --output <dir>` | Output directory. Default: `./output`                 |
+| `--platform <name>`  | Force platform: `auto`, `wechat`, `juejin`, `generic` |
+| `--template <name>`  | Markdown template name                                |
+| `--config <path>`    | Config file path                                      |
+| `--no-images`        | Do not download images                                |
+| `--debug`            | Always save debug HTML and extraction report          |
+| `--overwrite`        | Replace existing output directory                     |
+| `--dry-run`          | Fetch and parse, but do not write final article files |
 
 ## 5. Output Package
 
@@ -255,18 +255,18 @@ magicmd/
 
 ### Responsibilities
 
-| Module | Responsibility |
-| --- | --- |
-| `cli.py` | Parse CLI args and orchestrate workflows |
-| `config.py` | Load defaults, config files, and CLI overrides |
-| `detect.py` | Infer platform from URL |
-| `fetchers/` | Fetch raw HTML through HTTP or browser runtime |
-| `platforms/` | Extract normalized article data from each platform |
-| `models.py` | Define normalized `Article`, `ImageAsset`, and `ExtractionResult` |
-| `renderers/markdown.py` | Render Markdown from normalized article data |
-| `assets.py` | Download images and rewrite links |
-| `output.py` | Create output package atomically |
-| `diagnostics.py` | Save debug HTML and extraction reports |
+| Module                  | Responsibility                                                    |
+| ----------------------- | ----------------------------------------------------------------- |
+| `cli.py`                | Parse CLI args and orchestrate workflows                          |
+| `config.py`             | Load defaults, config files, and CLI overrides                    |
+| `detect.py`             | Infer platform from URL                                           |
+| `fetchers/`             | Fetch raw HTML through HTTP or browser runtime                    |
+| `platforms/`            | Extract normalized article data from each platform                |
+| `models.py`             | Define normalized `Article`, `ImageAsset`, and `ExtractionResult` |
+| `renderers/markdown.py` | Render Markdown from normalized article data                      |
+| `assets.py`             | Download images and rewrite links                                 |
+| `output.py`             | Create output package atomically                                  |
+| `diagnostics.py`        | Save debug HTML and extraction reports                            |
 
 ## 8. Platform Strategy
 
@@ -307,14 +307,14 @@ Use a conservative fallback:
 
 MagicMD should fail loudly but leave useful artifacts.
 
-| Case | Behavior |
-| --- | --- |
-| Invalid URL | Exit non-zero with a clear message |
-| Fetch timeout | Save extraction report, exit non-zero |
-| CAPTCHA or access block suspected | Save `debug.html`, exit non-zero with warning |
-| Title missing but content exists | Continue with URL-based title and warning |
-| Images fail to download | Continue, keep remote image links or remove according to config |
-| Existing output path | Refuse unless `--overwrite` is set |
+| Case                              | Behavior                                                        |
+| --------------------------------- | --------------------------------------------------------------- |
+| Invalid URL                       | Exit non-zero with a clear message                              |
+| Fetch timeout                     | Save extraction report, exit non-zero                           |
+| CAPTCHA or access block suspected | Save `debug.html`, exit non-zero with warning                   |
+| Title missing but content exists  | Continue with URL-based title and warning                       |
+| Images fail to download           | Continue, keep remote image links or remove according to config |
+| Existing output path              | Refuse unless `--overwrite` is set                              |
 
 ## 10. Skill Packaging
 

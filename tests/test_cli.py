@@ -84,9 +84,12 @@ def test_doctor_command_json_output(tmp_path: Path):
     assert payload["output"]["directory"] == str(output_dir)
     assert payload["output"]["writable"] is True
     assert payload["camoufox"]["available"] is True
-    assert {"name": "wechat", "fetcher": "camoufox", "wait_selector": "#js_content", "enabled": True} in payload[
-        "platforms"
-    ]
+    assert {
+        "name": "wechat",
+        "fetcher": "camoufox",
+        "wait_selector": "#js_content",
+        "enabled": True,
+    } in payload["platforms"]
     assert payload["warnings"] == []
     assert payload["errors"] == []
     assert "MagicMD doctor" not in result.stdout
@@ -879,11 +882,9 @@ def test_convert_url_downloads_videos_in_media_step(monkeypatch, tmp_path: Path)
     monkeypatch.setattr("magicmd.cli.fetch_for_platform", lambda url, platform, config_path: html)
     monkeypatch.setattr(
         "magicmd.assets.download_images",
-        lambda article,
-        package_dir,
-        image_dir_name,
-        filename_pattern="img_{index:03d}.{ext}",
-        markdown_path_pattern="{directory}/{filename}": article,
+        lambda article, package_dir, image_dir_name, filename_pattern="img_{index:03d}.{ext}", markdown_path_pattern="{directory}/{filename}": (
+            article
+        ),
     )
 
     def fake_download_videos(
@@ -893,7 +894,9 @@ def test_convert_url_downloads_videos_in_media_step(monkeypatch, tmp_path: Path)
         filename_pattern="video_{index:03d}.{ext}",
         markdown_path_pattern="{directory}/{filename}",
     ):
-        return article.model_copy(update={"content_markdown": article.content_markdown + "\nvideo-downloaded"})
+        return article.model_copy(
+            update={"content_markdown": article.content_markdown + "\nvideo-downloaded"}
+        )
 
     monkeypatch.setattr("magicmd.assets.download_videos", fake_download_videos)
 

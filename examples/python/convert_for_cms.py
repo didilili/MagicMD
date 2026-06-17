@@ -13,12 +13,18 @@ from magicmd import convert_article
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Convert an article and prepare a CMS payload.")
     parser.add_argument("url", help="Public article URL.")
-    parser.add_argument("--workdir", default="output/cms-import-demo", help="MagicMD package directory.")
-    parser.add_argument("--media-prefix", default="/media/articles", help="Public media URL prefix.")
+    parser.add_argument(
+        "--workdir", default="output/cms-import-demo", help="MagicMD package directory."
+    )
+    parser.add_argument(
+        "--media-prefix", default="/media/articles", help="Public media URL prefix."
+    )
     return parser.parse_args()
 
 
-def copy_media_and_rewrite(markdown: str, images: list, media_dir: Path, media_prefix: str) -> tuple[str, list[dict]]:
+def copy_media_and_rewrite(
+    markdown: str, images: list, media_dir: Path, media_prefix: str
+) -> tuple[str, list[dict]]:
     media_dir.mkdir(parents=True, exist_ok=True)
     media_rows: list[dict] = []
 

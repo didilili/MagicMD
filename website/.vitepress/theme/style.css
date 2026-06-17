@@ -5,12 +5,17 @@
   --vp-c-brand-soft: rgba(15, 159, 110, 0.14);
   --vp-home-hero-name-color: transparent;
   --vp-home-hero-name-background: linear-gradient(112deg, #0f9f6e 10%, #1f6feb 54%, #111827 92%);
-  --vp-home-hero-image-background-image: radial-gradient(circle, rgba(15, 159, 110, 0.28), transparent 62%);
+  --vp-home-hero-image-background-image: radial-gradient(
+    circle,
+    rgba(15, 159, 110, 0.28),
+    transparent 62%
+  );
   --vp-home-hero-image-filter: blur(42px);
   --vp-button-brand-bg: #0f9f6e;
   --vp-button-brand-hover-bg: #0b8d61;
-  --vp-font-family-base: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --vp-font-family-mono: "SFMono-Regular", "SF Mono", Consolas, "Liberation Mono", monospace;
+  --vp-font-family-base:
+    ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --vp-font-family-mono: 'SFMono-Regular', 'SF Mono', Consolas, 'Liberation Mono', monospace;
 }
 
 .dark {
@@ -63,9 +68,7 @@
 
 .VPFeature {
   border: 1px solid rgba(15, 159, 110, 0.16);
-  background:
-    linear-gradient(180deg, rgba(15, 159, 110, 0.09), transparent),
-    var(--vp-c-bg-soft);
+  background: linear-gradient(180deg, rgba(15, 159, 110, 0.09), transparent), var(--vp-c-bg-soft);
 }
 
 .VPFeature .title {
@@ -88,8 +91,7 @@
   border-radius: 12px;
   background:
     radial-gradient(circle at 12% 18%, rgba(19, 200, 132, 0.17), transparent 38%),
-    linear-gradient(135deg, rgba(31, 111, 235, 0.08), transparent 58%),
-    var(--vp-c-bg-soft);
+    linear-gradient(135deg, rgba(31, 111, 235, 0.08), transparent 58%), var(--vp-c-bg-soft);
   padding: 20px 22px;
 }
 
@@ -155,9 +157,7 @@
   min-height: 310px;
   border: 1px solid rgba(15, 159, 110, 0.18);
   border-radius: 10px;
-  background:
-    linear-gradient(145deg, rgba(15, 159, 110, 0.13), transparent 32%),
-    #07100d;
+  background: linear-gradient(145deg, rgba(15, 159, 110, 0.13), transparent 32%), #07100d;
   box-shadow: 0 24px 70px rgba(0, 0, 0, 0.28);
 }
 
@@ -265,8 +265,8 @@
 
 .config-builder {
   --builder-border: rgba(15, 159, 110, 0.16);
-  --builder-surface: linear-gradient(180deg, rgba(15, 159, 110, 0.055), transparent),
-    var(--vp-c-bg-soft);
+  --builder-surface:
+    linear-gradient(180deg, rgba(15, 159, 110, 0.055), transparent), var(--vp-c-bg-soft);
   display: grid;
   gap: 18px;
   width: 100%;
@@ -291,9 +291,7 @@
   min-height: 102px;
   border: 1px solid var(--builder-border);
   border-radius: 12px;
-  background:
-    linear-gradient(180deg, rgba(15, 159, 110, 0.04), transparent),
-    var(--vp-c-bg-soft);
+  background: linear-gradient(180deg, rgba(15, 159, 110, 0.04), transparent), var(--vp-c-bg-soft);
   color: var(--vp-c-text-2);
   padding: 16px;
   text-align: left;
@@ -487,7 +485,7 @@
   border-right: 1px solid rgba(15, 159, 110, 0.22);
   border-bottom: 1px solid rgba(15, 159, 110, 0.22);
   background: var(--vp-c-bg);
-  content: "";
+  content: '';
   transform: translate(-50%, -5px) rotate(45deg);
 }
 
@@ -622,8 +620,7 @@
   border-radius: 12px;
   background:
     radial-gradient(circle at 12% 18%, rgba(19, 200, 132, 0.22), transparent 40%),
-    linear-gradient(135deg, rgba(31, 111, 235, 0.1), transparent 58%),
-    var(--vp-c-bg-soft);
+    linear-gradient(135deg, rgba(31, 111, 235, 0.1), transparent 58%), var(--vp-c-bg-soft);
   padding: 18px;
 }
 
@@ -757,9 +754,7 @@
 }
 
 .toml-panel pre.structure-preview-code {
-  background:
-    linear-gradient(180deg, rgba(15, 159, 110, 0.08), transparent 36%),
-    #07100d;
+  background: linear-gradient(180deg, rgba(15, 159, 110, 0.08), transparent 36%), #07100d;
 }
 
 .cli-hint {
@@ -911,5 +906,4 @@
   .mm-output {
     min-height: auto;
   }
-
 }

@@ -18,7 +18,7 @@ dependencies = [
   "markdownify>=0.13",
   "pydantic>=2.8",
   "rich>=13.7",
-  "typer>=0.12",
+  "typer>=0.12"
 ]
 keywords = ["markdown", "article", "wechat", "juejin", "crawler"]
 
@@ -26,11 +26,7 @@ keywords = ["markdown", "article", "wechat", "juejin", "crawler"]
 magicmd = "magicmd.cli:entrypoint"
 
 [project.optional-dependencies]
-dev = [
-  "pytest>=8.2",
-  "pytest-asyncio>=0.23",
-  "ruff>=0.6",
-]
+dev = ["pytest>=8.2", "pytest-asyncio>=0.23", "ruff>=0.6"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/magicmd"]
@@ -44,14 +40,12 @@ exclude = [
   "/output",
   "/website/.vitepress/cache",
   "/website/.vitepress/dist",
-  "/website/node_modules",
+  "/website/node_modules"
 ]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-markers = [
-  "e2e: live tests that require network and browser runtime",
-]
+markers = ["e2e: live tests that require network and browser runtime"]
 
 [tool.ruff]
 line-length = 100

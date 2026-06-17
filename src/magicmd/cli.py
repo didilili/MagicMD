@@ -99,7 +99,9 @@ def fetch_for_platform(url: str, platform: str, config_path: Optional[Path] = No
             timeout_ms=config.fetch.browser_timeout_seconds * 1000,
             attempts=config.fetch.browser_attempts,
         )
-    return fetch_http(url, timeout_seconds=config.fetch.timeout_seconds, user_agent=config.fetch.user_agent)
+    return fetch_http(
+        url, timeout_seconds=config.fetch.timeout_seconds, user_agent=config.fetch.user_agent
+    )
 
 
 def entrypoint():
@@ -143,7 +145,9 @@ def _decorate_batch_result(
     result = dict(item)
     result.update(context)
     result["elapsed_ms"] = elapsed_ms
-    result["stage"] = _quality_failure_stage(result, stage) if result.get("status") == "fail" else stage
+    result["stage"] = (
+        _quality_failure_stage(result, stage) if result.get("status") == "fail" else stage
+    )
     return result
 
 
@@ -256,7 +260,9 @@ def batch(
     no_images: bool = typer.Option(False, "--no-images", help="Do not download images."),
     debug: bool = typer.Option(False, "--debug", help="Save debug HTML."),
     overwrite: bool = typer.Option(False, "--overwrite", help="Overwrite output package."),
-    skip_existing: bool = typer.Option(False, "--skip-existing", help="Skip URLs already present in output metadata."),
+    skip_existing: bool = typer.Option(
+        False, "--skip-existing", help="Skip URLs already present in output metadata."
+    ),
 ):
     resolved_output = _resolve_output(output, config_path)
     urls = [
@@ -355,14 +361,16 @@ def config_init(path: Path = typer.Option(Path(".magicmd.toml"), "--path", help=
     if example.exists():
         shutil.copyfile(example, path)
     else:
-        path.write_text("[output]\ndirectory = \"output\"\n", encoding="utf-8")
+        path.write_text('[output]\ndirectory = "output"\n', encoding="utf-8")
     typer.echo(f"Created config: {path}")
 
 
 @app.command()
 def doctor(
     config_path: Optional[Path] = typer.Option(None, "--config", help="Config file path."),
-    output: Optional[Path] = typer.Option(None, "--output", "-o", help="Output directory to check."),
+    output: Optional[Path] = typer.Option(
+        None, "--output", "-o", help="Output directory to check."
+    ),
     json_output: bool = typer.Option(False, "--json", help="Print machine-readable JSON."),
 ):
     report = build_doctor_report(config_path=config_path, output_dir=output)

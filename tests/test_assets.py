@@ -40,7 +40,10 @@ def test_rewrite_markdown_image_links_keeps_images_block_separated():
         )
     ]
 
-    assert rewrite_markdown_image_links(markdown, images) == "正文\n\n![alt](images/img_001.png)\n\n后文"
+    assert (
+        rewrite_markdown_image_links(markdown, images)
+        == "正文\n\n![alt](images/img_001.png)\n\n后文"
+    )
 
 
 def test_rewrite_markdown_image_links_keeps_linked_images_intact():

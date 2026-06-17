@@ -1,16 +1,16 @@
 #!/usr/bin/env node
 
-const { spawnSync } = require("node:child_process");
+const { spawnSync } = require('node:child_process');
 
 const args = process.argv.slice(2);
-const command = process.platform === "win32" ? "uvx.cmd" : "uvx";
+const command = process.platform === 'win32' ? 'uvx.cmd' : 'uvx';
 // Equivalent command: uvx --from magicmd magicmd ...
-const result = spawnSync(command, ["--from", "magicmd", "magicmd", ...args], {
-  stdio: "inherit",
+const result = spawnSync(command, ['--from', 'magicmd', 'magicmd', ...args], {
+  stdio: 'inherit'
 });
 
 if (result.error) {
-  if (result.error.code === "ENOENT") {
+  if (result.error.code === 'ENOENT') {
     console.error(`MagicMD npm package needs uv to run the Python CLI.
 
 The npm package is a thin wrapper around:

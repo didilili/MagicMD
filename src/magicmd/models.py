@@ -17,7 +17,9 @@ class ExtractionInfo(BaseModel):
 
     @model_validator(mode="after")
     def mark_content_not_found_as_failed(self) -> "ExtractionInfo":
-        if self.status == "success" and any(warning.endswith("_content_not_found") for warning in self.warnings):
+        if self.status == "success" and any(
+            warning.endswith("_content_not_found") for warning in self.warnings
+        ):
             self.status = "failed"
         return self
 

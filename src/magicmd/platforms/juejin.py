@@ -5,7 +5,12 @@ import re
 from bs4 import BeautifulSoup
 
 from magicmd.models import Article, ExtractionInfo
-from magicmd.platforms.base import clean_content_element, html_to_markdown, meta_content, normalize_text
+from magicmd.platforms.base import (
+    clean_content_element,
+    html_to_markdown,
+    meta_content,
+    normalize_text,
+)
 
 
 def _published_at(soup: BeautifulSoup) -> str:

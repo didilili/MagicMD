@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from collections import Counter
 import re
 import textwrap
+from collections import Counter
 from urllib.parse import parse_qs, unquote, urlparse
 
 from bs4 import BeautifulSoup, NavigableString, Tag
@@ -73,7 +73,22 @@ def _is_link_color(style: str) -> bool:
 
 
 def _has_direct_block_child(tag: Tag) -> bool:
-    block_names = {"blockquote", "div", "h1", "h2", "h3", "h4", "h5", "h6", "ol", "p", "pre", "section", "table", "ul"}
+    block_names = {
+        "blockquote",
+        "div",
+        "h1",
+        "h2",
+        "h3",
+        "h4",
+        "h5",
+        "h6",
+        "ol",
+        "p",
+        "pre",
+        "section",
+        "table",
+        "ul",
+    }
     return any(isinstance(child, Tag) and child.name in block_names for child in tag.children)
 
 
@@ -130,12 +145,24 @@ def _replace_video_players(content_el: Tag) -> None:
             if not isinstance(ancestor, Tag) or ancestor is content_el:
                 break
             classes = set(ancestor.get("class", []))
-            if classes.intersection({"js_mpvedio", "mp-video-player", "page_video_wrapper", "page_video", "video_iframe"}):
+            if classes.intersection(
+                {
+                    "js_mpvedio",
+                    "mp-video-player",
+                    "page_video_wrapper",
+                    "page_video",
+                    "video_iframe",
+                }
+            ):
                 container = ancestor
         for descendant in container.descendants:
             if isinstance(descendant, Tag):
                 seen.add(id(descendant))
-        media = container if container.name in {"video", "iframe", "mp-video"} else container.find(["video", "iframe", "mp-video"])
+        media = (
+            container
+            if container.name in {"video", "iframe", "mp-video"}
+            else container.find(["video", "iframe", "mp-video"])
+        )
         src = ""
         if isinstance(media, Tag):
             src = media.get("src") or media.get("data-src") or media.get("data-mpvid") or ""
@@ -179,9 +206,12 @@ def _narrow_block_links(content_el: Tag) -> None:
         link_spans = [
             span
             for span in link.find_all("span")
-            if _is_link_color(span.get("style", "")) and normalize_text(span.get_text(" ", strip=True))
+            if _is_link_color(span.get("style", ""))
+            and normalize_text(span.get_text(" ", strip=True))
         ]
-        linked_text = normalize_text(" ".join(span.get_text(" ", strip=True) for span in link_spans))
+        linked_text = normalize_text(
+            " ".join(span.get_text(" ", strip=True) for span in link_spans)
+        )
         if not linked_text or len(linked_text) >= len(full_text) * 0.8:
             continue
         for span in link_spans:
@@ -207,7 +237,9 @@ def _is_layout_heading(tag: Tag) -> bool:
 
     style = tag.get("style", "")
     font_size = _style_font_size(style)
-    layout_style = any(token in style.lower() for token in ("background-color", "padding", "margin"))
+    layout_style = any(
+        token in style.lower() for token in ("background-color", "padding", "margin")
+    )
     if tag.name in {"h4", "h5", "h6"} and layout_style and font_size <= 16:
         return True
 
@@ -217,7 +249,12 @@ def _is_layout_heading(tag: Tag) -> bool:
 
     classes = set(tag.get("class", []))
     is_wechat_layout = any(str(class_name).startswith("js_darkmode") for class_name in classes)
-    if tag.name in {"h3", "h4", "h5", "h6"} and is_wechat_layout and color and _is_body_color(color):
+    if (
+        tag.name in {"h3", "h4", "h5", "h6"}
+        and is_wechat_layout
+        and color
+        and _is_body_color(color)
+    ):
         return True
     return False
 
@@ -321,7 +358,9 @@ def _normalize_body_heading_depth(content_el: Tag) -> None:
     dominant_level, dominant_count = counts.most_common(1)[0]
     dominant_headings = [tag for tag in headings if int(str(tag.name)[1]) == dominant_level]
     numbered_count = sum(
-        1 for tag in dominant_headings if re.match(r"^\d+(?:[.)、]|\s)", normalize_text(tag.get_text(" ", strip=True)))
+        1
+        for tag in dominant_headings
+        if re.match(r"^\d+(?:[.)、]|\s)", normalize_text(tag.get_text(" ", strip=True)))
     )
 
     if (
@@ -358,7 +397,10 @@ def _code_text(code_tag: Tag) -> str:
 
     highlighted_lines = code_tag.select(".hljs-ln-code .hljs-ln-line")
     if highlighted_lines:
-        lines = [normalize_code_text(line.get_text("", strip=False)).rstrip() for line in highlighted_lines]
+        lines = [
+            normalize_code_text(line.get_text("", strip=False)).rstrip()
+            for line in highlighted_lines
+        ]
         return textwrap.dedent("\n".join(lines)).strip("\n")
     return normalize_code_text(code_tag.get_text())
 
@@ -432,7 +474,14 @@ def clean_content_element(content_el: Tag) -> tuple[str, list[ImageAsset], list[
         lang = str(el.get("data-lang") or "")
         if not lang:
             classes = [str(class_name) for class_name in code_tag.get("class", [])]
-            lang = next((class_name.removeprefix("language-") for class_name in classes if class_name.startswith("language-")), "")
+            lang = next(
+                (
+                    class_name.removeprefix("language-")
+                    for class_name in classes
+                    if class_name.startswith("language-")
+                ),
+                "",
+            )
         placeholder = _block_placeholder("code", len(code_blocks))
         code_blocks.append({"placeholder": placeholder, "lang": lang, "code": code})
         el.replace_with(placeholder)

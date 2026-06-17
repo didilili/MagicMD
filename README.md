@@ -52,12 +52,12 @@ MagicMD 不是浏览器收藏夹，也不是通用爬虫框架。它的目标更
 
 很多工具可以把网页或文件转成 Markdown。MagicMD 更关心另一个问题：**中文内容平台里的文章，怎么稳定变成能长期维护的 Markdown。**
 
-| 类型 | 常见特点 | MagicMD 的差异 |
-| --- | --- | --- |
-| 通用网页转 Markdown 工具 | 更适合标准网页、文档页、英文站点或 LLM 输入清洗。 | MagicMD 针对微信公众号、掘金、CSDN 做平台适配，重点处理中文内容平台常见的富文本、跳转链接、代码控件和编辑器噪声。 |
-| 微信文章转换脚本 | 往往能抓正文和图片，但配置、批量、报告和多平台扩展有限。 | MagicMD 不只转微信，还保留 `metadata.json`、`extraction-report.json`、批量报告和可配置 Markdown 输出，方便后续发布或自动化处理。 |
-| 爬虫框架 | 能力强，但通常需要自己写解析逻辑、清洗规则和输出结构。 | MagicMD 直接给文章采集场景一个可用 CLI：链接进去，内容包落盘。 |
-| 手动复制到 Markdown | 可控，但慢，图片、链接、代码块和来源信息很容易丢。 | MagicMD 自动处理图片本地化、标题层级、代码块、链接、来源信息和失败 warning。 |
+| 类型                     | 常见特点                                                 | MagicMD 的差异                                                                                                                   |
+| ------------------------ | -------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| 通用网页转 Markdown 工具 | 更适合标准网页、文档页、英文站点或 LLM 输入清洗。        | MagicMD 针对微信公众号、掘金、CSDN 做平台适配，重点处理中文内容平台常见的富文本、跳转链接、代码控件和编辑器噪声。                |
+| 微信文章转换脚本         | 往往能抓正文和图片，但配置、批量、报告和多平台扩展有限。 | MagicMD 不只转微信，还保留 `metadata.json`、`extraction-report.json`、批量报告和可配置 Markdown 输出，方便后续发布或自动化处理。 |
+| 爬虫框架                 | 能力强，但通常需要自己写解析逻辑、清洗规则和输出结构。   | MagicMD 直接给文章采集场景一个可用 CLI：链接进去，内容包落盘。                                                                   |
+| 手动复制到 Markdown      | 可控，但慢，图片、链接、代码块和来源信息很容易丢。       | MagicMD 自动处理图片本地化、标题层级、代码块、链接、来源信息和失败 warning。                                                     |
 
 MagicMD 的优势不是“抓全网”，而是把中文技术内容归档这件事做细：微信视频会提取链接并尝试下载；掘金外链会尽量还原真实目标地址；CSDN 代码块会清理复制按钮、行号和编辑器控件；批量转换会留下报告，方便你知道哪篇文章需要人工复核。
 
@@ -219,19 +219,19 @@ print(result.report)
 
 `convert_article()` 返回的是稳定的 Pydantic 对象 `ArticleConversionResult`，常用字段包括：
 
-| 字段 | 说明 |
-| --- | --- |
-| `title` / `author` / `published_at` | 文章标题、作者和发布时间。 |
-| `platform` | `wechat`、`juejin`、`csdn`、`generic` 等平台标识。 |
-| `source_url` / `canonical_url` | 原始链接和规范链接。 |
-| `excerpt` | 页面能提取到的摘要。 |
-| `markdown` | 转换后的 Markdown 字符串。 |
-| `content_hash` | 基于正文内容生成的 hash，方便去重。 |
-| `images` | 图片资产列表，包含 `source_url`、`local_path`、`markdown_path`、`alt`。`markdown_path` 是 Markdown 中实际引用的路径；`local_path` 是本地已下载图片的文件系统路径，方便外部系统复制到自己的 media 目录后重写链接。 |
-| `warnings` | 抓取、解析、媒体下载中的 warning。 |
-| `metadata` | 与 `metadata.json` 对齐的结构化数据。 |
-| `report` | 与 `extraction-report.json` 对齐的转换报告。 |
-| `package_dir` | 只有传入 `output_dir` 并成功写出内容包时才有值。 |
+| 字段                                | 说明                                                                                                                                                                                                              |
+| ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `title` / `author` / `published_at` | 文章标题、作者和发布时间。                                                                                                                                                                                        |
+| `platform`                          | `wechat`、`juejin`、`csdn`、`generic` 等平台标识。                                                                                                                                                                |
+| `source_url` / `canonical_url`      | 原始链接和规范链接。                                                                                                                                                                                              |
+| `excerpt`                           | 页面能提取到的摘要。                                                                                                                                                                                              |
+| `markdown`                          | 转换后的 Markdown 字符串。                                                                                                                                                                                        |
+| `content_hash`                      | 基于正文内容生成的 hash，方便去重。                                                                                                                                                                               |
+| `images`                            | 图片资产列表，包含 `source_url`、`local_path`、`markdown_path`、`alt`。`markdown_path` 是 Markdown 中实际引用的路径；`local_path` 是本地已下载图片的文件系统路径，方便外部系统复制到自己的 media 目录后重写链接。 |
+| `warnings`                          | 抓取、解析、媒体下载中的 warning。                                                                                                                                                                                |
+| `metadata`                          | 与 `metadata.json` 对齐的结构化数据。                                                                                                                                                                             |
+| `report`                            | 与 `extraction-report.json` 对齐的转换报告。                                                                                                                                                                      |
+| `package_dir`                       | 只有传入 `output_dir` 并成功写出内容包时才有值。                                                                                                                                                                  |
 
 错误类型也可以被后端明确捕获：
 
@@ -254,12 +254,12 @@ except ParseError:
 
 ## 支持站点
 
-| 站点 | 状态 | 默认抓取 | 说明 |
-| --- | --- | --- | --- |
-| 微信公众号 `mp.weixin.qq.com` | 稳定主目标 | `camoufox` | v0.1 最主要的验证对象，已做多轮真实样本格式修复。 |
-| 掘金 `juejin.cn` | 实验支持 | `camoufox` | 已验证首页样本和复杂技术文章，重点看图片、代码块、外链和标题层级。 |
-| CSDN `blog.csdn.net` | 实验支持 | `camoufox` | 已人工检查 10 篇复杂样本，重点修过代码块、Mermaid/SVG、目录链接和控件噪声。 |
-| 通用网页 | 尽力支持 | `http` | 对标准 `article`、`main` 或 Open Graph 元信息页面做基础提取。 |
+| 站点                          | 状态       | 默认抓取   | 说明                                                                        |
+| ----------------------------- | ---------- | ---------- | --------------------------------------------------------------------------- |
+| 微信公众号 `mp.weixin.qq.com` | 稳定主目标 | `camoufox` | v0.1 最主要的验证对象，已做多轮真实样本格式修复。                           |
+| 掘金 `juejin.cn`              | 实验支持   | `camoufox` | 已验证首页样本和复杂技术文章，重点看图片、代码块、外链和标题层级。          |
+| CSDN `blog.csdn.net`          | 实验支持   | `camoufox` | 已人工检查 10 篇复杂样本，重点修过代码块、Mermaid/SVG、目录链接和控件噪声。 |
+| 通用网页                      | 尽力支持   | `http`     | 对标准 `article`、`main` 或 Open Graph 元信息页面做基础提取。               |
 
 更多站点说明见 [docs/supported-sites.md](./docs/supported-sites.md)。
 
@@ -359,19 +359,19 @@ language = "zh-CN"
 
 常见选项：
 
-| 配置 | 说明 |
-| --- | --- |
-| `output.directory` | 默认输出目录。 |
-| `output.overwrite` | 是否覆盖同名内容包。 |
-| `output.save_debug_html` | `always`、`on_failure`、`never`，控制是否保存 `debug.html`。 |
-| `markdown.front_matter` | `yaml` 或 `none`。 |
-| `markdown.template` | `default` 或 `clean`。 |
-| `markdown.heading_offset` | 统一调整 Markdown 标题层级。 |
-| `images.download` | 是否下载图片。 |
-| `fetch.browser_attempts` | 浏览器模式失败后的总尝试次数。 |
-| `ui.language` | CLI 终端语言，默认中文优先；设置为 `en-US` 可切换为英文提示。 |
-| `platforms.<name>.browser` | 使用 `http` 或 `camoufox`。 |
-| `platforms.<name>.wait_selector` | 浏览器抓取时等待的选择器。 |
+| 配置                             | 说明                                                          |
+| -------------------------------- | ------------------------------------------------------------- |
+| `output.directory`               | 默认输出目录。                                                |
+| `output.overwrite`               | 是否覆盖同名内容包。                                          |
+| `output.save_debug_html`         | `always`、`on_failure`、`never`，控制是否保存 `debug.html`。  |
+| `markdown.front_matter`          | `yaml` 或 `none`。                                            |
+| `markdown.template`              | `default` 或 `clean`。                                        |
+| `markdown.heading_offset`        | 统一调整 Markdown 标题层级。                                  |
+| `images.download`                | 是否下载图片。                                                |
+| `fetch.browser_attempts`         | 浏览器模式失败后的总尝试次数。                                |
+| `ui.language`                    | CLI 终端语言，默认中文优先；设置为 `en-US` 可切换为英文提示。 |
+| `platforms.<name>.browser`       | 使用 `http` 或 `camoufox`。                                   |
+| `platforms.<name>.wait_selector` | 浏览器抓取时等待的选择器。                                    |
 
 检查环境：
 

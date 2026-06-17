@@ -73,27 +73,27 @@ print(result.report)
 
 `convert_article()` 返回 `ArticleConversionResult`。常用字段包括：
 
-| 字段 | 说明 |
-| --- | --- |
-| `title` | 文章标题。 |
-| `author` | 作者、公众号或平台账号。 |
-| `platform` | 平台标识，例如 `wechat`、`juejin`、`csdn`、`generic`。 |
-| `source_url` / `canonical_url` | 原始链接和规范链接。 |
-| `published_at` | 发布时间，能提取到时返回。 |
-| `markdown` | 转换后的 Markdown 正文。 |
-| `content_hash` | 基于正文内容生成的 hash，适合去重。 |
-| `images` | 图片资产列表。 |
-| `warnings` | 抓取、解析或媒体下载中的 warning。 |
-| `metadata` | 与 `metadata.json` 对齐的结构化数据。 |
-| `report` | 与 `extraction-report.json` 对齐的转换报告。 |
-| `package_dir` | 写出内容包时的目录；内存模式为空。 |
+| 字段                           | 说明                                                   |
+| ------------------------------ | ------------------------------------------------------ |
+| `title`                        | 文章标题。                                             |
+| `author`                       | 作者、公众号或平台账号。                               |
+| `platform`                     | 平台标识，例如 `wechat`、`juejin`、`csdn`、`generic`。 |
+| `source_url` / `canonical_url` | 原始链接和规范链接。                                   |
+| `published_at`                 | 发布时间，能提取到时返回。                             |
+| `markdown`                     | 转换后的 Markdown 正文。                               |
+| `content_hash`                 | 基于正文内容生成的 hash，适合去重。                    |
+| `images`                       | 图片资产列表。                                         |
+| `warnings`                     | 抓取、解析或媒体下载中的 warning。                     |
+| `metadata`                     | 与 `metadata.json` 对齐的结构化数据。                  |
+| `report`                       | 与 `extraction-report.json` 对齐的转换报告。           |
+| `package_dir`                  | 写出内容包时的目录；内存模式为空。                     |
 
 图片字段里最容易混淆的是这两个：
 
-| 字段 | 说明 |
-| --- | --- |
+| 字段            | 说明                                |
+| --------------- | ----------------------------------- |
 | `markdown_path` | Markdown 正文里当前引用的图片路径。 |
-| `local_path` | 图片下载到本机后的真实文件路径。 |
+| `local_path`    | 图片下载到本机后的真实文件路径。    |
 
 外部系统通常先把 `local_path` 对应的文件复制到自己的 media 目录，再用新的公开 URL 替换 Markdown 里的 `markdown_path`。
 

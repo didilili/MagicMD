@@ -73,27 +73,27 @@ This writes the same package shape as the CLI: `article.md`, `metadata.json`, `e
 
 `convert_article()` returns `ArticleConversionResult`. Common fields:
 
-| Field | Meaning |
-| --- | --- |
-| `title` | Article title. |
-| `author` | Author, account, or platform name. |
-| `platform` | Platform key such as `wechat`, `juejin`, `csdn`, or `generic`. |
-| `source_url` / `canonical_url` | Original and canonical URLs. |
-| `published_at` | Publish time when MagicMD can extract it. |
-| `markdown` | Converted Markdown body. |
-| `content_hash` | Content hash for deduplication. |
-| `images` | Image asset list. |
-| `warnings` | Fetch, parse, or media warnings. |
-| `metadata` | Structured data aligned with `metadata.json`. |
-| `report` | Extraction report aligned with `extraction-report.json`. |
-| `package_dir` | Package directory when written; empty in memory mode. |
+| Field                          | Meaning                                                        |
+| ------------------------------ | -------------------------------------------------------------- |
+| `title`                        | Article title.                                                 |
+| `author`                       | Author, account, or platform name.                             |
+| `platform`                     | Platform key such as `wechat`, `juejin`, `csdn`, or `generic`. |
+| `source_url` / `canonical_url` | Original and canonical URLs.                                   |
+| `published_at`                 | Publish time when MagicMD can extract it.                      |
+| `markdown`                     | Converted Markdown body.                                       |
+| `content_hash`                 | Content hash for deduplication.                                |
+| `images`                       | Image asset list.                                              |
+| `warnings`                     | Fetch, parse, or media warnings.                               |
+| `metadata`                     | Structured data aligned with `metadata.json`.                  |
+| `report`                       | Extraction report aligned with `extraction-report.json`.       |
+| `package_dir`                  | Package directory when written; empty in memory mode.          |
 
 Two image fields are easy to confuse:
 
-| Field | Meaning |
-| --- | --- |
+| Field           | Meaning                                          |
+| --------------- | ------------------------------------------------ |
 | `markdown_path` | The image path currently referenced in Markdown. |
-| `local_path` | The actual downloaded file path on disk. |
+| `local_path`    | The actual downloaded file path on disk.         |
 
 External systems usually copy the file at `local_path` into their own media directory, then replace `markdown_path` in the Markdown with the new public URL.
 

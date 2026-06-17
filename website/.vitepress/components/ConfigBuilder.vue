@@ -120,7 +120,8 @@ const ui = computed(() =>
           default: 'Balanced output for archives, notes, and knowledge bases.',
           plain: 'No front matter or source block. Keep the article body lean.',
           hugo: 'Hugo builds static blogs/sites from Markdown. This preset uses index.md for a Hugo-style page bundle.',
-          docusaurus: 'Docusaurus builds documentation websites. This preset uses index.md and docs-friendly relative media paths.'
+          docusaurus:
+            'Docusaurus builds documentation websites. This preset uses index.md and docs-friendly relative media paths.'
         },
         help: {
           preset:
@@ -131,19 +132,26 @@ const ui = computed(() =>
             'The folder created for each article. {date} becomes the publish date, and {slug} becomes a safe title slug.',
           markdownName:
             'The Markdown file inside the package. Use article.md for archives, or index.md for Hugo/Docusaurus content folders.',
-          metadataName: 'Stores structured article metadata such as title, author, platform, source URL, and publish time.',
-          reportName: 'Stores extraction warnings and media download details. Useful when checking batch conversion quality.',
+          metadataName:
+            'Stores structured article metadata such as title, author, platform, source URL, and publish time.',
+          reportName:
+            'Stores extraction warnings and media download details. Useful when checking batch conversion quality.',
           frontMatter:
             'YAML front matter is the metadata block at the top of a Markdown file. Static site generators often use it for title, date, tags, and author.',
-          includeSourceBlock: 'Adds a small source block below the title so readers can see the original platform, author, and URL.',
+          includeSourceBlock:
+            'Adds a small source block below the title so readers can see the original platform, author, and URL.',
           imagePath:
             'The path written into Markdown image links. {directory} uses the image folder, and {filename} uses the downloaded file name.',
           videoPath:
             'The path written into Markdown video links. Keep this relative if the article package will be moved as a folder.',
-          downloadImages: 'Download article images into the output package instead of leaving remote image URLs in Markdown.',
-          downloadVideos: 'Try to download videos into the output package. Some WeChat videos may still require manual review.',
-          outputPreview: 'This is the final Markdown file path that MagicMD will create for one article.',
-          generated: 'Copy this file as .magicmd.toml and run MagicMD with --config to use these rules.'
+          downloadImages:
+            'Download article images into the output package instead of leaving remote image URLs in Markdown.',
+          downloadVideos:
+            'Try to download videos into the output package. Some WeChat videos may still require manual review.',
+          outputPreview:
+            'This is the final Markdown file path that MagicMD will create for one article.',
+          generated:
+            'Copy this file as .magicmd.toml and run MagicMD with --config to use these rules.'
         },
         helpTitle: 'What is this?',
         basicSection: 'Basic',
@@ -213,27 +221,36 @@ const ui = computed(() =>
           default: '适合归档、笔记、知识库，保留常用元信息。',
           plain: '不生成 front matter 和来源块，只保留干净正文。',
           hugo: 'Hugo 是把 Markdown 生成博客/网站的静态网站生成器。这个预设使用 index.md，更贴近 Hugo 内容包结构。',
-          docusaurus: 'Docusaurus 是常用于开源项目文档站的生成器。这个预设使用 index.md 和更适合文档目录的相对媒体路径。'
+          docusaurus:
+            'Docusaurus 是常用于开源项目文档站的生成器。这个预设使用 index.md 和更适合文档目录的相对媒体路径。'
         },
         help: {
           preset:
             '预设会根据发布目标自动填一组默认配置。Hugo 是静态网站生成器，常用来把 Markdown 生成博客/内容网站；Docusaurus 是文档站生成器，常用于开源项目文档。选完后下面字段仍然可以手动改。',
-          uiLanguage: '控制 MagicMD 终端进度提示的语言。Markdown 元信息字段名仍保持发布工具更容易识别的标准键。',
+          uiLanguage:
+            '控制 MagicMD 终端进度提示的语言。Markdown 元信息字段名仍保持发布工具更容易识别的标准键。',
           packageName:
             '每篇文章生成的文件夹名称。{date} 会替换成发布日期，{slug} 会替换成安全的标题短名，不需要你手动填真实日期。',
-          markdownName: '内容包里的正文 Markdown 文件名。归档常用 article.md，Hugo / Docusaurus 通常用 index.md。',
-          metadataName: '保存文章结构化信息，比如标题、作者、平台、原文链接、发布时间，方便后续系统读取。',
-          reportName: '保存抓取和转换报告，包括 warning、图片/视频下载情况，批量转换后很适合用来排查问题。',
+          markdownName:
+            '内容包里的正文 Markdown 文件名。归档常用 article.md，Hugo / Docusaurus 通常用 index.md。',
+          metadataName:
+            '保存文章结构化信息，比如标题、作者、平台、原文链接、发布时间，方便后续系统读取。',
+          reportName:
+            '保存抓取和转换报告，包括 warning、图片/视频下载情况，批量转换后很适合用来排查问题。',
           frontMatter:
             'Markdown 顶部的 YAML 元信息块。Hugo、Docusaurus、博客系统常用它识别标题、作者、日期等字段。',
-          includeSourceBlock: '在正文标题下方增加来源信息块，显示原平台、作者和原文链接，方便以后回溯。',
+          includeSourceBlock:
+            '在正文标题下方增加来源信息块，显示原平台、作者和原文链接，方便以后回溯。',
           imagePath:
             '写入 Markdown 图片链接里的路径。{directory} 表示图片目录，{filename} 表示下载后的图片文件名。',
           videoPath: '写入 Markdown 视频链接里的路径。如果你要整体移动文章目录，建议保持相对路径。',
-          downloadImages: '开启后会把文章图片下载到输出目录，而不是在 Markdown 里继续引用远程图片链接。',
-          downloadVideos: '开启后会尝试下载视频。微信公众号视频可能有防盗链或临时签名，失败时仍需人工复核。',
+          downloadImages:
+            '开启后会把文章图片下载到输出目录，而不是在 Markdown 里继续引用远程图片链接。',
+          downloadVideos:
+            '开启后会尝试下载视频。微信公众号视频可能有防盗链或临时签名，失败时仍需人工复核。',
           outputPreview: '这里展示 MagicMD 最终会生成的正文 Markdown 文件路径。',
-          generated: '复制这份内容保存为 .magicmd.toml，再用 --config 参数运行 MagicMD，就会按这些规则输出。'
+          generated:
+            '复制这份内容保存为 .magicmd.toml，再用 --config 参数运行 MagicMD，就会按这些规则输出。'
         },
         helpTitle: '这是什么？',
         basicSection: '基础设置',
@@ -277,7 +294,8 @@ const ui = computed(() =>
         markdownPreviewTitle: (name: string) => `生成后的 ${name} 示例`,
         markdownPreviewHint: '随左侧配置实时变化',
         sampleHeading: '真实转换示例',
-        sampleBody: '这是一篇真实微信公众号文章的转换预览：保留来源信息，图片改成本地路径，正文结构整理成干净的 Markdown。',
+        sampleBody:
+          '这是一篇真实微信公众号文章的转换预览：保留来源信息，图片改成本地路径，正文结构整理成干净的 Markdown。',
         sampleLink: '查看原文',
         outputRoot: '内容包包含',
         imagesDir: '图片目录',
@@ -401,7 +419,12 @@ const markdownExample = computed(() => {
 });
 
 async function copyToml() {
-  const content = activePreview.value === 'toml' ? toml.value : activePreview.value === 'markdown' ? markdownExample.value : outputTree.value;
+  const content =
+    activePreview.value === 'toml'
+      ? toml.value
+      : activePreview.value === 'markdown'
+        ? markdownExample.value
+        : outputTree.value;
 
   try {
     await navigator.clipboard.writeText(content);
@@ -416,9 +439,18 @@ async function copyToml() {
 }
 
 function downloadToml() {
-  const content = activePreview.value === 'toml' ? toml.value : activePreview.value === 'markdown' ? markdownExample.value : outputTree.value;
+  const content =
+    activePreview.value === 'toml'
+      ? toml.value
+      : activePreview.value === 'markdown'
+        ? markdownExample.value
+        : outputTree.value;
   const filename =
-    activePreview.value === 'toml' ? '.magicmd.toml' : activePreview.value === 'markdown' ? state.markdownName : 'output-structure.txt';
+    activePreview.value === 'toml'
+      ? '.magicmd.toml'
+      : activePreview.value === 'markdown'
+        ? state.markdownName
+        : 'output-structure.txt';
   const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement('a');
@@ -515,7 +547,12 @@ function downloadToml() {
             </label>
           </div>
 
-          <button class="advanced-toggle" type="button" :aria-expanded="advancedOpen.toString()" @click="advancedOpen = !advancedOpen">
+          <button
+            class="advanced-toggle"
+            type="button"
+            :aria-expanded="advancedOpen.toString()"
+            @click="advancedOpen = !advancedOpen"
+          >
             {{ advancedOpen ? ui.hideAdvanced : ui.showAdvanced }}
           </button>
         </section>
@@ -621,7 +658,9 @@ function downloadToml() {
           </div>
           <div class="preset-chip-list">
             <code>{{ state.frontMatter === 'yaml' ? ui.metadataOn : ui.metadataOff }}</code>
-            <code>{{ state.uiLanguage === 'zh-CN' ? ui.terminalChinese : ui.terminalEnglish }}</code>
+            <code>{{
+              state.uiLanguage === 'zh-CN' ? ui.terminalChinese : ui.terminalEnglish
+            }}</code>
             <code>{{ mediaPreview }}</code>
           </div>
         </div>
@@ -640,7 +679,13 @@ function downloadToml() {
             </div>
             <div>
               <button type="button" @click="copyToml">
-                {{ copyState === 'copied' ? ui.copied : copyState === 'failed' ? ui.copyFailed : ui.copy }}
+                {{
+                  copyState === 'copied'
+                    ? ui.copied
+                    : copyState === 'failed'
+                      ? ui.copyFailed
+                      : ui.copy
+                }}
               </button>
               <button type="button" @click="downloadToml">{{ ui.download }}</button>
             </div>
@@ -660,7 +705,9 @@ function downloadToml() {
           </div>
 
           <pre v-if="activePreview === 'toml'">{{ toml }}</pre>
-          <pre v-else-if="activePreview === 'markdown'" class="markdown-preview-code">{{ markdownExample }}</pre>
+          <pre v-else-if="activePreview === 'markdown'" class="markdown-preview-code">{{
+            markdownExample
+          }}</pre>
           <pre v-else class="structure-preview-code">{{ outputTree }}</pre>
 
           <p class="cli-hint">{{ ui.cliHint }}</p>

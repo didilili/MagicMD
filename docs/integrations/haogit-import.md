@@ -43,19 +43,19 @@ result = convert_article(
 
 ## 字段映射建议
 
-| MagicMD 字段 | 业务系统字段建议 | 说明 |
-| --- | --- | --- |
-| `result.title` | `Article.title` | 文章标题。 |
-| `result.author` | `Article.author_name` | 作者、公众号或平台账号。 |
-| `result.platform` | `Article.source_platform` | `wechat`、`juejin`、`csdn` 等。 |
-| `result.canonical_url or result.source_url` | `Article.source_url` | 优先保存规范 URL。 |
-| `result.published_at` | `Article.published_at` | 可为空。 |
-| `result.markdown` | `Article.markdown` | 重写媒体链接后再保存。 |
-| `result.excerpt` | `Article.summary_raw` | 可作为后续摘要任务输入。 |
-| `result.content_hash` | `Article.content_hash` | 去重用。 |
-| `result.warnings` | `Article.import_warnings` | 方便人工复核。 |
-| `result.report` | `Article.extraction_report` | 保留完整转换报告。 |
-| `result.images` | `ArticleMedia` 或媒体表 | 每张图一条记录。 |
+| MagicMD 字段                                | 业务系统字段建议            | 说明                            |
+| ------------------------------------------- | --------------------------- | ------------------------------- |
+| `result.title`                              | `Article.title`             | 文章标题。                      |
+| `result.author`                             | `Article.author_name`       | 作者、公众号或平台账号。        |
+| `result.platform`                           | `Article.source_platform`   | `wechat`、`juejin`、`csdn` 等。 |
+| `result.canonical_url or result.source_url` | `Article.source_url`        | 优先保存规范 URL。              |
+| `result.published_at`                       | `Article.published_at`      | 可为空。                        |
+| `result.markdown`                           | `Article.markdown`          | 重写媒体链接后再保存。          |
+| `result.excerpt`                            | `Article.summary_raw`       | 可作为后续摘要任务输入。        |
+| `result.content_hash`                       | `Article.content_hash`      | 去重用。                        |
+| `result.warnings`                           | `Article.import_warnings`   | 方便人工复核。                  |
+| `result.report`                             | `Article.extraction_report` | 保留完整转换报告。              |
+| `result.images`                             | `ArticleMedia` 或媒体表     | 每张图一条记录。                |
 
 ## 图片复制与 Markdown 重写
 

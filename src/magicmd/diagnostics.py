@@ -124,7 +124,12 @@ def _load_doctor_config(config_path: str | Path | None) -> tuple[MagicMDConfig, 
     if config_path:
         path = Path(config_path)
         try:
-            return load_config(path), {"ok": True, "path": str(path), "loaded": True, "message": f"{path} loaded"}
+            return load_config(path), {
+                "ok": True,
+                "path": str(path),
+                "loaded": True,
+                "message": f"{path} loaded",
+            }
         except Exception as exc:
             return MagicMDConfig(), {
                 "ok": False,
@@ -165,7 +170,11 @@ def _check_output_writable(output_dir: Path) -> dict[str, Any]:
         state = "writable" if output_dir.exists() else "creatable"
         return {"ok": True, "directory": str(output_dir), "message": f"{output_dir} {state}"}
     except Exception as exc:
-        return {"ok": False, "directory": str(output_dir), "message": f"{output_dir} not writable: {exc}"}
+        return {
+            "ok": False,
+            "directory": str(output_dir),
+            "message": f"{output_dir} not writable: {exc}",
+        }
 
 
 def _nearest_existing_parent(path: Path) -> Path:

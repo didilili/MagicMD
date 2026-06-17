@@ -19,9 +19,13 @@ def parse_wechat_html(html: str, url: str) -> Article:
     warnings: list[str] = []
 
     title = normalize_text(
-        (soup.select_one("#activity-name") or soup.select_one("h1") or soup.new_tag("span")).get_text()
+        (
+            soup.select_one("#activity-name") or soup.select_one("h1") or soup.new_tag("span")
+        ).get_text()
     )
-    title = title or meta_content(soup, "og:title") or extract_script_value(html, "msg_title") or url
+    title = (
+        title or meta_content(soup, "og:title") or extract_script_value(html, "msg_title") or url
+    )
 
     author = normalize_text((soup.select_one("#js_name") or soup.new_tag("span")).get_text())
     author = author or meta_content(soup, "author") or extract_script_value(html, "nickname")
@@ -54,4 +58,3 @@ def parse_wechat_html(html: str, url: str) -> Article:
         images=images,
         extraction=ExtractionInfo(platform="wechat", parser="wechat", warnings=warnings),
     )
-

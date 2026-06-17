@@ -69,31 +69,31 @@ print(result.images)
 
 `convert_article()` 返回 `ArticleConversionResult`，这是一个稳定、易序列化的 Pydantic model。
 
-| 字段 | 说明 |
-| --- | --- |
-| `title` | 文章标题。 |
-| `author` | 作者或账号名。 |
-| `platform` | `wechat`、`juejin`、`csdn`、`generic` 等平台标识。 |
-| `source_url` | 调用方传入的原始 URL。 |
-| `canonical_url` | 解析后可识别的规范 URL。 |
-| `published_at` | 发布时间，能提取到时返回 ISO 字符串。 |
-| `excerpt` | 摘要或页面描述。 |
-| `markdown` | 转换后的 Markdown 正文。 |
-| `content_hash` | 基于内容生成的 hash，适合去重。 |
-| `images` | 图片资产列表。 |
-| `warnings` | 抓取、解析、媒体下载或质量检查中的 warning。 |
-| `metadata` | 与 `metadata.json` 对齐的结构化数据。 |
-| `report` | 与 `extraction-report.json` 对齐的转换报告。 |
-| `package_dir` | 写出内容包时的目录；内存模式为空。 |
+| 字段            | 说明                                               |
+| --------------- | -------------------------------------------------- |
+| `title`         | 文章标题。                                         |
+| `author`        | 作者或账号名。                                     |
+| `platform`      | `wechat`、`juejin`、`csdn`、`generic` 等平台标识。 |
+| `source_url`    | 调用方传入的原始 URL。                             |
+| `canonical_url` | 解析后可识别的规范 URL。                           |
+| `published_at`  | 发布时间，能提取到时返回 ISO 字符串。              |
+| `excerpt`       | 摘要或页面描述。                                   |
+| `markdown`      | 转换后的 Markdown 正文。                           |
+| `content_hash`  | 基于内容生成的 hash，适合去重。                    |
+| `images`        | 图片资产列表。                                     |
+| `warnings`      | 抓取、解析、媒体下载或质量检查中的 warning。       |
+| `metadata`      | 与 `metadata.json` 对齐的结构化数据。              |
+| `report`        | 与 `extraction-report.json` 对齐的转换报告。       |
+| `package_dir`   | 写出内容包时的目录；内存模式为空。                 |
 
 图片资产字段：
 
-| 字段 | 说明 |
-| --- | --- |
-| `source_url` | 原始远程图片 URL。 |
-| `local_path` | 写出内容包后，本机上的图片文件路径。没有下载时为空。 |
+| 字段            | 说明                                                                |
+| --------------- | ------------------------------------------------------------------- |
+| `source_url`    | 原始远程图片 URL。                                                  |
+| `local_path`    | 写出内容包后，本机上的图片文件路径。没有下载时为空。                |
 | `markdown_path` | Markdown 中实际引用的路径。外部系统复制图片后，可以用它作为替换源。 |
-| `alt` | 图片 alt 文本。 |
+| `alt`           | 图片 alt 文本。                                                     |
 
 序列化示例：
 
@@ -220,31 +220,31 @@ print(result.images)
 
 `convert_article()` returns `ArticleConversionResult`, a stable, serializable Pydantic model.
 
-| Field | Meaning |
-| --- | --- |
-| `title` | Article title. |
-| `author` | Author or account name. |
-| `platform` | Platform key such as `wechat`, `juejin`, `csdn`, or `generic`. |
-| `source_url` | Original input URL. |
-| `canonical_url` | Canonical URL after parsing. |
-| `published_at` | Publish time when available. |
-| `excerpt` | Extracted summary or page description. |
-| `markdown` | Converted Markdown content. |
-| `content_hash` | Content hash for deduplication. |
-| `images` | Structured image assets. |
-| `warnings` | Fetch, parse, media, or quality warnings. |
-| `metadata` | Structured data aligned with `metadata.json`. |
-| `report` | Extraction report aligned with `extraction-report.json`. |
-| `package_dir` | Output package path when a package is written. |
+| Field           | Meaning                                                        |
+| --------------- | -------------------------------------------------------------- |
+| `title`         | Article title.                                                 |
+| `author`        | Author or account name.                                        |
+| `platform`      | Platform key such as `wechat`, `juejin`, `csdn`, or `generic`. |
+| `source_url`    | Original input URL.                                            |
+| `canonical_url` | Canonical URL after parsing.                                   |
+| `published_at`  | Publish time when available.                                   |
+| `excerpt`       | Extracted summary or page description.                         |
+| `markdown`      | Converted Markdown content.                                    |
+| `content_hash`  | Content hash for deduplication.                                |
+| `images`        | Structured image assets.                                       |
+| `warnings`      | Fetch, parse, media, or quality warnings.                      |
+| `metadata`      | Structured data aligned with `metadata.json`.                  |
+| `report`        | Extraction report aligned with `extraction-report.json`.       |
+| `package_dir`   | Output package path when a package is written.                 |
 
 Image asset fields:
 
-| Field | Meaning |
-| --- | --- |
-| `source_url` | Original remote image URL. |
-| `local_path` | Downloaded filesystem path when available. |
+| Field           | Meaning                                                                                                                        |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `source_url`    | Original remote image URL.                                                                                                     |
+| `local_path`    | Downloaded filesystem path when available.                                                                                     |
 | `markdown_path` | The path currently referenced by Markdown. Use this as the replacement source when moving files into your own media directory. |
-| `alt` | Image alt text. |
+| `alt`           | Image alt text.                                                                                                                |
 
 Serialize with:
 

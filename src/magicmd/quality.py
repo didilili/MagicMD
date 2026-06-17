@@ -11,12 +11,18 @@ def scan_markdown_quality(markdown: str) -> list[str]:
     prose_markdown = _without_fenced_code(markdown)
     checks = {
         "empty_code_fence": _has_empty_code_fence(markdown),
-        "image_used_as_heading": bool(re.search(r"^#{1,6}\s+(Image|!\[)", prose_markdown, re.MULTILINE)),
+        "image_used_as_heading": bool(
+            re.search(r"^#{1,6}\s+(Image|!\[)", prose_markdown, re.MULTILINE)
+        ),
         "fragmented_recommendation_text": bool(
             re.search(r"推\*{2,}荐\*{2,}阅\*{2,}读", prose_markdown)
         ),
-        "fragmented_bold_text": bool(re.search(r"\*\*[^*\n]{1,12}\*{4,}[^*\n]{1,12}\*\*", prose_markdown)),
-        "broken_numbered_link_emphasis": bool(re.search(r"\*{3,}\d+[.．]\*{3,}\s*\[", prose_markdown)),
+        "fragmented_bold_text": bool(
+            re.search(r"\*\*[^*\n]{1,12}\*{4,}[^*\n]{1,12}\*\*", prose_markdown)
+        ),
+        "broken_numbered_link_emphasis": bool(
+            re.search(r"\*{3,}\d+[.．]\*{3,}\s*\[", prose_markdown)
+        ),
         "broken_linked_image": "[\n\n![Image]" in prose_markdown or "\n\n](" in prose_markdown,
     }
     return [name for name, matched in checks.items() if matched]
@@ -41,7 +47,9 @@ def build_package_quality(
     if not metadata:
         quality_issues.append("missing_metadata")
     warnings = list(extraction.get("warnings") or [])
-    content_not_found = next((warning for warning in warnings if warning.endswith("_content_not_found")), "")
+    content_not_found = next(
+        (warning for warning in warnings if warning.endswith("_content_not_found")), ""
+    )
 
     return {
         "url": url,

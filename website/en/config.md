@@ -38,11 +38,11 @@ report = "extraction-report.json"
 
 Common choices:
 
-| Target | Recommendation |
-| --- | --- |
+| Target                   | Recommendation            |
+| ------------------------ | ------------------------- |
 | General Markdown archive | `markdown = "article.md"` |
-| Hugo content directory | `markdown = "index.md"` |
-| Docusaurus docs page | `markdown = "index.md"` |
+| Hugo content directory   | `markdown = "index.md"`   |
+| Docusaurus docs page     | `markdown = "index.md"`   |
 
 ## Markdown Format
 

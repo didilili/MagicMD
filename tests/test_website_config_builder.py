@@ -11,5 +11,5 @@ def test_config_builder_keeps_source_block_template_independent_from_cli_languag
 
     assert "> 来源：{platform}" not in component
     assert "> 来源：" not in component
-    assert '> Source: {platform}' in component
+    assert "> Source: {platform}" in component
     assert "> Source:" in component

@@ -9,11 +9,11 @@ MagicMD is not trying to be a universal crawler. Its goal is to turn common publ
 
 ## Heavily Optimized
 
-| Platform | Status | What MagicMD Handles |
-| --- | --- | --- |
+| Platform                 | Status           | What MagicMD Handles                                                               |
+| ------------------------ | ---------------- | ---------------------------------------------------------------------------------- |
 | WeChat Official Accounts | Deeply optimized | Images, video links, empty GIFs, editor assets, source metadata, rich text details |
-| Juejin | Validated | Code blocks, heading levels, image downloads, direct outbound links |
-| CSDN | Validated | Code block cleanup, Mermaid/chart fallbacks, header links, noisy widget filtering |
+| Juejin                   | Validated        | Code blocks, heading levels, image downloads, direct outbound links                |
+| CSDN                     | Validated        | Code block cleanup, Mermaid/chart fallbacks, header links, noisy widget filtering  |
 
 ## Generic Pages
 

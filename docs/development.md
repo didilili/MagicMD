@@ -84,35 +84,35 @@ magicmd/
 
 ## 核心模块 / Core Modules
 
-| 文件 | 作用 |
-| --- | --- |
-| `src/magicmd/__init__.py` | 对外导出稳定 Python SDK 入口、结果模型和错误类型。 |
-| `src/magicmd/sdk.py` | 定义 `convert_article()`、`ArticleConversionResult`、`ConvertedImage` 和 SDK 错误映射；CLI 单篇转换也复用这里。 |
-| `src/magicmd/cli.py` | 定义 `magicmd`、`convert`、`batch`、`config init`、`doctor` 命令，并控制动态进度状态。 |
-| `src/magicmd/config.py` | 读取 `.magicmd.toml`，合并默认配置和用户配置。 |
-| `src/magicmd/detect.py` | 根据 URL 自动识别 `wechat`、`juejin`、`csdn` 或 `generic`。 |
-| `src/magicmd/models.py` | 定义 `Article`、`ImageAsset`、`ExtractionInfo` 等标准数据结构。 |
-| `src/magicmd/output.py` | 控制输出包命名、`output.naming` 文件名模板、Markdown/metadata 写入和内容 hash。 |
-| `src/magicmd/assets.py` | 下载图片到本地 `images/`，并把 Markdown 里的远程图片链接改成本地路径。 |
-| `src/magicmd/diagnostics.py` | 写入 `debug.html` 和 `extraction-report.json`。 |
-| `src/magicmd/quality.py` | 扫描 Markdown 质量疑点，并为 batch 命令生成 `batch-report.json`、`batch-report.md`。 |
-| `src/magicmd/fetchers/http.py` | 使用 HTTP 抓取普通网页。 |
-| `src/magicmd/fetchers/browser.py` | 使用 Camoufox 抓取需要浏览器渲染的页面。 |
-| `src/magicmd/platforms/registry.py` | 集中维护支持平台、URL 匹配规则、默认抓取模式和解析器入口。 |
-| `src/magicmd/platforms/wechat.py` | 微信公众号解析器。 |
-| `src/magicmd/platforms/juejin.py` | 掘金解析器。 |
-| `src/magicmd/platforms/csdn.py` | CSDN 解析器。 |
-| `src/magicmd/platforms/generic.py` | 通用网页解析器。 |
-| `src/magicmd/platforms/base.py` | 兼容入口，继续导出平台解析器使用的通用函数。 |
-| `src/magicmd/platforms/shared/content.py` | 正文 DOM 清洗、图片识别、代码块保留。 |
-| `src/magicmd/platforms/shared/markdown.py` | HTML 转 Markdown 和 Markdown 后处理。 |
-| `src/magicmd/platforms/shared/metadata.py` | 元数据、脚本变量、文本和时间提取工具。 |
-| `src/magicmd/renderers/markdown.py` | 控制最终 `article.md` 的整体格式，包括 front matter、标题、来源信息和正文插入位置。 |
-| `npm/magicmd/bin/magicmd.js` | npm wrapper 入口，调用 `uvx --from magicmd magicmd ...`，不复制 Python 转换逻辑。 |
-| `docs/integrations/python-sdk.md` | SDK 字段、错误、媒体路径和后端接入契约。 |
-| `docs/integrations/haogit-import.md` | HaoGit/CMS 风格导入建议，只描述映射和流程，不写业务系统专属逻辑。 |
-| `examples/python/convert_to_json.py` | 调用 SDK 并输出完整 JSON 结果。 |
-| `examples/python/convert_for_cms.py` | 演示把图片复制到业务 media 目录并重写 Markdown 链接。 |
+| 文件                                       | 作用                                                                                                            |
+| ------------------------------------------ | --------------------------------------------------------------------------------------------------------------- |
+| `src/magicmd/__init__.py`                  | 对外导出稳定 Python SDK 入口、结果模型和错误类型。                                                              |
+| `src/magicmd/sdk.py`                       | 定义 `convert_article()`、`ArticleConversionResult`、`ConvertedImage` 和 SDK 错误映射；CLI 单篇转换也复用这里。 |
+| `src/magicmd/cli.py`                       | 定义 `magicmd`、`convert`、`batch`、`config init`、`doctor` 命令，并控制动态进度状态。                          |
+| `src/magicmd/config.py`                    | 读取 `.magicmd.toml`，合并默认配置和用户配置。                                                                  |
+| `src/magicmd/detect.py`                    | 根据 URL 自动识别 `wechat`、`juejin`、`csdn` 或 `generic`。                                                     |
+| `src/magicmd/models.py`                    | 定义 `Article`、`ImageAsset`、`ExtractionInfo` 等标准数据结构。                                                 |
+| `src/magicmd/output.py`                    | 控制输出包命名、`output.naming` 文件名模板、Markdown/metadata 写入和内容 hash。                                 |
+| `src/magicmd/assets.py`                    | 下载图片到本地 `images/`，并把 Markdown 里的远程图片链接改成本地路径。                                          |
+| `src/magicmd/diagnostics.py`               | 写入 `debug.html` 和 `extraction-report.json`。                                                                 |
+| `src/magicmd/quality.py`                   | 扫描 Markdown 质量疑点，并为 batch 命令生成 `batch-report.json`、`batch-report.md`。                            |
+| `src/magicmd/fetchers/http.py`             | 使用 HTTP 抓取普通网页。                                                                                        |
+| `src/magicmd/fetchers/browser.py`          | 使用 Camoufox 抓取需要浏览器渲染的页面。                                                                        |
+| `src/magicmd/platforms/registry.py`        | 集中维护支持平台、URL 匹配规则、默认抓取模式和解析器入口。                                                      |
+| `src/magicmd/platforms/wechat.py`          | 微信公众号解析器。                                                                                              |
+| `src/magicmd/platforms/juejin.py`          | 掘金解析器。                                                                                                    |
+| `src/magicmd/platforms/csdn.py`            | CSDN 解析器。                                                                                                   |
+| `src/magicmd/platforms/generic.py`         | 通用网页解析器。                                                                                                |
+| `src/magicmd/platforms/base.py`            | 兼容入口，继续导出平台解析器使用的通用函数。                                                                    |
+| `src/magicmd/platforms/shared/content.py`  | 正文 DOM 清洗、图片识别、代码块保留。                                                                           |
+| `src/magicmd/platforms/shared/markdown.py` | HTML 转 Markdown 和 Markdown 后处理。                                                                           |
+| `src/magicmd/platforms/shared/metadata.py` | 元数据、脚本变量、文本和时间提取工具。                                                                          |
+| `src/magicmd/renderers/markdown.py`        | 控制最终 `article.md` 的整体格式，包括 front matter、标题、来源信息和正文插入位置。                             |
+| `npm/magicmd/bin/magicmd.js`               | npm wrapper 入口，调用 `uvx --from magicmd magicmd ...`，不复制 Python 转换逻辑。                               |
+| `docs/integrations/python-sdk.md`          | SDK 字段、错误、媒体路径和后端接入契约。                                                                        |
+| `docs/integrations/haogit-import.md`       | HaoGit/CMS 风格导入建议，只描述映射和流程，不写业务系统专属逻辑。                                               |
+| `examples/python/convert_to_json.py`       | 调用 SDK 并输出完整 JSON 结果。                                                                                 |
+| `examples/python/convert_for_cms.py`       | 演示把图片复制到业务 media 目录并重写 Markdown 链接。                                                           |
 
 ## 转换流程 / Conversion Flow
 

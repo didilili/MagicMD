@@ -30,9 +30,7 @@ class MarkdownConfig(BaseModel):
     include_source_block: bool = True
     heading_offset: int = 0
     source_block_template: str = (
-        "> Source: {platform}\n"
-        "> Author: {author}\n"
-        "> Original: {source_url}"
+        "> Source: {platform}\n> Author: {author}\n> Original: {source_url}"
     )
     front_matter_fields: dict[str, str] = Field(
         default_factory=lambda: {

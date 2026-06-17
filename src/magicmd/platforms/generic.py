@@ -3,7 +3,12 @@ from __future__ import annotations
 from bs4 import BeautifulSoup
 
 from magicmd.models import Article, ExtractionInfo
-from magicmd.platforms.base import clean_content_element, html_to_markdown, meta_content, normalize_text
+from magicmd.platforms.base import (
+    clean_content_element,
+    html_to_markdown,
+    meta_content,
+    normalize_text,
+)
 
 
 def parse_generic_html(html: str, url: str) -> Article:
@@ -19,7 +24,9 @@ def parse_generic_html(html: str, url: str) -> Article:
 
     title = (
         meta_content(soup, "og:title", "twitter:title")
-        or normalize_text((soup.select_one("title") or soup.select_one("h1") or soup.new_tag("span")).get_text())
+        or normalize_text(
+            (soup.select_one("title") or soup.select_one("h1") or soup.new_tag("span")).get_text()
+        )
         or url
     )
     author = meta_content(soup, "author")
@@ -51,4 +58,3 @@ def parse_generic_html(html: str, url: str) -> Article:
         images=images,
         extraction=ExtractionInfo(platform="generic", parser="generic", warnings=warnings),
     )
-
