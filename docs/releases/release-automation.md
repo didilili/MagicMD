@@ -7,9 +7,9 @@
 推荐分两步推进：
 
 1. 短期继续手动发布，但严格使用 `docs/releases/post-release-checklist.md` 做 smoke test。
-2. v0.5 期间新增一个 tag-triggered release workflow，并先通过 PyPI / npm Trusted Publishing 做无长期 token 发布。
+2. v0.5 期间先新增一个手动触发的 PyPI Trusted Publisher workflow；等 npm Trusted Publishing 配好并试跑稳定后，再评估 tag-triggered release workflow。
 
-不要在 trusted publisher 尚未配置完成前加入会自动 publish 的 workflow。否则下一次推 tag 时，CI 可能在 PyPI 或 npm 权限阶段失败，或者只发布了其中一个包，造成状态不一致。
+不要在 trusted publisher 尚未配置完成前加入会自动 publish 的 workflow。否则下一次推 tag 时，CI 可能在 PyPI 或 npm 权限阶段失败，或者只发布了其中一个包，造成状态不一致。当前仓库的 `.github/workflows/publish.yml` 只支持手动触发，默认只验证，不会自动发布。
 
 ## Current Manual Pain Points
 
@@ -68,6 +68,36 @@ After this is configured, the workflow can publish with:
 
 No `PYPI_TOKEN`, username, or password should be needed.
 
+## Current Safe Workflow
+
+`.github/workflows/publish.yml` is intentionally PyPI-only and manual:
+
+- It runs through `workflow_dispatch`.
+- It requires a `version` input.
+- It validates `pyproject.toml`, `src/magicmd/__init__.py`, and `npm/magicmd/package.json` against the input version.
+- It runs tests, ruff, `uv build`, `twine check`, and `npm pack --dry-run`.
+- It uploads the built Python distributions as a workflow artifact.
+- It publishes to PyPI only when `publish_pypi` is explicitly checked.
+- It uses the `pypi` GitHub environment and `id-token: write` only for the publish job.
+
+To perform a dry verification run for v0.5.0:
+
+```text
+Actions -> Publish Release -> Run workflow
+version: 0.5.0
+publish_pypi: false
+```
+
+To publish the Python package after the dry run is trusted:
+
+```text
+Actions -> Publish Release -> Run workflow
+version: 0.5.0
+publish_pypi: true
+```
+
+The npm package still needs manual publishing until npm Trusted Publishing is configured.
+
 ## npm Setup
 
 In the npm package settings for `magicmd`, add a trusted publisher:
@@ -89,7 +119,7 @@ Do not rely on `npm whoami` in the workflow. With OIDC, `npm whoami` does not re
 
 ## Proposed Workflow Shape
 
-Create `.github/workflows/publish.yml` only after PyPI and npm trusted publishers are configured.
+The final workflow can become tag-triggered only after PyPI and npm trusted publishers are configured and at least one manual release succeeds.
 
 ```yaml
 name: Publish Release

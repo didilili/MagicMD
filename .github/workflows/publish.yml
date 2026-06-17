@@ -1,0 +1,111 @@
+name: Publish Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to verify or publish, for example 0.5.0'
+        required: true
+      publish_pypi:
+        description: 'Publish the Python package to PyPI using Trusted Publisher'
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Verify release package
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        run: uv python install 3.11
+
+      - name: Validate version metadata
+        run: |
+          python3 - <<'PY'
+          import json
+          import sys
+          import tomllib
+          from pathlib import Path
+
+          expected = "${{ inputs.version }}"
+          pyproject = tomllib.loads(Path("pyproject.toml").read_text(encoding="utf-8"))
+          python_version = pyproject["project"]["version"]
+          init_version = None
+          for line in Path("src/magicmd/__init__.py").read_text(encoding="utf-8").splitlines():
+              if line.startswith("__version__"):
+                  init_version = line.split("=", 1)[1].strip().strip('"')
+                  break
+          npm_version = json.loads(Path("npm/magicmd/package.json").read_text(encoding="utf-8"))["version"]
+
+          versions = {
+              "workflow input": expected,
+              "pyproject.toml": python_version,
+              "src/magicmd/__init__.py": init_version,
+              "npm/magicmd/package.json": npm_version,
+          }
+          mismatches = {source: version for source, version in versions.items() if version != expected}
+          if mismatches:
+              print("Version metadata mismatch:")
+              for source, version in versions.items():
+                  print(f"- {source}: {version}")
+              sys.exit(1)
+          print(f"Version metadata verified: {expected}")
+          PY
+
+      - name: Install dependencies
+        run: uv sync --extra dev
+
+      - name: Run tests
+        run: uv run pytest -q
+
+      - name: Run ruff
+        run: uv run ruff check .
+
+      - name: Build Python package
+        run: uv build
+
+      - name: Check Python distributions
+        run: uvx twine check dist/*
+
+      - name: Check npm wrapper package
+        working-directory: npm/magicmd
+        run: npm pack --dry-run
+
+      - name: Upload Python distributions
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-dist-${{ inputs.version }}
+          path: dist/*
+          if-no-files-found: error
+
+  publish-pypi:
+    name: Publish Python package to PyPI
+    if: ${{ inputs.publish_pypi }}
+    needs: verify
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Download Python distributions
+        uses: actions/download-artifact@v4
+        with:
+          name: python-dist-${{ inputs.version }}
+          path: dist
+
+      - name: Publish Python package to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
