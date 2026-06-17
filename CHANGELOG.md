@@ -1,16 +1,22 @@
 # Changelog
 
-## Unreleased
+## v0.4.0 - 2026-06-17
 
 ### 中文
 
 - CLI 终端提示默认改为中文优先，并新增 `[ui] language = "en-US"` 配置，英文用户可以显式切回英文输出。
 - 配置生成器新增终端语言选项；该选项只控制 CLI 进度和结果提示，不改变 Markdown front matter 字段名或来源信息块模板。
+- 官网新增中英文双语文档入口，补齐快速开始、配置、SDK、支持站点、故障排查和 Agent Skill 使用说明。
+- Agent Skill 文档改为面向 Codex、Claude Code 等支持 Skill 的 Agent 工具，支持用一句话描述安装需求，同时保留手动安装命令作为兜底。
+- 新增 Ruff、Prettier、lint-staged、Husky 和 commitlint 工作流，提交前自动格式化 staged 文件，并继续规范 commit message。
 
 ### English
 
 - CLI terminal messages now default to Chinese-first output. English users can set `[ui] language = "en-US"` to keep English CLI progress and result messages.
 - Added a terminal-language option to the Config Builder. This only controls CLI progress/result messages and does not rename Markdown front matter fields or the source block template.
+- Added bilingual website documentation covering quick start, config, SDK usage, supported sites, troubleshooting, and Agent Skill usage.
+- Generalized the Agent Skill guide for Codex, Claude Code, and other Skill-capable agent tools, including a one-sentence install request plus the manual command as a fallback.
+- Added Ruff, Prettier, lint-staged, Husky, and commitlint workflows so staged files are formatted before commit while commit messages stay conventional.
 
 ## v0.3.0 - 2026-06-08
 
