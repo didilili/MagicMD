@@ -1,0 +1,17 @@
+node_modules/
+website/node_modules/
+dist/
+build/
+output/
+website/.vitepress/cache/
+website/.vitepress/dist/
+.venv/
+.ruff_cache/
+.pytest_cache/
+*.egg-info/
+uv.lock
+package-lock.json
+website/package-lock.json
+
+*.py
+*.pyi

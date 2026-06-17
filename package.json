@@ -2,11 +2,32 @@
   "name": "magicmd-dev-tools",
   "private": true,
   "scripts": {
-    "prepare": "husky"
+    "prepare": "husky",
+    "format": "npm run format:python && npm run format:web",
+    "format:python": "uv run ruff format .",
+    "format:web": "prettier --write .",
+    "lint": "npm run lint:python && npm run lint:web",
+    "lint:python": "uv run ruff check .",
+    "lint:web": "prettier --check package.json prettier.config.cjs"
+  },
+  "lint-staged": {
+    "*.{py,pyi}": [
+      "uv run ruff format",
+      "uv run ruff check --fix"
+    ],
+    "*.{js,cjs,mjs,ts,vue,md,css,html,yml,yaml,toml}": [
+      "prettier --write"
+    ],
+    "*.json": [
+      "prettier --write --ignore-path .prettierignore"
+    ]
   },
   "devDependencies": {
     "@commitlint/cli": "^20.5.3",
     "@commitlint/config-conventional": "^20.5.3",
-    "husky": "^9.1.7"
+    "husky": "^9.1.7",
+    "lint-staged": "^16.4.0",
+    "prettier": "^3.8.4",
+    "prettier-plugin-toml": "^2.0.6"
   }
 }
