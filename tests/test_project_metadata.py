@@ -4,6 +4,8 @@ import shutil
 import subprocess
 import tomllib
 
+import yaml
+
 
 def test_license_file_exists_for_mit_project():
     license_path = Path("LICENSE")
@@ -72,11 +74,11 @@ def test_publishable_skill_exists():
     assert openai_yaml_path.exists()
 
     skill = skill_path.read_text(encoding="utf-8")
-    openai_yaml = openai_yaml_path.read_text(encoding="utf-8")
+    openai_agent = yaml.safe_load(openai_yaml_path.read_text(encoding="utf-8"))
 
     assert "name: magicmd" in skill
     assert "uvx --from magicmd magicmd" in skill
     assert "extraction-report.json" in skill
     assert "Do not use it to bypass login" in skill
-    assert 'display_name: "MagicMD"' in openai_yaml
-    assert "allow_implicit_invocation: true" in openai_yaml
+    assert openai_agent["interface"]["display_name"] == "MagicMD"
+    assert openai_agent["policy"]["allow_implicit_invocation"] is True
