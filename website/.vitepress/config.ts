@@ -55,6 +55,7 @@ export default defineConfig({
         nav: [
           { text: 'Quick Start', link: '/en/quick-start' },
           { text: 'SDK', link: '/en/sdk' },
+          { text: 'Agent Skill', link: '/en/agent-skill' },
           { text: 'Config Builder', link: '/en/config-builder' },
           { text: 'Supported Sites', link: '/en/supported-sites' },
           {
@@ -72,6 +73,7 @@ export default defineConfig({
             items: [
               { text: 'Quick Start', link: '/en/quick-start' },
               { text: 'SDK Integration', link: '/en/sdk' },
+              { text: 'Agent Skill', link: '/en/agent-skill' },
               { text: 'Config Builder', link: '/en/config-builder' },
               { text: 'Configuration', link: '/en/config' }
             ]
@@ -117,6 +119,7 @@ export default defineConfig({
     nav: [
       { text: '快速开始', link: '/quick-start' },
       { text: 'SDK 接入', link: '/sdk' },
+      { text: 'Agent Skill', link: '/agent-skill' },
       { text: '配置生成器', link: '/config-builder' },
       { text: '支持站点', link: '/supported-sites' },
       {
@@ -134,6 +137,7 @@ export default defineConfig({
         items: [
           { text: '快速开始', link: '/quick-start' },
           { text: 'SDK 接入', link: '/sdk' },
+          { text: 'Agent Skill', link: '/agent-skill' },
           { text: '配置生成器', link: '/config-builder' },
           { text: '配置说明', link: '/config' }
         ]
