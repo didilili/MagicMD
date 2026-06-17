@@ -7,6 +7,26 @@ description: Use when the user wants public article URLs from WeChat, Juejin, CS
 
 MagicMD converts public article links into Markdown packages. Use it as a thin tool wrapper: call the published CLI, inspect the output, and report what was created.
 
+## User-Facing Prompts
+
+When users are not sure what to ask, suggest concise prompts like these:
+
+```text
+Use MagicMD to convert this public article into a Markdown package, then summarize the output files and warnings.
+```
+
+```text
+Read urls.txt, batch convert all public article links into output/articles with MagicMD, skip existing packages, and report failures from batch-report.md.
+```
+
+```text
+Use MagicMD doctor to check whether this workspace can convert WeChat, Juejin, CSDN, and generic article links.
+```
+
+```text
+Inspect this MagicMD output directory and tell me which articles need manual review before publishing.
+```
+
 ## When to Use
 
 Use this skill for:
@@ -62,5 +82,6 @@ Tell the user:
 - Important warnings from `extraction-report.json` or `batch-report.md`.
 - Whether media was downloaded locally.
 - Any limits encountered, such as 403, login requirement, video hotlink protection, or missing dynamic resources.
+- Next suggested action: publish, manually review, retry with browser support, or collect failure evidence.
 
 Keep the original URL and output package intact so the user can compare against the source page.

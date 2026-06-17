@@ -118,6 +118,12 @@ uvx --from magicmd magicmd
 
 MagicMD 也可以作为 Agent Skill 安装。Skill 不复制转换逻辑，只规定 Agent 什么时候调用 MagicMD、怎么批量运行、转换后检查哪些文件，以及遇到失败时查看哪些报告。
 
+如果你不想记命令，可以直接对支持 Skill 的 Agent 说：
+
+```text
+请用 MagicMD 把这个公开文章链接转换成 Markdown 内容包，并告诉我输出了哪些文件和 warning。
+```
+
 安装源：
 
 ```text
@@ -315,7 +321,7 @@ magicmd batch urls.txt -o output/
 
 第二个是给 Agent 用的 [skills/magicmd/SKILL.md](./skills/magicmd/SKILL.md)。Skill 把“什么时候使用 MagicMD、怎么运行、检查哪些文件、遇到失败看什么报告”写成固定流程。这样 Agent 不需要每次猜命令，也不会把登录页、付费墙、验证码页面当成正常文章处理。
 
-安装 Skill 时使用仓库路径 `didilili/MagicMD`，Skill 路径 `skills/magicmd`。
+安装 Skill 时使用仓库路径 `didilili/MagicMD`，Skill 路径 `skills/magicmd`。更多可复制的 Agent 使用示例见 [Agent Skill 文档](https://magicmd.cn/agent-skill)。
 
 如果你未来要把 MagicMD 接入 HaoGit，建议让 Agent 先调用 Skill 完成采集和转换，再把 `article.md`、`metadata.json` 和图片交给发布流程。
 

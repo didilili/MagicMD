@@ -1,11 +1,13 @@
 ---
 title: Agent Skill
-description: Install MagicMD as a Codex/OpenAI Agent Skill so agents can convert public article links with a repeatable workflow.
+description: Install MagicMD as an Agent Skill so Codex, Claude Code, and similar tools can convert public article links from natural-language requests.
 ---
 
 # Agent Skill
 
 MagicMD can be installed as an Agent Skill. The Skill does not duplicate the converter; it tells the agent when to call MagicMD, how to run batch jobs, what files to verify, and which reports to inspect when extraction fails.
+
+If you do not want to remember commands, treat MagicMD as an agent capability: describe that you want public articles turned into Markdown packages, and the agent can run the CLI, inspect reports, and tell you which results need manual review.
 
 Use it when you want an agent to:
 
@@ -13,6 +15,26 @@ Use it when you want an agent to:
 - Produce `article.md`, `metadata.json`, and `extraction-report.json` before publishing.
 - Review conversion warnings and identify articles that need manual checks.
 - Turn public article URLs in a Codex workspace into archive-ready Markdown packages.
+
+## Copyable Agent Requests
+
+After installing the Skill, you can send these requests to Codex, Claude Code, or another Skill-capable agent tool:
+
+```text
+Use MagicMD to convert this public article link into a Markdown package, then tell me which files and warnings were produced.
+```
+
+```text
+Read urls.txt, batch convert the links into output/articles with MagicMD, skip packages that already exist, and report failures from batch-report.md.
+```
+
+```text
+Run MagicMD doctor and check whether this workspace can convert WeChat, Juejin, CSDN, and generic article links.
+```
+
+```text
+Inspect this MagicMD output directory and tell me which articles need manual review before publishing.
+```
 
 ## Install The Skill
 
@@ -59,19 +81,7 @@ uvx --from magicmd magicmd "https://mp.weixin.qq.com/s/example" -o output/
 uvx --from magicmd magicmd batch urls.txt -o output/
 ```
 
-## Ask An Agent To Use It
-
-After installing the Skill, you can ask:
-
-```text
-Use MagicMD to convert these WeChat articles into Markdown packages, then tell me which ones produced warnings.
-```
-
-Or point the agent at a URL file:
-
-```text
-Read urls.txt, batch convert the links into output/articles with MagicMD, and skip packages that already exist.
-```
+## What The Agent Does
 
 The Skill gives the agent a fixed workflow:
 
@@ -91,6 +101,7 @@ After conversion, the agent should report:
 - Important warnings from `extraction-report.json` or `batch-report.md`.
 - Whether images or videos were downloaded locally.
 - Any limits encountered, such as 403, login requirements, CAPTCHA, video hotlink protection, or missing dynamic resources.
+- Suggested next action: publish, manually review, retry, or preserve failure evidence.
 
 ## Boundaries
 

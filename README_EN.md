@@ -118,6 +118,12 @@ uvx --from magicmd magicmd
 
 MagicMD can also be installed as an Agent Skill. The Skill does not duplicate the converter; it tells the agent when to call MagicMD, how to run batch jobs, what files to verify, and which reports to inspect when extraction fails.
 
+If you do not want to remember commands, ask a Skill-capable agent directly:
+
+```text
+Use MagicMD to convert this public article link into a Markdown package, then tell me which files and warnings were produced.
+```
+
 Install source:
 
 ```text
@@ -315,7 +321,7 @@ magicmd batch urls.txt -o output/
 
 The second one is [skills/magicmd/SKILL.md](./skills/magicmd/SKILL.md) for agents. The Skill records when to use MagicMD, how to run it, which files to check, and where to look when extraction fails. That way an agent does not need to guess the command, and it should not treat login pages, paywalls, or CAPTCHA pages as normal articles.
 
-Install the Skill from repository `didilili/MagicMD` with Skill path `skills/magicmd`.
+Install the Skill from repository `didilili/MagicMD` with Skill path `skills/magicmd`. For more copyable agent requests, see the [Agent Skill docs](https://magicmd.cn/en/agent-skill).
 
 If you later connect MagicMD to HaoGit, the recommended path is: let the agent use the Skill to collect and convert articles first, then pass `article.md`, `metadata.json`, and local images into the publishing workflow.
 
