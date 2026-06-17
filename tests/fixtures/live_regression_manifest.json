@@ -21,7 +21,9 @@
       "platform": "wechat",
       "url": "https://mp.weixin.qq.com/s/6-jhXO9nNa__JsUxfzhzjQ",
       "fetch_mode": "camoufox",
-      "status": "candidate",
+      "status": "converted",
+      "last_validated_at": "2026-06-17",
+      "last_result": "ok_without_warnings",
       "focus": ["video extraction", "local media handling", "metadata preservation"],
       "checks": [
         "title",
@@ -42,7 +44,9 @@
       "platform": "juejin",
       "url": "https://juejin.cn/post/7584110439933100078",
       "fetch_mode": "camoufox",
-      "status": "candidate",
+      "status": "converted",
+      "last_validated_at": "2026-06-17",
+      "last_result": "ok_without_warnings",
       "focus": ["technical article structure", "external link cleanup", "code block preservation"],
       "checks": [
         "title",
@@ -64,7 +68,9 @@
       "platform": "csdn",
       "url": "https://blog.csdn.net/mieleizhi0522/article/details/82142856",
       "fetch_mode": "camoufox",
-      "status": "candidate",
+      "status": "converted",
+      "last_validated_at": "2026-06-17",
+      "last_result": "ok_without_warnings",
       "focus": ["code chrome cleanup", "article metadata", "table-of-contents noise"],
       "checks": [
         "title",

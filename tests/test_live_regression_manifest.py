@@ -1,4 +1,5 @@
 import json
+import re
 from pathlib import Path
 
 
@@ -6,6 +7,8 @@ MANIFEST_PATH = Path("tests/fixtures/live_regression_manifest.json")
 ALLOWED_PLATFORMS = {"wechat", "juejin", "csdn", "generic"}
 ALLOWED_FETCH_MODES = {"camoufox", "http"}
 ALLOWED_STATUSES = {"candidate", "converted", "needs_review", "blocked"}
+ALLOWED_RESULTS = {"ok_without_warnings", "ok_with_warnings", "failed", "skipped"}
+DATE_PATTERN = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 REQUIRED_CHECKS = {
     "title",
     "author",
@@ -66,3 +69,7 @@ def test_live_regression_samples_are_safe_and_actionable():
         assert sample["review_notes"]
         assert not sample.get("requires_login", False)
         assert not sample.get("contains_private_content", False)
+        if "last_validated_at" in sample:
+            assert DATE_PATTERN.match(sample["last_validated_at"])
+        if "last_result" in sample:
+            assert sample["last_result"] in ALLOWED_RESULTS
