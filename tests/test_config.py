@@ -73,6 +73,7 @@ def test_load_config_accepts_v02_output_and_markdown_templates(tmp_path: Path):
         markdown = "index.md"
         metadata = "meta.json"
         report = "report.json"
+        docx = "article.docx"
 
         [markdown]
         preset = "hugo"
@@ -92,6 +93,11 @@ def test_load_config_accepts_v02_output_and_markdown_templates(tmp_path: Path):
         directory = "media/videos"
         filename_pattern = "clip_{index:03d}.{ext}"
         markdown_path = "../videos/{filename}"
+
+        [docx]
+        enabled = true
+        pandoc_path = "/usr/local/bin/pandoc"
+        reference_doc = "templates/reference.docx"
         """,
         encoding="utf-8",
     )
@@ -102,6 +108,7 @@ def test_load_config_accepts_v02_output_and_markdown_templates(tmp_path: Path):
     assert config.output.naming.markdown == "index.md"
     assert config.output.naming.metadata == "meta.json"
     assert config.output.naming.report == "report.json"
+    assert config.output.naming.docx == "article.docx"
     assert config.markdown.preset == "hugo"
     assert config.markdown.include_title is False
     assert config.markdown.source_block_template == "> From: {source_url}"
@@ -114,6 +121,16 @@ def test_load_config_accepts_v02_output_and_markdown_templates(tmp_path: Path):
     assert config.videos.directory == "media/videos"
     assert config.videos.filename_pattern == "clip_{index:03d}.{ext}"
     assert config.videos.markdown_path == "../videos/{filename}"
+    assert config.docx.enabled is True
+    assert config.docx.pandoc_path == "/usr/local/bin/pandoc"
+    assert config.docx.reference_doc == "templates/reference.docx"
+
+
+def test_load_config_disables_docx_by_default():
+    config = load_config()
+
+    assert config.docx.enabled is False
+    assert config.output.naming.docx == "article.docx"
 
 
 def test_load_config_applies_plain_preset(tmp_path: Path):
@@ -232,9 +249,12 @@ def test_packaged_config_template_is_available():
     assert 'markdown = "article.md"' in template_text
     assert 'metadata = "metadata.json"' in template_text
     assert 'report = "extraction-report.json"' in template_text
+    assert 'docx = "article.docx"' in template_text
     assert "[markdown.front_matter_fields]" in template_text
     assert "[videos]" in template_text
     assert 'markdown_path = "{directory}/{filename}"' in template_text
+    assert "[docx]" in template_text
+    assert "enabled = false" in template_text
 
 
 def test_root_and_packaged_config_templates_match():
@@ -255,3 +275,4 @@ def test_example_config_template_loads():
     assert config.ui.language == "zh-CN"
     assert config.images.markdown_path == "{directory}/{filename}"
     assert config.videos.filename_pattern == "video_{index:03d}.{ext}"
+    assert config.docx.enabled is False

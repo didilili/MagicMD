@@ -181,11 +181,21 @@ magicmd batch urls.txt -o output/ --skip-existing
 magicmd batch urls.txt -o output/ --overwrite
 ```
 
+覆盖时会先清理旧内容包里的生成文件，避免上一轮留下的图片或 DOCX 混进本次结果。
+
 只要正文，不下载图片：
 
 ```bash
 magicmd convert "https://blog.csdn.net/user/article/details/123" --no-images
 ```
+
+同时生成 Word 文档：
+
+```bash
+magicmd convert "https://mp.weixin.qq.com/s/example" -o output/ --format docx
+```
+
+DOCX 导出会保留默认 Markdown 内容包，并额外写出 `article.docx`。它依赖本机安装的 Pandoc；如果你希望每次转换都生成 Word，可以在 `.magicmd.toml` 里设置 `[docx] enabled = true`。
 
 ## Python SDK 使用方式
 
@@ -238,6 +248,7 @@ print(result.report)
 | `metadata`                          | 与 `metadata.json` 对齐的结构化数据。                                                                                                                                                                             |
 | `report`                            | 与 `extraction-report.json` 对齐的转换报告。                                                                                                                                                                      |
 | `package_dir`                       | 只有传入 `output_dir` 并成功写出内容包时才有值。                                                                                                                                                                  |
+| `docx_path`                         | 生成 DOCX 时的本地 Word 文件路径；未启用 DOCX 或未写出文件时为空。                                                                                                                                                |
 
 错误类型也可以被后端明确捕获：
 
@@ -354,6 +365,11 @@ download = true
 directory = "images"
 filename_pattern = "img_{index:03d}.{ext}"
 
+[docx]
+enabled = false
+pandoc_path = "pandoc"
+reference_doc = ""
+
 [fetch]
 timeout_seconds = 20
 browser_timeout_seconds = 15
@@ -374,6 +390,9 @@ language = "zh-CN"
 | `markdown.template`              | `default` 或 `clean`。                                        |
 | `markdown.heading_offset`        | 统一调整 Markdown 标题层级。                                  |
 | `images.download`                | 是否下载图片。                                                |
+| `docx.enabled`                   | 是否在 Markdown 内容包旁额外生成 `article.docx`。             |
+| `docx.pandoc_path`               | Pandoc 可执行文件路径，默认使用 PATH 中的 `pandoc`。          |
+| `docx.reference_doc`             | 可选 Word 样式模板，用 Pandoc 的 reference docx 控制样式。    |
 | `fetch.browser_attempts`         | 浏览器模式失败后的总尝试次数。                                |
 | `ui.language`                    | CLI 终端语言，默认中文优先；设置为 `en-US` 可切换为英文提示。 |
 | `platforms.<name>.browser`       | 使用 `http` 或 `camoufox`。                                   |

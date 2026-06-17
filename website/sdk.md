@@ -69,6 +69,18 @@ print(result.report)
 
 这会生成和 CLI 一样的内容包：`article.md`、`metadata.json`、`extraction-report.json` 和媒体目录。
 
+如果机器上安装了 Pandoc，可以额外写出 Word 文档：
+
+```python
+result = convert_article(
+    url="https://mp.weixin.qq.com/s/example",
+    output_dir="output/import-workdir",
+    docx=True,
+)
+
+print(result.docx_path)
+```
+
 ## 返回字段
 
 `convert_article()` 返回 `ArticleConversionResult`。常用字段包括：
@@ -87,6 +99,7 @@ print(result.report)
 | `metadata`                     | 与 `metadata.json` 对齐的结构化数据。                  |
 | `report`                       | 与 `extraction-report.json` 对齐的转换报告。           |
 | `package_dir`                  | 写出内容包时的目录；内存模式为空。                     |
+| `docx_path`                    | 生成 DOCX 时的 Word 文件路径；未生成时为空。           |
 
 图片字段里最容易混淆的是这两个：
 

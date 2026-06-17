@@ -142,7 +142,7 @@ def download_images(
     if transport is not None:
         client_kwargs["transport"] = transport
     with httpx.Client(**client_kwargs) as client:
-        for index, image in enumerate(article.images, start=1):
+        for image in article.images:
             url = (
                 image.source_url
                 if not image.source_url.startswith("//")
@@ -152,12 +152,13 @@ def download_images(
                 response = client.get(url, headers={"Referer": article.source_url})
                 response.raise_for_status()
                 ext = infer_image_extension(url, response.headers.get("content-type", ""))
-                filename = filename_pattern.format(index=index, ext=ext)
+                saved_index = len(next_images) + 1
+                filename = filename_pattern.format(index=saved_index, ext=ext)
                 saved_path = image_dir / filename
                 local_path = markdown_path_pattern.format(
                     directory=image_dir_name,
                     filename=filename,
-                    index=index,
+                    index=saved_index,
                     ext=ext,
                 )
                 saved_path.write_bytes(response.content)

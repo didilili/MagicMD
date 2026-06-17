@@ -1,4 +1,6 @@
 import httpx
+import struct
+import zlib
 
 from magicmd.assets import (
     download_images,
@@ -7,6 +9,25 @@ from magicmd.assets import (
     rewrite_markdown_image_links,
 )
 from magicmd.models import Article, ExtractionInfo, ImageAsset
+
+
+def _png_chunk(kind: bytes, payload: bytes) -> bytes:
+    return (
+        struct.pack(">I", len(payload))
+        + kind
+        + payload
+        + struct.pack(">I", zlib.crc32(kind + payload) & 0xFFFFFFFF)
+    )
+
+
+def _gray_alpha_png(width: int, height: int, gray: int, alpha: int) -> bytes:
+    raw = b"".join(b"\x00" + bytes([gray, alpha]) * width for _ in range(height))
+    return (
+        b"\x89PNG\r\n\x1a\n"
+        + _png_chunk("IHDR".encode(), struct.pack(">IIBBBBB", width, height, 8, 4, 0, 0, 0))
+        + _png_chunk("IDAT".encode(), zlib.compress(raw))
+        + _png_chunk("IEND".encode(), b"")
+    )
 
 
 def test_infer_image_extension_from_wechat_url():
@@ -113,6 +134,41 @@ def test_download_images_honors_markdown_path_template(monkeypatch, tmp_path):
     assert (tmp_path / "assets" / "images" / "cover_01.png").exists()
     assert next_article.images[0].local_path == "/static/assets/images/cover_01.png"
     assert "![Image](/static/assets/images/cover_01.png)" in next_article.content_markdown
+
+
+def test_download_images_keeps_pngs_invisible_on_white_background(monkeypatch, tmp_path):
+    invisible_png = _gray_alpha_png(4, 4, gray=255, alpha=255)
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        if str(request.url) == "https://example.com/decor.png":
+            return httpx.Response(200, headers={"content-type": "image/png"}, content=invisible_png)
+        return httpx.Response(200, headers={"content-type": "image/jpeg"}, content=b"jpg")
+
+    article = Article(
+        title="海报模板文章",
+        platform="wechat",
+        source_url="https://mp.weixin.qq.com/s/demo",
+        content_markdown=(
+            "![Image](https://example.com/decor.png)\n\n![Image](https://example.com/content.jpg)"
+        ),
+        images=[
+            ImageAsset(source_url="https://example.com/decor.png"),
+            ImageAsset(source_url="https://example.com/content.jpg"),
+        ],
+        extraction=ExtractionInfo(platform="wechat", parser="wechat"),
+    )
+    monkeypatch.setattr("magicmd.assets._image_transport", lambda: httpx.MockTransport(handler))
+
+    next_article = download_images(article, tmp_path)
+
+    assert "![Image](images/img_001.png)" in next_article.content_markdown
+    assert "![Image](images/img_002.jpg)" in next_article.content_markdown
+    assert [image.source_url for image in next_article.images] == [
+        "https://example.com/decor.png",
+        "https://example.com/content.jpg",
+    ]
+    assert (tmp_path / "images" / "img_001.png").exists()
+    assert (tmp_path / "images" / "img_002.jpg").exists()
 
 
 def test_download_videos_saves_local_file_and_rewrites_markdown(monkeypatch, tmp_path):

@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+### 中文
+
+- 新增可选 DOCX 导出：`magicmd convert URL --format docx` 或 `[docx] enabled = true` 会在保留 Markdown 内容包的同时额外生成 `article.docx`，导出由 Pandoc 执行，并支持配置 `pandoc_path` 和 `reference_doc`。
+- 修复 `--overwrite` 覆盖同名内容包时旧图片、旧 DOCX 等生成文件可能残留的问题；现在会先清理已有生成包，再写入本次转换结果。
+
+### English
+
+- Added optional DOCX export: `magicmd convert URL --format docx` or `[docx] enabled = true` keeps the Markdown package and also generates `article.docx` through Pandoc, with configurable `pandoc_path` and `reference_doc`.
+- Fixed stale generated files when `--overwrite` replaces an existing package; MagicMD now clears the old package before writing the current conversion result.
+
 ## v0.4.0 - 2026-06-17
 
 ### 中文

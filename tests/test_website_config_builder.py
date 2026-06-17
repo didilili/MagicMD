@@ -13,3 +13,13 @@ def test_config_builder_keeps_source_block_template_independent_from_cli_languag
     assert "> 来源：" not in component
     assert "> Source: {platform}" in component
     assert "> Source:" in component
+
+
+def test_config_builder_includes_docx_export_options():
+    component = (ROOT / "website/.vitepress/components/ConfigBuilder.vue").read_text(
+        encoding="utf-8"
+    )
+
+    assert 'docx = "article.docx"' in component
+    assert "[docx]" in component
+    assert 'pandoc_path = "pandoc"' in component

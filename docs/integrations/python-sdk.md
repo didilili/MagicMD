@@ -65,6 +65,34 @@ print(result.package_dir)
 print(result.images)
 ```
 
+## 写出 Word 文档
+
+如果机器上安装了 Pandoc，可以让 MagicMD 在 Markdown 内容包旁额外生成 `article.docx`：
+
+```python
+from magicmd import convert_article
+
+result = convert_article(
+    url="https://mp.weixin.qq.com/s/example",
+    output_dir="output",
+    docx=True,
+)
+
+print(result.package_dir)
+print(result.docx_path)
+```
+
+也可以在 `.magicmd.toml` 里设置：
+
+```toml
+[docx]
+enabled = true
+pandoc_path = "pandoc"
+reference_doc = ""
+```
+
+`reference_doc` 可以指向一个 Word reference docx，用来控制 Pandoc 输出的标题、正文、表格等样式。
+
 ## 返回对象
 
 `convert_article()` 返回 `ArticleConversionResult`，这是一个稳定、易序列化的 Pydantic model。
@@ -85,6 +113,7 @@ print(result.images)
 | `metadata`      | 与 `metadata.json` 对齐的结构化数据。              |
 | `report`        | 与 `extraction-report.json` 对齐的转换报告。       |
 | `package_dir`   | 写出内容包时的目录；内存模式为空。                 |
+| `docx_path`     | 生成 DOCX 时的 Word 文件路径；未生成时为空。       |
 
 图片资产字段：
 
@@ -216,6 +245,34 @@ print(result.package_dir)
 print(result.images)
 ```
 
+## Write a Word Document
+
+If Pandoc is installed on the machine, MagicMD can generate `article.docx` next to the Markdown package:
+
+```python
+from magicmd import convert_article
+
+result = convert_article(
+    url="https://mp.weixin.qq.com/s/example",
+    output_dir="output",
+    docx=True,
+)
+
+print(result.package_dir)
+print(result.docx_path)
+```
+
+You can also enable it from `.magicmd.toml`:
+
+```toml
+[docx]
+enabled = true
+pandoc_path = "pandoc"
+reference_doc = ""
+```
+
+`reference_doc` can point to a Word reference DOCX so Pandoc can reuse your title, paragraph, table, and other document styles.
+
 ## Result model
 
 `convert_article()` returns `ArticleConversionResult`, a stable, serializable Pydantic model.
@@ -236,6 +293,7 @@ print(result.images)
 | `metadata`      | Structured data aligned with `metadata.json`.                  |
 | `report`        | Extraction report aligned with `extraction-report.json`.       |
 | `package_dir`   | Output package path when a package is written.                 |
+| `docx_path`     | Word file path when DOCX export is enabled and written.        |
 
 Image asset fields:
 

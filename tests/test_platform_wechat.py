@@ -352,3 +352,73 @@ def test_parse_wechat_html_filters_decorative_images_by_default():
     assert "https://example.com/decor.png" not in article.content_markdown
     assert "https://example.com/content.png" in article.content_markdown
     assert [img.source_url for img in article.images] == ["https://example.com/content.png"]
+
+
+def test_parse_wechat_html_simplifies_poster_template_heading_frames():
+    html = """
+    <html><body>
+      <h1 id="activity-name">2026年小班秋季招生公告</h1>
+      <a id="js_name">福州市马尾第三实验幼儿园</a>
+      <div id="js_content">
+        <section style="background-color: rgb(149, 140, 185);">
+          <section>
+            <img data-src="https://example.com/follow.png" data-w="329" data-ratio="0.10"
+                 class="rich_pages wxw-img" />
+          </section>
+          <section>
+            <img data-src="https://example.com/cover.png" data-w="683" data-ratio="0.58"
+                 class="rich_pages wxw-img" />
+          </section>
+          <section>
+            <img data-src="https://example.com/frame.png" data-w="655" data-ratio="0.265"
+                 class="rich_pages wxw-img js_img_placeholder wx_img_placeholder" />
+          </section>
+          <section style="grid-column-start: 1; grid-row-start: 1; display: flex;">
+            <section style="font-size: 22px; color: rgb(149, 140, 185);">
+              <p><span>计划招生数</span></p>
+            </section>
+          </section>
+          <section>
+            <p>小班：4个班，每班25人，共100人。</p>
+          </section>
+          <section>
+            <img data-src="https://example.com/qr.png" data-w="500" data-ratio="1"
+                 class="rich_pages wxw-img js_img_placeholder wx_img_placeholder" />
+          </section>
+        </section>
+      </div>
+    </body></html>
+    """
+
+    article = parse_wechat_html(html, "https://mp.weixin.qq.com/s/poster")
+
+    assert "https://example.com/follow.png" not in article.content_markdown
+    assert "https://example.com/frame.png" not in article.content_markdown
+    assert "![Image](https://example.com/cover.png)" in article.content_markdown
+    assert "![Image](https://example.com/qr.png)" in article.content_markdown
+    assert "## 计划招生数" in article.content_markdown
+    assert "小班：4个班，每班25人，共100人。" in article.content_markdown
+    assert [img.source_url for img in article.images] == [
+        "https://example.com/cover.png",
+        "https://example.com/qr.png",
+    ]
+
+
+def test_parse_wechat_html_keeps_real_wide_placeholder_images():
+    html = """
+    <html><body>
+      <h1 id="activity-name">真实横幅文章</h1>
+      <div id="js_content">
+        <p>正文前。</p>
+        <img data-src="https://example.com/real-chart.png" data-w="800" data-ratio="0.25"
+             class="rich_pages wxw-img js_img_placeholder wx_img_placeholder" />
+        <p>这是图片说明。</p>
+      </div>
+    </body></html>
+    """
+
+    article = parse_wechat_html(html, "https://mp.weixin.qq.com/s/real-banner")
+
+    assert "![Image](https://example.com/real-chart.png)" in article.content_markdown
+    assert "这是图片说明。" in article.content_markdown
+    assert [img.source_url for img in article.images] == ["https://example.com/real-chart.png"]

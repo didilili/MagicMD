@@ -13,6 +13,7 @@ class OutputNamingConfig(BaseModel):
     markdown: str = "article.md"
     metadata: str = "metadata.json"
     report: str = "extraction-report.json"
+    docx: str = "article.docx"
 
 
 class OutputConfig(BaseModel):
@@ -58,6 +59,12 @@ class VideosConfig(BaseModel):
     markdown_path: str = "{directory}/{filename}"
 
 
+class DocxConfig(BaseModel):
+    enabled: bool = False
+    pandoc_path: str = "pandoc"
+    reference_doc: str = ""
+
+
 class FetchConfig(BaseModel):
     timeout_seconds: int = 20
     browser_timeout_seconds: int = 15
@@ -80,6 +87,7 @@ class MagicMDConfig(BaseModel):
     markdown: MarkdownConfig = Field(default_factory=MarkdownConfig)
     images: ImagesConfig = Field(default_factory=ImagesConfig)
     videos: VideosConfig = Field(default_factory=VideosConfig)
+    docx: DocxConfig = Field(default_factory=DocxConfig)
     fetch: FetchConfig = Field(default_factory=FetchConfig)
     ui: UiConfig = Field(default_factory=UiConfig)
     platforms: dict[str, PlatformConfig] = Field(

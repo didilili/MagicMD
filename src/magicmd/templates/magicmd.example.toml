@@ -14,6 +14,7 @@ package = "{date}-{slug}"
 markdown = "article.md"
 metadata = "metadata.json"
 report = "extraction-report.json"
+docx = "article.docx"
 
 [markdown]
 # Presets: "default", "plain", "hugo", "docusaurus".
@@ -55,6 +56,13 @@ download = true
 directory = "videos"
 filename_pattern = "video_{index:03d}.{ext}"
 markdown_path = "{directory}/{filename}"
+
+[docx]
+# Generate article.docx in addition to the Markdown package.
+# Requires pandoc. CLI `--format docx` overrides this for one run.
+enabled = false
+pandoc_path = "pandoc"
+reference_doc = ""
 
 [fetch]
 timeout_seconds = 20

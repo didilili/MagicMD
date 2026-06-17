@@ -34,6 +34,7 @@ package = "{date}-{slug}"
 markdown = "article.md"
 metadata = "metadata.json"
 report = "extraction-report.json"
+docx = "article.docx"
 ```
 
 Common choices:
@@ -98,3 +99,16 @@ markdown_path = "{directory}/{filename}"
 ```
 
 WeChat videos may be protected by temporary signatures, Referer checks, or anti-hotlinking. MagicMD tries to extract and download them; when that fails, it keeps reviewable information in the Markdown or extraction report.
+
+## Word Export
+
+```toml
+[docx]
+enabled = false
+pandoc_path = "pandoc"
+reference_doc = ""
+```
+
+When `enabled = true`, MagicMD keeps the Markdown package and also generates `article.docx`. You can also enable it for one run with `--format docx`.
+
+DOCX export requires Pandoc. `pandoc_path` defaults to `pandoc` from PATH. `reference_doc` can point to a Word reference DOCX to control title, paragraph, table, and other document styles.

@@ -169,6 +169,109 @@ def test_convert_command_writes_package(monkeypatch, tmp_path: Path):
     assert list(tmp_path.glob("*/metadata.json"))
 
 
+def test_convert_command_prints_absolute_package_path_for_relative_output(
+    monkeypatch, tmp_path: Path
+):
+    html = """
+    <html>
+      <head><meta property="og:title" content="相对输出文章"></head>
+      <body><article><p>正文</p></article></body>
+    </html>
+    """
+
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr("magicmd.cli.fetch_for_platform", lambda url, platform, config_path: html)
+
+    result = runner.invoke(
+        app,
+        [
+            "convert",
+            "https://juejin.cn/post/demo",
+            "--output",
+            "relative-output",
+            "--no-images",
+        ],
+    )
+
+    package_dir = next((tmp_path / "relative-output").glob("*"))
+    assert result.exit_code == 0
+    assert f"已生成内容包：{package_dir.resolve()}" in result.stdout
+
+
+def test_convert_command_writes_docx_when_format_is_docx(monkeypatch, tmp_path: Path):
+    html = """
+    <html>
+      <head><meta property="og:title" content="Word 文章"></head>
+      <body><article><p>正文</p></article></body>
+    </html>
+    """
+
+    def fake_write_docx(markdown_path, docx_path, config):
+        docx_path.write_bytes(b"docx")
+
+    monkeypatch.setattr("magicmd.cli.fetch_for_platform", lambda url, platform, config_path: html)
+    monkeypatch.setattr("magicmd.output.write_docx_from_markdown", fake_write_docx)
+
+    result = runner.invoke(
+        app,
+        [
+            "convert",
+            "https://juejin.cn/post/demo",
+            "--output",
+            str(tmp_path),
+            "--no-images",
+            "--format",
+            "docx",
+        ],
+    )
+
+    assert result.exit_code == 0
+    package_dir = next(tmp_path.glob("*"))
+    assert (package_dir / "article.md").exists()
+    assert (package_dir / "article.docx").read_bytes() == b"docx"
+
+
+def test_convert_command_writes_docx_from_config(monkeypatch, tmp_path: Path):
+    html = """
+    <html>
+      <head><meta property="og:title" content="配置 Word 文章"></head>
+      <body><article><p>正文</p></article></body>
+    </html>
+    """
+    config_path = tmp_path / ".magicmd.toml"
+    config_path.write_text(
+        """
+        [docx]
+        enabled = true
+        """,
+        encoding="utf-8",
+    )
+
+    def fake_write_docx(markdown_path, docx_path, config):
+        docx_path.write_bytes(b"docx")
+
+    monkeypatch.setattr("magicmd.cli.fetch_for_platform", lambda url, platform, config_path: html)
+    monkeypatch.setattr("magicmd.output.write_docx_from_markdown", fake_write_docx)
+
+    result = runner.invoke(
+        app,
+        [
+            "convert",
+            "https://juejin.cn/post/demo",
+            "--output",
+            str(tmp_path),
+            "--config",
+            str(config_path),
+            "--no-images",
+        ],
+    )
+
+    assert result.exit_code == 0
+    package_dir = next(path for path in tmp_path.iterdir() if path.is_dir())
+    assert (package_dir / "article.md").exists()
+    assert (package_dir / "article.docx").read_bytes() == b"docx"
+
+
 def test_entrypoint_reports_cli_errors_without_traceback(monkeypatch, capsys):
     monkeypatch.setattr(sys, "argv", ["magicmd", "convert", "--bad-option"])
 
@@ -656,6 +759,40 @@ def test_batch_command_writes_quality_report(monkeypatch, tmp_path: Path):
     assert report["summary"]["failed"] == 1
     assert (tmp_path / "batch-report.md").exists()
     assert "批量报告" in result.stdout
+
+
+def test_batch_command_prints_absolute_package_path_for_relative_package(
+    monkeypatch, tmp_path: Path
+):
+    urls = tmp_path / "urls.txt"
+    urls.write_text("https://juejin.cn/post/ok\n", encoding="utf-8")
+    package = Path("relative-output/pkg")
+
+    def fake_convert_url(url, output, **kwargs):
+        package.mkdir(parents=True, exist_ok=True)
+        (package / "article.md").write_text("# OK\n\n正文", encoding="utf-8")
+        (package / "metadata.json").write_text(
+            json.dumps(
+                {
+                    "title": "OK",
+                    "source_url": url,
+                    "platform": "juejin",
+                    "images": [],
+                    "extraction": {"warnings": []},
+                },
+                ensure_ascii=False,
+            ),
+            encoding="utf-8",
+        )
+        return package
+
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr("magicmd.cli.convert_url", fake_convert_url)
+
+    result = runner.invoke(app, ["batch", str(urls), "--output", "relative-output"])
+
+    assert result.exit_code == 0
+    assert f"完成 https://juejin.cn/post/ok -> {(tmp_path / package).resolve()}" in result.stdout
 
 
 def test_batch_command_passes_overwrite_to_convert_url(monkeypatch, tmp_path: Path):

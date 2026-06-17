@@ -94,6 +94,68 @@ def test_convert_article_writes_package_when_output_dir_is_set(tmp_path: Path):
     assert metadata["title"] == "SDK 文章"
     assert report["warnings"] == ["demo_warning"]
     assert result.markdown == (package_dir / "article.md").read_text(encoding="utf-8")
+    assert result.docx_path is None
+
+
+def test_convert_article_writes_docx_when_enabled(monkeypatch, tmp_path: Path):
+    def fake_fetch(url, platform, config_path):
+        return "<html>ok</html>"
+
+    def fake_parse(platform, html, url):
+        return _article(url)
+
+    def fake_write_docx(markdown_path, docx_path, config):
+        docx_path.write_bytes(b"docx")
+
+    monkeypatch.setattr("magicmd.output.write_docx_from_markdown", fake_write_docx)
+
+    result = convert_article(
+        "https://example.com/post",
+        platform="generic",
+        output_dir=tmp_path,
+        download_images=False,
+        docx=True,
+        _fetch_for_platform=fake_fetch,
+        _parse_article=fake_parse,
+    )
+
+    assert result.package_dir is not None
+    assert result.docx_path == str(Path(result.package_dir) / "article.docx")
+    assert Path(result.docx_path).read_bytes() == b"docx"
+
+
+def test_convert_article_writes_docx_from_config(monkeypatch, tmp_path: Path):
+    def fake_fetch(url, platform, config_path):
+        return "<html>ok</html>"
+
+    def fake_parse(platform, html, url):
+        return _article(url)
+
+    def fake_write_docx(markdown_path, docx_path, config):
+        docx_path.write_bytes(b"docx")
+
+    config_path = tmp_path / ".magicmd.toml"
+    config_path.write_text(
+        """
+        [docx]
+        enabled = true
+        """,
+        encoding="utf-8",
+    )
+    monkeypatch.setattr("magicmd.output.write_docx_from_markdown", fake_write_docx)
+
+    result = convert_article(
+        "https://example.com/post",
+        platform="generic",
+        output_dir=tmp_path,
+        download_images=False,
+        config_path=config_path,
+        _fetch_for_platform=fake_fetch,
+        _parse_article=fake_parse,
+    )
+
+    assert result.package_dir is not None
+    assert result.docx_path == str(Path(result.package_dir) / "article.docx")
 
 
 def test_convert_article_separates_image_local_path_from_markdown_path(monkeypatch, tmp_path: Path):
@@ -268,6 +330,8 @@ def test_cli_convert_reuses_convert_article(monkeypatch, tmp_path: Path):
             "--output",
             str(tmp_path),
             "--no-images",
+            "--format",
+            "docx",
         ],
     )
 
@@ -276,5 +340,6 @@ def test_cli_convert_reuses_convert_article(monkeypatch, tmp_path: Path):
     assert called["platform"] == "generic"
     assert called["output_dir"] == tmp_path
     assert called["download_images"] is False
+    assert called["docx"] is True
     assert callable(called["_fetch_for_platform"])
     assert callable(called["_parse_article"])

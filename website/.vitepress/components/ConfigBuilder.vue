@@ -17,6 +17,7 @@ type HelpKey =
   | 'includeSourceBlock'
   | 'imagePath'
   | 'videoPath'
+  | 'docxEnabled'
   | 'downloadImages'
   | 'downloadVideos'
   | 'outputPreview'
@@ -35,6 +36,7 @@ type BuilderState = {
   videoPath: string;
   downloadImages: boolean;
   downloadVideos: boolean;
+  docxEnabled: boolean;
 };
 
 const presetDefaults: Record<Preset, Partial<BuilderState>> = {
@@ -80,7 +82,8 @@ const state = reactive<BuilderState>({
   imagePath: '{directory}/{filename}',
   videoPath: '{directory}/{filename}',
   downloadImages: true,
-  downloadVideos: true
+  downloadVideos: true,
+  docxEnabled: false
 });
 
 const copyState = ref<'idle' | 'copied' | 'failed'>('idle');
@@ -144,6 +147,8 @@ const ui = computed(() =>
             'The path written into Markdown image links. {directory} uses the image folder, and {filename} uses the downloaded file name.',
           videoPath:
             'The path written into Markdown video links. Keep this relative if the article package will be moved as a folder.',
+          docxEnabled:
+            'Generate article.docx next to the Markdown package. This requires Pandoc on the machine running MagicMD.',
           downloadImages:
             'Download article images into the output package instead of leaving remote image URLs in Markdown.',
           downloadVideos:
@@ -172,6 +177,7 @@ const ui = computed(() =>
         includeSourceBlock: 'Show source block',
         downloadImages: 'Download images',
         downloadVideos: 'Download videos',
+        docxEnabled: 'Generate Word document',
         generated: 'Generated in real time. Save it at your project root.',
         previewTabs: {
           toml: '.magicmd.toml',
@@ -192,6 +198,7 @@ const ui = computed(() =>
         imagesAndVideos: 'Download images and videos',
         imagesOnly: 'Download images',
         videosOnly: 'Download videos',
+        wordOutput: 'Word output',
         markdownPreviewTitle: (name: string) => `Preview of ${name}`,
         markdownPreviewHint: 'Updates as you change the config',
         sampleHeading: 'Converted preview',
@@ -244,6 +251,8 @@ const ui = computed(() =>
           imagePath:
             '写入 Markdown 图片链接里的路径。{directory} 表示图片目录，{filename} 表示下载后的图片文件名。',
           videoPath: '写入 Markdown 视频链接里的路径。如果你要整体移动文章目录，建议保持相对路径。',
+          docxEnabled:
+            '在 Markdown 内容包旁额外生成 article.docx。运行 MagicMD 的机器需要安装 Pandoc。',
           downloadImages:
             '开启后会把文章图片下载到输出目录，而不是在 Markdown 里继续引用远程图片链接。',
           downloadVideos:
@@ -271,6 +280,7 @@ const ui = computed(() =>
         includeSourceBlock: '显示来源信息块',
         downloadImages: '下载图片',
         downloadVideos: '下载视频',
+        docxEnabled: '生成 Word 文档',
         generated: '实时生成，可直接落到项目根目录',
         previewTabs: {
           toml: '.magicmd.toml',
@@ -291,6 +301,7 @@ const ui = computed(() =>
         imagesAndVideos: '下载图片和视频',
         imagesOnly: '下载图片',
         videosOnly: '下载视频',
+        wordOutput: 'Word 文档',
         markdownPreviewTitle: (name: string) => `生成后的 ${name} 示例`,
         markdownPreviewHint: '随左侧配置实时变化',
         sampleHeading: '真实转换示例',
@@ -331,6 +342,7 @@ const outputTree = computed(() => {
     state.markdownName,
     state.metadataName,
     state.reportName,
+    ...(state.docxEnabled ? ['article.docx'] : []),
     ...(state.downloadImages ? ['images/\n        └── img_001.jpg'] : []),
     ...(state.downloadVideos ? ['videos/\n        └── video_001.mp4'] : [])
   ];
@@ -367,7 +379,7 @@ const toml = computed(() => {
       ? `\n[markdown.front_matter_fields]\ntitle = "{title}"\nauthor = "{author}"\nplatform = "{platform}"\nsource_url = "{source_url}"\npublished_at = "{published_at}"\n`
       : '';
 
-  return `[output]\ndirectory = "output"\n\n[output.naming]\npackage = ${quote(state.packageName)}\nmarkdown = ${quote(state.markdownName)}\nmetadata = ${quote(state.metadataName)}\nreport = ${quote(state.reportName)}\n\n[ui]\nlanguage = ${quote(state.uiLanguage)}\n\n[markdown]\npreset = ${quote(state.preset)}\nfront_matter = ${quote(state.frontMatter)}\ninclude_title = true\ninclude_source_block = ${state.includeSourceBlock}\nheading_offset = 0\n${sourceBlock}${frontMatterFields}\n[images]\ndownload = ${state.downloadImages}\ndirectory = "images"\nfilename_pattern = "img_{index:03d}.{ext}"\nmarkdown_path = ${quote(state.imagePath)}\n\n[videos]\ndownload = ${state.downloadVideos}\ndirectory = "videos"\nfilename_pattern = "video_{index:03d}.{ext}"\nmarkdown_path = ${quote(state.videoPath)}\n`;
+  return `[output]\ndirectory = "output"\n\n[output.naming]\npackage = ${quote(state.packageName)}\nmarkdown = ${quote(state.markdownName)}\nmetadata = ${quote(state.metadataName)}\nreport = ${quote(state.reportName)}\ndocx = "article.docx"\n\n[ui]\nlanguage = ${quote(state.uiLanguage)}\n\n[markdown]\npreset = ${quote(state.preset)}\nfront_matter = ${quote(state.frontMatter)}\ninclude_title = true\ninclude_source_block = ${state.includeSourceBlock}\nheading_offset = 0\n${sourceBlock}${frontMatterFields}\n[images]\ndownload = ${state.downloadImages}\ndirectory = "images"\nfilename_pattern = "img_{index:03d}.{ext}"\nmarkdown_path = ${quote(state.imagePath)}\n\n[videos]\ndownload = ${state.downloadVideos}\ndirectory = "videos"\nfilename_pattern = "video_{index:03d}.{ext}"\nmarkdown_path = ${quote(state.videoPath)}\n\n[docx]\nenabled = ${state.docxEnabled}\npandoc_path = "pandoc"\nreference_doc = ""\n`;
 });
 
 const markdownExample = computed(() => {
@@ -641,6 +653,19 @@ function downloadToml() {
             </label>
           </div>
         </section>
+
+        <section v-if="advancedOpen" class="builder-section">
+          <div class="toggle-row">
+            <label>
+              <input v-model="state.docxEnabled" type="checkbox" />
+              <span>{{ ui.docxEnabled }}</span>
+              <span class="help-tip" tabindex="0" :aria-label="helpText('docxEnabled')">
+                <span class="help-icon">?</span>
+                <span class="help-popover">{{ helpText('docxEnabled') }}</span>
+              </span>
+            </label>
+          </div>
+        </section>
       </div>
 
       <div class="preview-panel">
@@ -662,6 +687,7 @@ function downloadToml() {
               state.uiLanguage === 'zh-CN' ? ui.terminalChinese : ui.terminalEnglish
             }}</code>
             <code>{{ mediaPreview }}</code>
+            <code v-if="state.docxEnabled">{{ ui.wordOutput }}</code>
           </div>
         </div>
 

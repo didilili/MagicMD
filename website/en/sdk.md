@@ -69,6 +69,18 @@ print(result.report)
 
 This writes the same package shape as the CLI: `article.md`, `metadata.json`, `extraction-report.json`, and media folders.
 
+If Pandoc is installed, you can also write a Word document:
+
+```python
+result = convert_article(
+    url="https://mp.weixin.qq.com/s/example",
+    output_dir="output/import-workdir",
+    docx=True,
+)
+
+print(result.docx_path)
+```
+
 ## Result Fields
 
 `convert_article()` returns `ArticleConversionResult`. Common fields:
@@ -87,6 +99,7 @@ This writes the same package shape as the CLI: `article.md`, `metadata.json`, `e
 | `metadata`                     | Structured data aligned with `metadata.json`.                  |
 | `report`                       | Extraction report aligned with `extraction-report.json`.       |
 | `package_dir`                  | Package directory when written; empty in memory mode.          |
+| `docx_path`                    | Word file path when DOCX export is enabled and written.        |
 
 Two image fields are easy to confuse:
 

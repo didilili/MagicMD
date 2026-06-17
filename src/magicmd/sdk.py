@@ -6,7 +6,7 @@ from typing import Any, Optional
 
 from pydantic import BaseModel, Field
 
-from magicmd.config import MagicMDConfig, load_config
+from magicmd.config import DocxConfig, MagicMDConfig, load_config
 from magicmd.detect import detect_platform
 from magicmd.diagnostics import save_debug_html, save_extraction_report
 from magicmd.exceptions import (
@@ -54,6 +54,7 @@ class ArticleConversionResult(BaseModel):
     report: dict[str, Any] = Field(default_factory=dict)
     metadata: dict[str, Any] = Field(default_factory=dict)
     package_dir: str | None = None
+    docx_path: str | None = None
 
 
 ProgressRunner = Callable[[int, int, str, Callable[[], Any]], Any]
@@ -94,6 +95,7 @@ def convert_article(
     output_dir: str | Path | None = None,
     download_images: bool = True,
     config_path: str | Path | None = None,
+    docx: bool | None = None,
     *,
     _fetch_for_platform: FetchFunc | None = None,
     _parse_article: ParseFunc | None = None,
@@ -110,6 +112,7 @@ def convert_article(
 
     config_path_obj = Path(config_path) if config_path is not None else None
     config = _load_config(config_path_obj)
+    docx_config = _resolve_docx_config(config.docx, docx)
     fetcher = _fetch_for_platform or fetch_for_platform
     parser = _parse_article or parse_article
     language = config.ui.language
@@ -145,6 +148,7 @@ def convert_article(
         ParseError,
     )
 
+    should_download_media = download_images and (config.images.download or config.videos.download)
     package_dir: Path | None = None
     if output_dir is not None:
         package_dir = _run_stage(
@@ -159,6 +163,8 @@ def convert_article(
                 overwrite=_overwrite or config.output.overwrite,
                 markdown_config=config.markdown,
                 output_config=config.output,
+                docx_config=DocxConfig(enabled=False) if should_download_media else docx_config,
+                generated_directories=(config.images.directory, config.videos.directory),
             ),
             ConversionError,
         )
@@ -178,11 +184,7 @@ def convert_article(
             ConversionError,
         )
 
-    if (
-        package_dir is not None
-        and download_images
-        and (config.images.download or config.videos.download)
-    ):
+    if package_dir is not None and should_download_media:
         article = _run_stage(
             _progress,
             "media",
@@ -203,6 +205,7 @@ def convert_article(
                 package_dir,
                 markdown_config=config.markdown,
                 output_config=config.output,
+                docx_config=docx_config,
             ),
             ConversionError,
         )
@@ -250,7 +253,7 @@ def convert_article(
     except Exception as exc:
         raise ConversionError(str(exc), stage="write") from exc
 
-    return _build_result(article, markdown, metadata, report, package_dir, config)
+    return _build_result(article, markdown, metadata, report, package_dir, config, docx_config)
 
 
 def download_configured_media(
@@ -285,6 +288,7 @@ def _build_result(
     report: dict[str, Any],
     package_dir: Path | None,
     config: MagicMDConfig,
+    docx_config: DocxConfig,
 ) -> ArticleConversionResult:
     return ArticleConversionResult(
         title=article.title,
@@ -309,6 +313,7 @@ def _build_result(
         report=report,
         metadata=metadata,
         package_dir=str(package_dir) if package_dir is not None else None,
+        docx_path=_resolve_docx_path(article, package_dir, config, docx_config),
     )
 
 
@@ -331,6 +336,29 @@ def _resolve_image_local_path(
             return str(configured_path)
 
     return ""
+
+
+def _resolve_docx_config(config: DocxConfig, enabled_override: bool | None) -> DocxConfig:
+    if enabled_override is None:
+        return config
+    return config.model_copy(update={"enabled": enabled_override})
+
+
+def _resolve_docx_path(
+    article: Article,
+    package_dir: Path | None,
+    config: MagicMDConfig,
+    docx_config: DocxConfig,
+) -> str | None:
+    if package_dir is None or not docx_config.enabled:
+        return None
+    docx_path = package_dir / format_template(
+        config.output.naming.docx,
+        build_article_template_vars(article),
+    )
+    if not docx_path.exists():
+        return None
+    return str(docx_path)
 
 
 def _load_config(config_path: Path | None) -> MagicMDConfig:

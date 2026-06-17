@@ -109,6 +109,7 @@ magicmd/
 | `src/magicmd/platforms/shared/markdown.py` | HTML 转 Markdown 和 Markdown 后处理。                                                                           |
 | `src/magicmd/platforms/shared/metadata.py` | 元数据、脚本变量、文本和时间提取工具。                                                                          |
 | `src/magicmd/renderers/markdown.py`        | 控制最终 `article.md` 的整体格式，包括 front matter、标题、来源信息和正文插入位置。                             |
+| `src/magicmd/renderers/docx.py`            | 调用 Pandoc，把最终 Markdown 文件导出为可选的 `article.docx`。                                                  |
 | `npm/magicmd/bin/magicmd.js`               | npm wrapper 入口，调用 `uvx --from magicmd magicmd ...`，不复制 Python 转换逻辑。                               |
 | `docs/integrations/python-sdk.md`          | SDK 字段、错误、媒体路径和后端接入契约。                                                                        |
 | `docs/integrations/haogit-import.md`       | HaoGit/CMS 风格导入建议，只描述映射和流程，不写业务系统专属逻辑。                                               |
@@ -135,6 +136,8 @@ assets.py 下载图片并改写链接（output_dir 有值时）
 renderers/markdown.py 生成最终 Markdown
   ↓
 output.py / diagnostics.py 写入 article.md、metadata.json、extraction-report.json
+  ↓
+renderers/docx.py 可选生成 article.docx（[docx] enabled 或 --format docx）
   ↓
 sdk.py 返回 ArticleConversionResult
 ```

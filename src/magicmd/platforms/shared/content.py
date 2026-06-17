@@ -106,6 +106,8 @@ def _looks_like_heading(tag: Tag) -> bool:
     if not text or len(text) > 90:
         return False
     style = tag.get("style", "")
+    if not _style_font_size(style) and isinstance(tag.parent, Tag):
+        style = f"{style};{tag.parent.get('style', '')}"
     font_size = _style_font_size(style)
     if font_size >= 24:
         return True
@@ -188,10 +190,52 @@ def _is_decorative_image(img: Tag) -> bool:
     width = _style_pixel_value(img.get("style", ""), "width")
     if "__bg_gif" in classes and classes.intersection(placeholder_classes) and 0 < width <= 32:
         return True
+    if _is_in_poster_template(img) and natural_width >= 250 and 0 < ratio <= 0.13:
+        return True
+    if (
+        _is_in_poster_template(img)
+        and natural_width >= 500
+        and 0.18 <= ratio <= 0.35
+        and str(img.get("data-type") or "").lower() != "gif"
+        and _is_followed_by_poster_heading_text(img)
+    ):
+        return True
     if "wx_img_placeholder_mini" in classes and natural_width >= 900 and 0.7 <= ratio <= 1.2:
         return True
     if width <= 32 and natural_width >= 900 and 0.7 <= ratio <= 1.2:
         return True
+    return False
+
+
+def _is_in_poster_template(img: Tag) -> bool:
+    for ancestor in img.parents:
+        if not isinstance(ancestor, Tag):
+            continue
+        background = _style_value(ancestor.get("style", ""), "background-color")
+        if background and not _is_body_color(background):
+            return True
+    return False
+
+
+def _is_followed_by_poster_heading_text(img: Tag) -> bool:
+    for element in img.find_all_next():
+        if not isinstance(element, Tag):
+            continue
+        if element.name == "img":
+            return False
+        text = normalize_text(element.get_text(" ", strip=True))
+        if not text:
+            continue
+        return len(text) <= 40 and _element_or_descendant_looks_like_heading(element)
+    return False
+
+
+def _element_or_descendant_looks_like_heading(element: Tag) -> bool:
+    if _looks_like_heading(element):
+        return True
+    for descendant in element.find_all(["section", "p", "span"]):
+        if normalize_text(descendant.get_text(" ", strip=True)) and _looks_like_heading(descendant):
+            return True
     return False
 
 

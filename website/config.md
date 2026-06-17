@@ -34,6 +34,7 @@ package = "{date}-{slug}"
 markdown = "article.md"
 metadata = "metadata.json"
 report = "extraction-report.json"
+docx = "article.docx"
 ```
 
 常见选择：
@@ -98,3 +99,16 @@ markdown_path = "{directory}/{filename}"
 ```
 
 微信视频可能受防盗链或权限限制。MagicMD 会尽量提取链接和下载，无法下载时会在正文或报告里留下可复核信息。
+
+## Word 导出
+
+```toml
+[docx]
+enabled = false
+pandoc_path = "pandoc"
+reference_doc = ""
+```
+
+`enabled = true` 时，MagicMD 会保留 Markdown 内容包，并额外生成 `article.docx`。你也可以在单次命令里用 `--format docx` 临时开启。
+
+DOCX 导出依赖 Pandoc。`pandoc_path` 默认使用 PATH 中的 `pandoc`；`reference_doc` 可以指向一个 Word reference docx，用来控制标题、正文、表格等样式。

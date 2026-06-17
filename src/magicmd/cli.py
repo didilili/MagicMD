@@ -122,6 +122,10 @@ def _resolve_output(output: Path | None, config_path: Optional[Path]) -> Path:
     return Path(load_config(config_path).output.directory)
 
 
+def _display_path(path: str | Path) -> str:
+    return str(Path(path).expanduser().resolve())
+
+
 def _batch_context(url: str, platform: str, config_path: Optional[Path]) -> dict[str, Any]:
     config = load_config(config_path)
     resolved_platform = detect_platform(url) if platform == "auto" else platform
@@ -189,6 +193,7 @@ def convert_url(
     debug: bool = False,
     overwrite: bool = False,
     download_images_enabled: bool = True,
+    docx: bool | None = None,
     show_progress: bool = False,
 ) -> Path:
     progress = ProgressReporter(show_progress)
@@ -199,6 +204,7 @@ def convert_url(
             output_dir=output,
             download_images=download_images_enabled,
             config_path=config_path,
+            docx=docx,
             _fetch_for_platform=fetch_for_platform,
             _parse_article=parse_article,
             _progress=progress.run,
@@ -216,12 +222,28 @@ def _download_configured_media(article, package_dir: Path, config):
     return download_configured_media(article, package_dir, config)
 
 
+def _resolve_docx_override(output_format: str) -> bool | None:
+    normalized = output_format.strip().lower()
+    if normalized in {"auto", ""}:
+        return None
+    if normalized in {"markdown", "md"}:
+        return False
+    if normalized in {"docx", "word"}:
+        return True
+    raise click.ClickException("--format must be one of: auto, markdown, docx")
+
+
 @app.command()
 def convert(
     url: str,
     output: Optional[Path] = typer.Option(None, "--output", "-o", help="Output directory."),
     platform: str = typer.Option("auto", "--platform", help="auto, wechat, juejin, csdn, generic."),
     config_path: Optional[Path] = typer.Option(None, "--config", help="Config file path."),
+    output_format: str = typer.Option(
+        "auto",
+        "--format",
+        help="auto, markdown, docx. docx also keeps the Markdown package.",
+    ),
     no_images: bool = typer.Option(False, "--no-images", help="Do not download images."),
     debug: bool = typer.Option(False, "--debug", help="Save debug HTML."),
     overwrite: bool = typer.Option(False, "--overwrite", help="Overwrite output package."),
@@ -235,6 +257,7 @@ def convert(
         debug=debug,
         overwrite=overwrite,
         download_images_enabled=not no_images,
+        docx=_resolve_docx_override(output_format),
         show_progress=True,
     )
     config = load_config(config_path)
@@ -246,9 +269,10 @@ def convert(
     )
     if quality["status"] == "fail":
         raise click.ClickException(
-            f"Extraction failed: {quality.get('error')}. Debug package saved at: {package_dir}"
+            "Extraction failed: "
+            f"{quality.get('error')}. Debug package saved at: {_display_path(package_dir)}"
         )
-    typer.echo(ui_text(config.ui.language, "created_package", path=package_dir))
+    typer.echo(ui_text(config.ui.language, "created_package", path=_display_path(package_dir)))
 
 
 @app.command()
@@ -257,6 +281,11 @@ def batch(
     output: Optional[Path] = typer.Option(None, "--output", "-o", help="Output directory."),
     platform: str = typer.Option("auto", "--platform", help="auto, wechat, juejin, csdn, generic."),
     config_path: Optional[Path] = typer.Option(None, "--config", help="Config file path."),
+    output_format: str = typer.Option(
+        "auto",
+        "--format",
+        help="auto, markdown, docx. docx also keeps the Markdown package.",
+    ),
     no_images: bool = typer.Option(False, "--no-images", help="Do not download images."),
     debug: bool = typer.Option(False, "--debug", help="Save debug HTML."),
     overwrite: bool = typer.Option(False, "--overwrite", help="Overwrite output package."),
@@ -299,7 +328,12 @@ def batch(
                         )
                     )
                     typer.echo(
-                        ui_text(config.ui.language, "batch_skipped", url=url, path=existing_package)
+                        ui_text(
+                            config.ui.language,
+                            "batch_skipped",
+                            url=url,
+                            path=_display_path(existing_package),
+                        )
                     )
                     continue
             package_dir = convert_url(
@@ -310,6 +344,7 @@ def batch(
                 debug=debug,
                 overwrite=overwrite,
                 download_images_enabled=not no_images,
+                docx=_resolve_docx_override(output_format),
                 show_progress=True,
             )
             elapsed_ms = int((perf_counter() - started_at) * 1000)
@@ -326,7 +361,9 @@ def batch(
                     "complete",
                 )
             )
-            typer.echo(ui_text(config.ui.language, "batch_ok", url=url, path=package_dir))
+            typer.echo(
+                ui_text(config.ui.language, "batch_ok", url=url, path=_display_path(package_dir))
+            )
         except Exception as exc:
             elapsed_ms = int((perf_counter() - started_at) * 1000)
             stage = exc.stage if isinstance(exc, ConversionStageError) else "convert"
@@ -340,7 +377,9 @@ def batch(
             )
             typer.echo(ui_text(config.ui.language, "batch_failed", url=url, error=exc), err=True)
     report_paths = write_batch_report(results, resolved_output)
-    typer.echo(ui_text(config.ui.language, "batch_report", path=report_paths["markdown"]))
+    typer.echo(
+        ui_text(config.ui.language, "batch_report", path=_display_path(report_paths["markdown"]))
+    )
 
 
 config_app = typer.Typer(help="Manage MagicMD config.")

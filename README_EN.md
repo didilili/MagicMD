@@ -181,11 +181,21 @@ Overwrite matching output packages:
 magicmd batch urls.txt -o output/ --overwrite
 ```
 
+Overwrite clears generated files from the old package first, so stale images or DOCX files do not mix into the current result.
+
 Convert Markdown without downloading images:
 
 ```bash
 magicmd convert "https://blog.csdn.net/user/article/details/123" --no-images
 ```
+
+Generate a Word document too:
+
+```bash
+magicmd convert "https://mp.weixin.qq.com/s/example" -o output/ --format docx
+```
+
+DOCX export keeps the normal Markdown package and adds `article.docx`. It requires Pandoc on the machine. To generate Word output for every conversion, set `[docx] enabled = true` in `.magicmd.toml`.
 
 ## Python SDK
 
@@ -238,6 +248,7 @@ print(result.report)
 | `metadata`                          | Structured data aligned with `metadata.json`.                                                                                                                                                                                                                                  |
 | `report`                            | Extraction report aligned with `extraction-report.json`.                                                                                                                                                                                                                       |
 | `package_dir`                       | Set only when `output_dir` is provided and a package is written.                                                                                                                                                                                                               |
+| `docx_path`                         | Local Word file path when DOCX export is enabled and written; otherwise empty.                                                                                                                                                                                                 |
 
 Backend code can catch explicit SDK errors:
 
@@ -354,6 +365,11 @@ download = true
 directory = "images"
 filename_pattern = "img_{index:03d}.{ext}"
 
+[docx]
+enabled = false
+pandoc_path = "pandoc"
+reference_doc = ""
+
 [fetch]
 timeout_seconds = 20
 browser_timeout_seconds = 15
@@ -374,6 +390,9 @@ Useful options:
 | `markdown.template`              | `default` or `clean`.                                                                               |
 | `markdown.heading_offset`        | Shifts Markdown heading levels.                                                                     |
 | `images.download`                | Whether images are downloaded.                                                                      |
+| `docx.enabled`                   | Whether to generate `article.docx` next to the Markdown package.                                    |
+| `docx.pandoc_path`               | Pandoc executable path. Defaults to `pandoc` from PATH.                                             |
+| `docx.reference_doc`             | Optional Word style template, passed to Pandoc as a reference DOCX.                                 |
 | `fetch.browser_attempts`         | Total browser-mode attempts after failures.                                                         |
 | `ui.language`                    | CLI terminal language. MagicMD defaults to Chinese-first `zh-CN`; set `en-US` for English messages. |
 | `platforms.<name>.browser`       | Uses `http` or `camoufox`.                                                                          |
