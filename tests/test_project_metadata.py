@@ -24,6 +24,21 @@ def test_github_actions_ci_workflow_exists():
     assert "uv build" in workflow
 
 
+def test_publish_workflow_supports_trusted_publishing_for_pypi_and_npm():
+    workflow_path = Path(".github/workflows/publish.yml")
+
+    assert workflow_path.exists()
+    workflow = workflow_path.read_text(encoding="utf-8")
+
+    assert "publish_pypi:" in workflow
+    assert "publish_npm:" in workflow
+    assert "environment: pypi" in workflow
+    assert "environment: npm" in workflow
+    assert "id-token: write" in workflow
+    assert "npm publish --registry=https://registry.npmjs.org/" in workflow
+    assert "working-directory: npm/magicmd" in workflow
+
+
 def test_project_metadata_uses_magicmd_name_and_cli():
     metadata = tomllib.loads(Path("pyproject.toml").read_text(encoding="utf-8"))
 

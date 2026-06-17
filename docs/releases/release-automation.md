@@ -6,8 +6,8 @@
 
 推荐分两步推进：
 
-1. 短期继续手动发布，但严格使用 `docs/releases/post-release-checklist.md` 做 smoke test。
-2. v0.5 期间先新增一个手动触发的 PyPI Trusted Publisher workflow；等 npm Trusted Publishing 配好并试跑稳定后，再评估 tag-triggered release workflow。
+1. 短期保留手动 GitHub Release，但使用 `docs/releases/post-release-checklist.md` 做 smoke test。
+2. v0.5 期间使用手动触发的 Trusted Publishing workflow 发布 PyPI 和 npm；等两个渠道都试跑稳定后，再评估 tag-triggered release workflow。
 
 不要在 trusted publisher 尚未配置完成前加入会自动 publish 的 workflow。否则下一次推 tag 时，CI 可能在 PyPI 或 npm 权限阶段失败，或者只发布了其中一个包，造成状态不一致。当前仓库的 `.github/workflows/publish.yml` 只支持手动触发，默认只验证，不会自动发布。
 
@@ -70,7 +70,7 @@ No `PYPI_TOKEN`, username, or password should be needed.
 
 ## Current Safe Workflow
 
-`.github/workflows/publish.yml` is intentionally PyPI-only and manual:
+`.github/workflows/publish.yml` is intentionally manual and opt-in:
 
 - It runs through `workflow_dispatch`.
 - It requires a `version` input.
@@ -78,7 +78,9 @@ No `PYPI_TOKEN`, username, or password should be needed.
 - It runs tests, ruff, `uv build`, `twine check`, and `npm pack --dry-run`.
 - It uploads the built Python distributions as a workflow artifact.
 - It publishes to PyPI only when `publish_pypi` is explicitly checked.
-- It uses the `pypi` GitHub environment and `id-token: write` only for the publish job.
+- It publishes to npm only when `publish_npm` is explicitly checked.
+- When both publish flags are checked, npm waits for the PyPI publish job because the npm wrapper runs the Python CLI through `uvx`.
+- It uses the `pypi` and `npm` GitHub environments and `id-token: write` only for publish jobs.
 
 To perform a dry verification run for v0.5.0:
 
@@ -86,6 +88,7 @@ To perform a dry verification run for v0.5.0:
 Actions -> Publish Release -> Run workflow
 version: 0.5.0
 publish_pypi: false
+publish_npm: false
 ```
 
 To publish the Python package after the dry run is trusted:
@@ -94,9 +97,17 @@ To publish the Python package after the dry run is trusted:
 Actions -> Publish Release -> Run workflow
 version: 0.5.0
 publish_pypi: true
+publish_npm: false
 ```
 
-The npm package still needs manual publishing until npm Trusted Publishing is configured.
+To publish both packages after PyPI and npm Trusted Publishing are configured:
+
+```text
+Actions -> Publish Release -> Run workflow
+version: 0.5.0
+publish_pypi: true
+publish_npm: true
+```
 
 ## npm Setup
 
@@ -116,6 +127,17 @@ npm publish --registry=https://registry.npmjs.org/
 ```
 
 Do not rely on `npm whoami` in the workflow. With OIDC, `npm whoami` does not reflect trusted publishing authentication status; the auth exchange happens during `npm publish`.
+
+After configuring npm Trusted Publishing, run a dry workflow first:
+
+```text
+Actions -> Publish Release -> Run workflow
+version: 0.5.0
+publish_pypi: false
+publish_npm: false
+```
+
+Only check `publish_npm` during an actual release version that has not already been published to npm.
 
 ## Proposed Workflow Shape
 
@@ -189,15 +211,14 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
 
   publish-npm:
-    needs: publish-pypi
+    needs:
+      - verify
+      - publish-pypi
     runs-on: ubuntu-latest
     environment: npm
     permissions:
       contents: read
       id-token: write
-    defaults:
-      run:
-        working-directory: npm/magicmd
     steps:
       - uses: actions/checkout@v4
 
@@ -206,16 +227,13 @@ jobs:
         with:
           node-version: 24
           registry-url: https://registry.npmjs.org/
-          cache: npm
-          cache-dependency-path: package-lock.json
-
-      - name: Ensure npm supports trusted publishing
-        run: npm install -g npm@latest
 
       - name: Dry run npm package
+        working-directory: npm/magicmd
         run: npm pack --dry-run
 
       - name: Publish npm package
+        working-directory: npm/magicmd
         run: npm publish --registry=https://registry.npmjs.org/
 ```
 
@@ -223,8 +241,8 @@ jobs:
 
 - Whether to create GitHub Release in the same workflow or keep it manual. Current recommendation: keep GitHub Release manual until PyPI/npm automation succeeds once.
 - Whether npm should use `npm publish` or `npm stage publish`. Current recommendation: start with `npm publish`; consider staged publishing after the process is stable.
-- Whether to allow `workflow_dispatch`. Current recommendation: keep it only if maintainers want emergency reruns, and require environment approval.
-- Whether to publish npm if PyPI fails. Current recommendation: npm should depend on PyPI because the npm wrapper executes the PyPI CLI through `uvx`.
+- Whether to allow tag-triggered publishing. Current recommendation: keep `workflow_dispatch` until both PyPI and npm have shipped one clean automated release.
+- Whether to publish npm if PyPI fails. Current workflow publishes npm after `verify` when PyPI publishing is not requested, but waits for PyPI when both publish flags are checked.
 
 ## Safer Manual Flow Until Automation Lands
 

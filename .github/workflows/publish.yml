@@ -11,6 +11,11 @@ on:
         required: true
         type: boolean
         default: false
+      publish_npm:
+        description: 'Publish the npm wrapper to npm using Trusted Publishing'
+        required: true
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -109,3 +114,32 @@ jobs:
 
       - name: Publish Python package to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
+
+  publish-npm:
+    name: Publish npm wrapper to npm
+    if: ${{ always() && inputs.publish_npm && needs.verify.result == 'success' && (needs.publish-pypi.result == 'success' || needs.publish-pypi.result == 'skipped') }}
+    needs:
+      - verify
+      - publish-pypi
+    runs-on: ubuntu-latest
+    environment: npm
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org/
+
+      - name: Check npm wrapper package
+        working-directory: npm/magicmd
+        run: npm pack --dry-run
+
+      - name: Publish npm wrapper
+        working-directory: npm/magicmd
+        run: npm publish --registry=https://registry.npmjs.org/

@@ -18,7 +18,24 @@ Expected:
 - `isPrerelease` is `false` for stable releases.
 - `url` opens the public release page.
 
-## 2. Confirm PyPI
+## 2. Confirm Publish Workflow
+
+If the release used `.github/workflows/publish.yml`, confirm the run completed:
+
+```bash
+gh run list \
+  --repo didilili/MagicMD \
+  --workflow publish.yml \
+  --limit 5
+```
+
+Expected:
+
+- The release run completed successfully.
+- PyPI publishing used the `pypi` environment when `publish_pypi` was checked.
+- npm publishing used the `npm` environment when `publish_npm` was checked.
+
+## 3. Confirm PyPI
 
 ```bash
 python3 -m pip index versions magicmd
@@ -30,7 +47,7 @@ Expected:
 - The latest version appears in the PyPI version list.
 - `uvx` prints `MagicMD ${VERSION}`.
 
-## 3. Confirm npm
+## 4. Confirm npm
 
 ```bash
 npm view magicmd version --registry=https://registry.npmjs.org/
@@ -42,7 +59,7 @@ Expected:
 - `npm view` prints the latest version.
 - `npx` prints `MagicMD ${VERSION}`.
 
-## 4. Confirm Docs
+## 5. Confirm Docs
 
 Open:
 
@@ -55,7 +72,7 @@ Expected:
 - The release notes match `docs/releases/v${VERSION}.md`.
 - Install commands point to the released version through PyPI or npm.
 
-## 5. Confirm Agent Skill Path
+## 6. Confirm Agent Skill Path
 
 Ask a Skill-capable agent:
 
@@ -69,7 +86,7 @@ Expected:
 - The Skill instructions call the MagicMD CLI instead of duplicating conversion logic.
 - The install path works for a fresh user-facing setup.
 
-## 6. Record Release Notes
+## 7. Record Release Notes
 
 After all checks pass, update the next release prep notes with:
 
