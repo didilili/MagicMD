@@ -1,0 +1,85 @@
+{
+  "version": 1,
+  "purpose": "Track real public article samples for manual MagicMD regression runs without making CI depend on live network access.",
+  "privacy_policy": "Only public article URLs are allowed. Do not add login-only pages, paywalled pages, private content, cookies, tokens, screenshots containing private data, or account-specific URLs.",
+  "runbook": "docs/live-regression.md",
+  "schema": {
+    "required_sample_fields": [
+      "id",
+      "platform",
+      "url",
+      "fetch_mode",
+      "status",
+      "focus",
+      "checks",
+      "review_notes"
+    ]
+  },
+  "samples": [
+    {
+      "id": "wechat-video-media-001",
+      "platform": "wechat",
+      "url": "https://mp.weixin.qq.com/s/6-jhXO9nNa__JsUxfzhzjQ",
+      "fetch_mode": "camoufox",
+      "status": "candidate",
+      "focus": ["video extraction", "local media handling", "metadata preservation"],
+      "checks": [
+        "title",
+        "author",
+        "published_at",
+        "markdown_body",
+        "images",
+        "links",
+        "metadata",
+        "report"
+      ],
+      "review_notes": "Confirm the article body remains readable, video links are preserved or downloaded when possible, and extraction-report.json records any media warning.",
+      "requires_login": false,
+      "contains_private_content": false
+    },
+    {
+      "id": "juejin-technical-links-001",
+      "platform": "juejin",
+      "url": "https://juejin.cn/post/7584110439933100078",
+      "fetch_mode": "camoufox",
+      "status": "candidate",
+      "focus": ["technical article structure", "external link cleanup", "code block preservation"],
+      "checks": [
+        "title",
+        "author",
+        "published_at",
+        "markdown_body",
+        "images",
+        "links",
+        "code_blocks",
+        "metadata",
+        "report"
+      ],
+      "review_notes": "Confirm heading levels, code blocks, image references, and restored outbound links are suitable for publishing.",
+      "requires_login": false,
+      "contains_private_content": false
+    },
+    {
+      "id": "csdn-code-cleanup-001",
+      "platform": "csdn",
+      "url": "https://blog.csdn.net/mieleizhi0522/article/details/82142856",
+      "fetch_mode": "camoufox",
+      "status": "candidate",
+      "focus": ["code chrome cleanup", "article metadata", "table-of-contents noise"],
+      "checks": [
+        "title",
+        "author",
+        "published_at",
+        "markdown_body",
+        "images",
+        "links",
+        "code_blocks",
+        "metadata",
+        "report"
+      ],
+      "review_notes": "Confirm CSDN copy controls, line-number noise, and page chrome do not leak into article.md.",
+      "requires_login": false,
+      "contains_private_content": false
+    }
+  ]
+}

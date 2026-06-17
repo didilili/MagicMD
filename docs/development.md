@@ -26,6 +26,7 @@ magicmd/
 │   ├── integrations/
 │   │   ├── python-sdk.md
 │   │   └── haogit-import.md
+│   ├── live-regression.md
 │   ├── releases/
 │   ├── supported-sites.md
 │   └── wechat-regression-corpus.md
@@ -169,6 +170,16 @@ uvx twine check dist/*
 真实样本回归：
 
 ```bash
+python3 - <<'PY' > /tmp/magicmd-live-regression-urls.txt
+import json
+from pathlib import Path
+
+manifest = json.loads(Path("tests/fixtures/live_regression_manifest.json").read_text())
+for sample in manifest["samples"]:
+    if sample["status"] != "blocked":
+        print(sample["url"])
+PY
+uv run magicmd batch /tmp/magicmd-live-regression-urls.txt -o output/live-regression --skip-existing
 uv run magicmd batch samples/juejin-homepage-5.txt -o output/juejin-check --skip-existing
 uv run magicmd batch samples/csdn-complex-10.txt -o output/csdn-check --skip-existing
 ```
