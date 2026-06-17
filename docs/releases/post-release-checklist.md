@@ -78,3 +78,5 @@ After all checks pass, update the next release prep notes with:
 - npm version.
 - Smoke test date.
 - Any manual publishing or authentication issue encountered.
+
+If publishing exposed authentication or workflow issues, update `docs/releases/release-automation.md` while the details are still fresh.
