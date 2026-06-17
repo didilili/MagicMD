@@ -399,6 +399,8 @@ If a platform changes its page structure and conversion quality drops, keep the 
 - [docs/supported-sites.md](./docs/supported-sites.md): supported sites and notes.
 - [docs/troubleshooting.md](./docs/troubleshooting.md): install, fetch, media, and conversion-quality troubleshooting.
 - [docs/wechat-regression-corpus.md](./docs/wechat-regression-corpus.md): WeChat live regression notes.
+- [docs/planning/v0.5-roadmap.md](./docs/planning/v0.5-roadmap.md): v0.5 Chinese-first and agent experience roadmap.
+- [docs/releases/post-release-checklist.md](./docs/releases/post-release-checklist.md): post-release PyPI, npm, GitHub Release, and Skill smoke test checklist.
 - [docs/MagicMD-v0.1-design.md](./docs/MagicMD-v0.1-design.md): v0.1 design notes.
 - [ROADMAP.md](./ROADMAP.md): upcoming version plan. GitHub Issues are mainly for real user feedback.
 

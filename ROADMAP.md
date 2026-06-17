@@ -26,16 +26,24 @@ MagicMD 的 GitHub Issues 主要留给真实问题：某篇文章转换错了、
 - 返回结构化 `ArticleConversionResult`，包含 Markdown、metadata、report、warnings、images、content hash 和 package path。
 - 增加明确错误类型：`UnsupportedPlatformError`、`FetchError`、`ParseError`、`MediaDownloadError`、`ConversionError`。
 
+### v0.4.x
+
+- CLI 默认改为中文优先提示，并支持通过 `[ui] language = "en-US"` 切回英文输出。
+- 官网补齐中英文双语文档、配置生成器语言选项和 Agent Skill 使用说明。
+- Agent Skill 文档改为面向 Codex、Claude Code 等支持 Skill 的 Agent 工具，并支持用一句话描述安装需求。
+- 增加 Ruff、Prettier、lint-staged、Husky 和 commitlint 工作流，降低协作和发布时的格式风险。
+
 ## 下一阶段
 
-### v0.4 - SDK 集成体验
+### v0.5 - 中文优先与 Agent 使用体验
 
-- 补充外部系统接入说明，明确 SDK 字段语义、媒体路径重写方式和错误处理建议。
-- 增加可运行 Python 示例，覆盖 JSON 输出、CMS/Django 风格导入和媒体复制。
-- 保持 MagicMD 独立，不写入 HaoGit 专属模型或字段。
-- 继续增强 README、官网和配置生成器，让新用户能快速判断自己应该用 CLI、SDK 还是 Skill。
+- 建立更系统的真实站点回归集，优先覆盖微信公众号、掘金和 CSDN 的中文技术文章。
+- 把 Agent 使用入口继续产品化：让用户能用一句话完成安装、转换、批量整理和结果检查。
+- 优化官网首页和快速开始，让新用户更快理解“中文文章归档到 Markdown 内容包”的核心场景。
+- 增加发布后 smoke test checklist，覆盖 PyPI、npm、GitHub Release 和 Skill 安装路径。
+- 评估 PyPI Trusted Publisher 和 npm GitHub Actions 发布流程，减少手动 token 发布和权限切换带来的风险。
 
-### v0.5 - 发布工作流
+### v0.6 - 发布工作流
 
 - 评估 GitHub token 发布器：把转换后的文章提交到指定仓库。
 - 支持配置目标目录、分支、提交信息和是否自动创建 Pull Request。
@@ -86,16 +94,24 @@ GitHub Issues are mainly for real user reports: bad conversions, failed installs
 - Returned structured `ArticleConversionResult` data with Markdown, metadata, report, warnings, images, content hash, and package path.
 - Added explicit errors: `UnsupportedPlatformError`, `FetchError`, `ParseError`, `MediaDownloadError`, and `ConversionError`.
 
+### v0.4.x
+
+- Made CLI output Chinese-first by default, with `[ui] language = "en-US"` for English output.
+- Added bilingual website docs, a Config Builder language option, and Agent Skill usage guidance.
+- Generalized the Agent Skill guide for Codex, Claude Code, and other Skill-capable agent tools, including one-sentence install requests.
+- Added Ruff, Prettier, lint-staged, Husky, and commitlint workflows to reduce formatting and collaboration risk.
+
 ## Next
 
-### v0.4 - SDK integration experience
+### v0.5 - Chinese-first and agent experience
 
-- Document the external integration contract, SDK field meanings, media path rewriting, and error handling.
-- Add runnable Python examples for JSON output, CMS/Django-style import, and media copying.
-- Keep MagicMD independent, without HaoGit-specific models or fields.
-- Keep improving README, website, and config builder so new users can quickly choose CLI, SDK, or Skill.
+- Build a more systematic live-site regression corpus, prioritizing Chinese technical articles from WeChat, Juejin, and CSDN.
+- Productize the Agent entrypoint so users can install, convert, batch organize, and inspect results with short natural-language requests.
+- Improve the website homepage and quick start around the core promise: archiving Chinese articles into Markdown content packages.
+- Add a post-release smoke test checklist for PyPI, npm, GitHub Release, and Skill installation paths.
+- Evaluate PyPI Trusted Publisher and npm GitHub Actions publishing to reduce manual token and permission friction.
 
-### v0.5 - Publishing workflow
+### v0.6 - Publishing workflow
 
 - Evaluate a GitHub token publisher for committing converted articles to a configured repository.
 - Support target directory, branch, commit message, and optional Pull Request creation.

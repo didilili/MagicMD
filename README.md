@@ -399,6 +399,8 @@ MagicMD 只处理公开文章页面。它不会绕过登录、付费墙、私有
 - [docs/supported-sites.md](./docs/supported-sites.md)：当前支持站点和注意事项。
 - [docs/troubleshooting.md](./docs/troubleshooting.md)：安装、抓取、媒体和转换效果问题排查。
 - [docs/wechat-regression-corpus.md](./docs/wechat-regression-corpus.md)：微信公众号真实样本回归说明。
+- [docs/planning/v0.5-roadmap.md](./docs/planning/v0.5-roadmap.md)：v0.5 中文优先与 Agent 使用体验规划。
+- [docs/releases/post-release-checklist.md](./docs/releases/post-release-checklist.md)：发布后 PyPI、npm、GitHub Release 和 Skill smoke test 清单。
 - [docs/MagicMD-v0.1-design.md](./docs/MagicMD-v0.1-design.md)：v0.1 设计说明。
 - [ROADMAP.md](./ROADMAP.md)：后续版本计划。GitHub Issues 主要用于真实用户反馈。
 
