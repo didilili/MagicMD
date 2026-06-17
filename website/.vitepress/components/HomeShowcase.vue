@@ -14,15 +14,22 @@ magicmd "https://mp.weixin.qq.com/s/example"`;
 
 const batchCommand = `magicmd batch urls.txt -o output/`;
 
+const agentPrompt = computed(() =>
+  isEnglish.value
+    ? 'Use MagicMD to convert these public article links into Markdown packages, then tell me which ones need manual review.'
+    : '请用 MagicMD 把这些公开文章链接转换成 Markdown 内容包，并告诉我哪些需要人工复核。'
+);
+
 const heroCopy = computed(() =>
   isEnglish.value
     ? {
         eyebrow: 'Fast start',
-        title: 'Your first polished Markdown package in 2 commands',
+        title: 'CLI, Agent Skill, or SDK: one conversion core',
         description:
-          'Install the CLI, paste an article URL, and let MagicMD optimize media, code blocks, metadata, and reports for you.',
+          'Start from a command line, a natural-language Agent request, or a Python backend. MagicMD keeps the output package consistent either way.',
         single: 'Instant conversion',
         batch: 'Batch mode',
+        agent: 'Agent request',
         copy: 'Copy',
         copied: 'Copied',
         failed: 'Copy failed',
@@ -30,16 +37,60 @@ const heroCopy = computed(() =>
       }
     : {
         eyebrow: '极速上手',
-        title: '2 条命令，生成第一份高质量 Markdown 内容包',
+        title: 'CLI、Agent Skill、SDK，共用同一套转换核心',
         description:
-          '安装 CLI，粘贴公开文章链接，MagicMD 会自动完成正文提取、媒体本地化、代码块清理、来源信息和转换报告生成。',
+          '你可以从命令行开始，也可以让 Agent 用一句话批量整理，或者在 Python 后端直接 import。MagicMD 保持同一套内容包输出规则。',
         single: '极速单篇转换',
         batch: '批量模式',
+        agent: 'Agent 一句话入口',
         copy: '复制命令',
         copied: '已复制',
         failed: '复制失败',
         outputHint: '开箱即用的输出'
       }
+);
+
+const entrypoints = computed(() =>
+  isEnglish.value
+    ? [
+        {
+          label: 'CLI',
+          title: 'For local archiving',
+          detail:
+            'Install once, convert one URL or a whole urls.txt list, and keep reports beside the Markdown.'
+        },
+        {
+          label: 'Agent Skill',
+          title: 'For natural-language batches',
+          detail:
+            'Ask Codex, Claude Code, or another agent to convert, inspect warnings, and flag manual review items.'
+        },
+        {
+          label: 'Python SDK',
+          title: 'For backend workflows',
+          detail:
+            'Import MagicMD from Python and store Markdown, metadata, reports, and media paths in your own system.'
+        }
+      ]
+    : [
+        {
+          label: 'CLI',
+          title: '本地归档入口',
+          detail: '安装一次，转换单条链接或整份 urls.txt，让 Markdown、metadata 和报告一起落盘。'
+        },
+        {
+          label: 'Agent Skill',
+          title: '自然语言批量整理',
+          detail:
+            '让 Codex、Claude Code 等 Agent 调用 MagicMD，转换后检查 warning 并标记人工复核项。'
+        },
+        {
+          label: 'Python SDK',
+          title: '后端系统接入',
+          detail:
+            '在 Python 项目里直接 import，把 Markdown、metadata、报告和媒体路径写入自己的系统。'
+        }
+      ]
 );
 
 const features = computed(() =>
@@ -149,6 +200,8 @@ async function copyCommand() {
         <pre><code>{{ command }}</code></pre>
         <p>{{ heroCopy.batch }}</p>
         <pre><code>{{ batchCommand }}</code></pre>
+        <p>{{ heroCopy.agent }}</p>
+        <pre><code>{{ agentPrompt }}</code></pre>
       </div>
 
       <div class="mm-output">
@@ -166,6 +219,14 @@ async function copyCommand() {
 
     <div class="mm-use-cases" aria-label="MagicMD workflows">
       <span v-for="item in useCases" :key="item">{{ item }}</span>
+    </div>
+
+    <div class="mm-entrypoints">
+      <article v-for="entrypoint in entrypoints" :key="entrypoint.label">
+        <span>{{ entrypoint.label }}</span>
+        <strong>{{ entrypoint.title }}</strong>
+        <p>{{ entrypoint.detail }}</p>
+      </article>
     </div>
 
     <div class="mm-features">
