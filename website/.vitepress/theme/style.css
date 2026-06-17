@@ -270,7 +270,7 @@
   display: grid;
   gap: 18px;
   width: 100%;
-  overflow-x: clip;
+  overflow: visible;
   margin-top: 28px;
 }
 
@@ -506,6 +506,28 @@
 .help-tip:focus .help-icon {
   outline: 3px solid rgba(15, 159, 110, 0.22);
   outline-offset: 2px;
+}
+
+@media (max-width: 1400px) {
+  .help-popover {
+    position: fixed;
+    right: 16px;
+    bottom: 22px;
+    left: 16px;
+    width: auto;
+    max-width: none;
+    transform: translateY(8px);
+  }
+
+  .help-popover::after {
+    display: none;
+  }
+
+  .help-tip:hover .help-popover,
+  .help-tip:focus .help-popover,
+  .help-tip:focus-within .help-popover {
+    transform: translateY(0);
+  }
 }
 
 .field-group small {
@@ -762,11 +784,13 @@
   }
 
   .VPDoc:has(._config-builder) .container {
+    box-sizing: border-box;
     width: min(1680px, calc(100vw - 80px));
     max-width: min(1680px, calc(100vw - 80px)) !important;
   }
 
   .VPDoc:has(._config-builder) .content {
+    box-sizing: border-box;
     width: 100%;
     max-width: none !important;
     padding-left: 40px;
@@ -774,11 +798,13 @@
   }
 
   .VPDoc:has(._config-builder) .content-container {
+    box-sizing: border-box;
     width: 100%;
     max-width: min(1680px, calc(100vw - 80px)) !important;
   }
 
   .VPDoc:has(._config-builder) .main {
+    box-sizing: border-box;
     width: 100%;
   }
 }
@@ -886,23 +912,4 @@
     min-height: auto;
   }
 
-  .help-popover {
-    position: fixed;
-    right: 16px;
-    bottom: 22px;
-    left: 16px;
-    width: auto;
-    max-width: none;
-    transform: translateY(8px);
-  }
-
-  .help-popover::after {
-    display: none;
-  }
-
-  .help-tip:hover .help-popover,
-  .help-tip:focus .help-popover,
-  .help-tip:focus-within .help-popover {
-    transform: translateY(0);
-  }
 }

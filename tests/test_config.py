@@ -43,6 +43,27 @@ def test_load_config_accepts_browser_fetch_options(tmp_path: Path):
     assert config.fetch.browser_attempts == 4
 
 
+def test_load_config_defaults_cli_ui_language_to_chinese():
+    config = load_config()
+
+    assert config.ui.language == "zh-CN"
+
+
+def test_load_config_accepts_cli_ui_language(tmp_path: Path):
+    config_path = tmp_path / ".magicmd.toml"
+    config_path.write_text(
+        """
+        [ui]
+        language = "en-US"
+        """,
+        encoding="utf-8",
+    )
+
+    config = load_config(config_path)
+
+    assert config.ui.language == "en-US"
+
+
 def test_load_config_accepts_v02_output_and_markdown_templates(tmp_path: Path):
     config_path = tmp_path / ".magicmd.toml"
     config_path.write_text(
@@ -204,6 +225,8 @@ def test_packaged_config_template_is_available():
     assert 'wait_selector = "#content_views"' in template_text
     assert "browser_timeout_seconds = 15" in template_text
     assert "browser_attempts = 2" in template_text
+    assert "[ui]" in template_text
+    assert 'language = "zh-CN"' in template_text
     assert "[output.naming]" in template_text
     assert 'package = "{date}-{slug}"' in template_text
     assert 'markdown = "article.md"' in template_text
@@ -229,5 +252,6 @@ def test_example_config_template_loads():
     assert config.markdown.preset == "default"
     assert config.markdown.include_title is True
     assert config.markdown.front_matter_fields["source_url"] == "{source_url}"
+    assert config.ui.language == "zh-CN"
     assert config.images.markdown_path == "{directory}/{filename}"
     assert config.videos.filename_pattern == "video_{index:03d}.{ext}"

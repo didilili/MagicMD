@@ -14,6 +14,15 @@ magicmd "https://mp.weixin.qq.com/s/example" --config .magicmd.toml
 magicmd batch urls.txt -o output/ --config .magicmd.toml
 ```
 
+## 终端语言
+
+```toml
+[ui]
+language = "zh-CN"
+```
+
+`language` 控制 CLI 终端进度和结果提示。MagicMD 默认中文优先；如果你想保留英文输出，可以改成 `en-US`。这个配置不会改动 Markdown 的 front matter 字段名或来源信息块模板，避免影响 Hugo、Docusaurus 或 CMS 读取。
+
 ## 输出命名
 
 ```toml

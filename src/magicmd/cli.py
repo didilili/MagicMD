@@ -24,6 +24,7 @@ from magicmd.diagnostics import (
 from magicmd.exceptions import MagicMDError
 from magicmd.fetchers.browser import fetch_browser
 from magicmd.fetchers.http import fetch_http
+from magicmd.i18n import ui_text
 from magicmd.platforms.registry import get_platform_adapter
 from magicmd.quality import (
     build_failure_quality,
@@ -243,7 +244,7 @@ def convert(
         raise click.ClickException(
             f"Extraction failed: {quality.get('error')}. Debug package saved at: {package_dir}"
         )
-    typer.echo(f"Created output package: {package_dir}")
+    typer.echo(ui_text(config.ui.language, "created_package", path=package_dir))
 
 
 @app.command()
@@ -291,7 +292,9 @@ def batch(
                             "skip",
                         )
                     )
-                    typer.echo(f"SKIP {url} -> {existing_package}")
+                    typer.echo(
+                        ui_text(config.ui.language, "batch_skipped", url=url, path=existing_package)
+                    )
                     continue
             package_dir = convert_url(
                 url,
@@ -317,7 +320,7 @@ def batch(
                     "complete",
                 )
             )
-            typer.echo(f"OK {url} -> {package_dir}")
+            typer.echo(ui_text(config.ui.language, "batch_ok", url=url, path=package_dir))
         except Exception as exc:
             elapsed_ms = int((perf_counter() - started_at) * 1000)
             stage = exc.stage if isinstance(exc, ConversionStageError) else "convert"
@@ -329,9 +332,9 @@ def batch(
                     stage,
                 )
             )
-            typer.echo(f"FAIL {url}: {exc}", err=True)
+            typer.echo(ui_text(config.ui.language, "batch_failed", url=url, error=exc), err=True)
     report_paths = write_batch_report(results, resolved_output)
-    typer.echo(f"Batch report: {report_paths['markdown']}")
+    typer.echo(ui_text(config.ui.language, "batch_report", path=report_paths["markdown"]))
 
 
 config_app = typer.Typer(help="Manage MagicMD config.")

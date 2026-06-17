@@ -352,6 +352,9 @@ filename_pattern = "img_{index:03d}.{ext}"
 timeout_seconds = 20
 browser_timeout_seconds = 15
 browser_attempts = 2
+
+[ui]
+language = "en-US"
 ```
 
 Useful options:
@@ -366,6 +369,7 @@ Useful options:
 | `markdown.heading_offset` | Shifts Markdown heading levels. |
 | `images.download` | Whether images are downloaded. |
 | `fetch.browser_attempts` | Total browser-mode attempts after failures. |
+| `ui.language` | CLI terminal language. MagicMD defaults to Chinese-first `zh-CN`; set `en-US` for English messages. |
 | `platforms.<name>.browser` | Uses `http` or `camoufox`. |
 | `platforms.<name>.wait_selector` | Selector to wait for during browser fetching. |
 

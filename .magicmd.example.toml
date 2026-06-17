@@ -62,6 +62,10 @@ browser_timeout_seconds = 15
 browser_attempts = 2
 user_agent = "default"
 
+[ui]
+# CLI terminal language. Options: "zh-CN", "en-US".
+language = "zh-CN"
+
 [platforms.wechat]
 enabled = true
 browser = "camoufox"

@@ -18,6 +18,7 @@ from magicmd.exceptions import (
 )
 from magicmd.fetchers.browser import fetch_browser
 from magicmd.fetchers.http import fetch_http
+from magicmd.i18n import ui_text
 from magicmd.models import Article
 from magicmd.output import ensure_content_hash, write_article_files, write_article_package
 from magicmd.platforms.registry import get_platform_adapter, platform_names
@@ -109,13 +110,14 @@ def convert_article(
     config = _load_config(config_path_obj)
     fetcher = _fetch_for_platform or fetch_for_platform
     parser = _parse_article or parse_article
+    language = config.ui.language
 
     resolved_platform = _run_stage(
         _progress,
         "detect",
         1,
         6,
-        "Detecting platform",
+        ui_text(language, "detecting_platform"),
         lambda: detect_platform(url) if platform == "auto" else platform,
         ConversionError,
     )
@@ -127,7 +129,7 @@ def convert_article(
         "fetch",
         2,
         6,
-        f"Fetching article ({resolved_platform})",
+        ui_text(language, "fetching_article", platform=resolved_platform),
         lambda: fetcher(url, resolved_platform, config_path_obj),
         FetchError,
     )
@@ -136,7 +138,7 @@ def convert_article(
         "parse",
         3,
         6,
-        "Parsing article",
+        ui_text(language, "parsing_article"),
         lambda: parser(resolved_platform, html, url),
         ParseError,
     )
@@ -148,7 +150,7 @@ def convert_article(
             "write",
             4,
             6,
-            "Writing Markdown package",
+            ui_text(language, "writing_package"),
             lambda: write_article_package(
                 article,
                 output_dir,
@@ -167,7 +169,7 @@ def convert_article(
             "write",
             4,
             6,
-            "Rendering Markdown",
+            ui_text(language, "rendering_markdown"),
             lambda: None,
             ConversionError,
         )
@@ -178,7 +180,7 @@ def convert_article(
             "media",
             5,
             6,
-            "Downloading media",
+            ui_text(language, "downloading_media"),
             lambda: download_configured_media(article, package_dir, config),
             MediaDownloadError,
         )
@@ -187,7 +189,7 @@ def convert_article(
             "write",
             4,
             6,
-            "Writing Markdown package",
+            ui_text(language, "writing_package"),
             lambda: write_article_files(
                 article,
                 package_dir,
@@ -202,7 +204,7 @@ def convert_article(
             "media",
             5,
             6,
-            "Skipping image download",
+            ui_text(language, "skipping_media"),
             lambda: article,
             MediaDownloadError,
         )
@@ -216,7 +218,7 @@ def convert_article(
             "report",
             6,
             6,
-            "Saving extraction report",
+            ui_text(language, "saving_report"),
             lambda: save_extraction_report(
                 package_dir,
                 report,
@@ -230,7 +232,7 @@ def convert_article(
             "report",
             6,
             6,
-            "Preparing extraction report",
+            ui_text(language, "preparing_report"),
             lambda: None,
             ConversionError,
         )

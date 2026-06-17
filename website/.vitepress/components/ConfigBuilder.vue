@@ -5,8 +5,10 @@ import { useData } from 'vitepress';
 type Preset = 'default' | 'plain' | 'hugo' | 'docusaurus';
 type FrontMatter = 'yaml' | 'none';
 type PreviewTab = 'toml' | 'markdown' | 'structure';
+type UiLanguage = 'zh-CN' | 'en-US';
 type HelpKey =
   | 'preset'
+  | 'uiLanguage'
   | 'packageName'
   | 'markdownName'
   | 'metadataName'
@@ -22,6 +24,7 @@ type HelpKey =
 
 type BuilderState = {
   preset: Preset;
+  uiLanguage: UiLanguage;
   packageName: string;
   markdownName: string;
   metadataName: string;
@@ -67,6 +70,7 @@ const presetDefaults: Record<Preset, Partial<BuilderState>> = {
 
 const state = reactive<BuilderState>({
   preset: 'default',
+  uiLanguage: 'zh-CN',
   packageName: '{date}-{slug}',
   markdownName: 'article.md',
   metadataName: 'metadata.json',
@@ -103,6 +107,9 @@ const ui = computed(() =>
         panelDescription: 'Pick a publishing target, then tune filenames and media paths.',
         preset: 'Publishing target',
         presetHint: 'Choose where this package will be published.',
+        uiLanguage: 'Terminal language',
+        chinese: 'Chinese',
+        english: 'English',
         presetOptions: {
           default: 'Default Markdown',
           plain: 'Plain Markdown',
@@ -118,6 +125,8 @@ const ui = computed(() =>
         help: {
           preset:
             'A preset fills in sensible defaults for a target. Hugo is a static site generator for blogs and content sites; Docusaurus is a documentation site generator. You can still edit every field afterwards.',
+          uiLanguage:
+            'Controls the language of MagicMD terminal progress messages. Markdown metadata keys stay compatible with publishing tools.',
           packageName:
             'The folder created for each article. {date} becomes the publish date, and {slug} becomes a safe title slug.',
           markdownName:
@@ -169,6 +178,8 @@ const ui = computed(() =>
         outputSummary: 'Output preview',
         metadataOn: 'YAML metadata',
         metadataOff: 'No metadata block',
+        terminalChinese: 'Chinese CLI',
+        terminalEnglish: 'English CLI',
         localOnly: 'Keep remote media',
         imagesAndVideos: 'Download images and videos',
         imagesOnly: 'Download images',
@@ -189,6 +200,9 @@ const ui = computed(() =>
         panelDescription: '选择发布目标后，再微调文件名和媒体路径。',
         preset: '发布目标',
         presetHint: '先选发布目标，下面的文件名和路径会自动跟着调整。',
+        uiLanguage: '终端语言',
+        chinese: '中文',
+        english: '英文',
         presetOptions: {
           default: '通用 Markdown',
           plain: '纯净 Markdown',
@@ -204,6 +218,7 @@ const ui = computed(() =>
         help: {
           preset:
             '预设会根据发布目标自动填一组默认配置。Hugo 是静态网站生成器，常用来把 Markdown 生成博客/内容网站；Docusaurus 是文档站生成器，常用于开源项目文档。选完后下面字段仍然可以手动改。',
+          uiLanguage: '控制 MagicMD 终端进度提示的语言。Markdown 元信息字段名仍保持发布工具更容易识别的标准键。',
           packageName:
             '每篇文章生成的文件夹名称。{date} 会替换成发布日期，{slug} 会替换成安全的标题短名，不需要你手动填真实日期。',
           markdownName: '内容包里的正文 Markdown 文件名。归档常用 article.md，Hugo / Docusaurus 通常用 index.md。',
@@ -253,6 +268,8 @@ const ui = computed(() =>
         outputSummary: '输出预览',
         metadataOn: '生成 YAML 元信息',
         metadataOff: '不生成元信息块',
+        terminalChinese: '中文终端',
+        terminalEnglish: '英文终端',
         localOnly: '保留远程媒体链接',
         imagesAndVideos: '下载图片和视频',
         imagesOnly: '下载图片',
@@ -332,7 +349,7 @@ const toml = computed(() => {
       ? `\n[markdown.front_matter_fields]\ntitle = "{title}"\nauthor = "{author}"\nplatform = "{platform}"\nsource_url = "{source_url}"\npublished_at = "{published_at}"\n`
       : '';
 
-  return `[output]\ndirectory = "output"\n\n[output.naming]\npackage = ${quote(state.packageName)}\nmarkdown = ${quote(state.markdownName)}\nmetadata = ${quote(state.metadataName)}\nreport = ${quote(state.reportName)}\n\n[markdown]\npreset = ${quote(state.preset)}\nfront_matter = ${quote(state.frontMatter)}\ninclude_title = true\ninclude_source_block = ${state.includeSourceBlock}\nheading_offset = 0\n${sourceBlock}${frontMatterFields}\n[images]\ndownload = ${state.downloadImages}\ndirectory = "images"\nfilename_pattern = "img_{index:03d}.{ext}"\nmarkdown_path = ${quote(state.imagePath)}\n\n[videos]\ndownload = ${state.downloadVideos}\ndirectory = "videos"\nfilename_pattern = "video_{index:03d}.{ext}"\nmarkdown_path = ${quote(state.videoPath)}\n`;
+  return `[output]\ndirectory = "output"\n\n[output.naming]\npackage = ${quote(state.packageName)}\nmarkdown = ${quote(state.markdownName)}\nmetadata = ${quote(state.metadataName)}\nreport = ${quote(state.reportName)}\n\n[ui]\nlanguage = ${quote(state.uiLanguage)}\n\n[markdown]\npreset = ${quote(state.preset)}\nfront_matter = ${quote(state.frontMatter)}\ninclude_title = true\ninclude_source_block = ${state.includeSourceBlock}\nheading_offset = 0\n${sourceBlock}${frontMatterFields}\n[images]\ndownload = ${state.downloadImages}\ndirectory = "images"\nfilename_pattern = "img_{index:03d}.{ext}"\nmarkdown_path = ${quote(state.imagePath)}\n\n[videos]\ndownload = ${state.downloadVideos}\ndirectory = "videos"\nfilename_pattern = "video_{index:03d}.{ext}"\nmarkdown_path = ${quote(state.videoPath)}\n`;
 });
 
 const markdownExample = computed(() => {
@@ -443,6 +460,19 @@ function downloadToml() {
           </div>
 
           <div class="field-grid">
+            <label>
+              <span class="field-label">
+                <span>{{ ui.uiLanguage }}</span>
+                <span class="help-tip" tabindex="0" :aria-label="helpText('uiLanguage')">
+                  <span class="help-icon">?</span>
+                  <span class="help-popover">{{ helpText('uiLanguage') }}</span>
+                </span>
+              </span>
+              <select v-model="state.uiLanguage" name="uiLanguage">
+                <option value="zh-CN">{{ ui.chinese }}</option>
+                <option value="en-US">{{ ui.english }}</option>
+              </select>
+            </label>
             <label class="wide-field">
               <span class="field-label">
                 <span>{{ ui.packageName }}</span>
@@ -591,6 +621,7 @@ function downloadToml() {
           </div>
           <div class="preset-chip-list">
             <code>{{ state.frontMatter === 'yaml' ? ui.metadataOn : ui.metadataOff }}</code>
+            <code>{{ state.uiLanguage === 'zh-CN' ? ui.terminalChinese : ui.terminalEnglish }}</code>
             <code>{{ mediaPreview }}</code>
           </div>
         </div>

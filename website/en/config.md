@@ -14,6 +14,15 @@ magicmd "https://mp.weixin.qq.com/s/example" --config .magicmd.toml
 magicmd batch urls.txt -o output/ --config .magicmd.toml
 ```
 
+## Terminal Language
+
+```toml
+[ui]
+language = "en-US"
+```
+
+`language` controls CLI progress and result messages. MagicMD defaults to Chinese-first `zh-CN`; set it to `en-US` when you prefer English terminal output. This does not rename Markdown front matter keys or the source block template, so Hugo, Docusaurus, and CMS integrations keep reading standard metadata fields.
+
 ## Output Naming
 
 ```toml

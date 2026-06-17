@@ -352,6 +352,9 @@ filename_pattern = "img_{index:03d}.{ext}"
 timeout_seconds = 20
 browser_timeout_seconds = 15
 browser_attempts = 2
+
+[ui]
+language = "zh-CN"
 ```
 
 常见选项：
@@ -366,6 +369,7 @@ browser_attempts = 2
 | `markdown.heading_offset` | 统一调整 Markdown 标题层级。 |
 | `images.download` | 是否下载图片。 |
 | `fetch.browser_attempts` | 浏览器模式失败后的总尝试次数。 |
+| `ui.language` | CLI 终端语言，默认中文优先；设置为 `en-US` 可切换为英文提示。 |
 | `platforms.<name>.browser` | 使用 `http` 或 `camoufox`。 |
 | `platforms.<name>.wait_selector` | 浏览器抓取时等待的选择器。 |
 

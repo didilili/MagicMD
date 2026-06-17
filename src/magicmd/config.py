@@ -67,6 +67,10 @@ class FetchConfig(BaseModel):
     user_agent: str = "default"
 
 
+class UiConfig(BaseModel):
+    language: str = "zh-CN"
+
+
 class PlatformConfig(BaseModel):
     enabled: bool = True
     browser: str = "http"
@@ -79,6 +83,7 @@ class MagicMDConfig(BaseModel):
     images: ImagesConfig = Field(default_factory=ImagesConfig)
     videos: VideosConfig = Field(default_factory=VideosConfig)
     fetch: FetchConfig = Field(default_factory=FetchConfig)
+    ui: UiConfig = Field(default_factory=UiConfig)
     platforms: dict[str, PlatformConfig] = Field(
         default_factory=lambda: {
             adapter.name: PlatformConfig(

@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+### 中文
+
+- CLI 终端提示默认改为中文优先，并新增 `[ui] language = "en-US"` 配置，英文用户可以显式切回英文输出。
+- 配置生成器新增终端语言选项；该选项只控制 CLI 进度和结果提示，不改变 Markdown front matter 字段名或来源信息块模板。
+
+### English
+
+- CLI terminal messages now default to Chinese-first output. English users can set `[ui] language = "en-US"` to keep English CLI progress and result messages.
+- Added a terminal-language option to the Config Builder. This only controls CLI progress/result messages and does not rename Markdown front matter fields or the source block template.
+
 ## v0.3.0 - 2026-06-08
 
 ### 中文

@@ -161,7 +161,7 @@ def test_convert_command_writes_package(monkeypatch, tmp_path: Path):
     )
 
     assert result.exit_code == 0
-    assert "Created output package" in result.stdout
+    assert "已生成内容包" in result.stdout
     assert list(tmp_path.glob("*/article.md"))
     assert list(tmp_path.glob("*/metadata.json"))
 
@@ -480,12 +480,52 @@ def test_convert_command_prints_progress_steps(monkeypatch, tmp_path: Path):
     )
 
     assert result.exit_code == 0
+    assert "✓ [1/6] 识别平台" in result.stdout
+    assert "✓ [2/6] 抓取文章" in result.stdout
+    assert "✓ [3/6] 解析文章" in result.stdout
+    assert "✓ [4/6] 写入 Markdown 内容包" in result.stdout
+    assert "✓ [5/6] 跳过图片下载" in result.stdout
+    assert "✓ [6/6] 保存转换报告" in result.stdout
+
+
+def test_convert_command_can_print_english_progress_from_ui_config(monkeypatch, tmp_path: Path):
+    html = """
+    <html>
+      <head><meta property="og:title" content="Progress Article"></head>
+      <body><article><p>Body</p></article></body>
+    </html>
+    """
+    config_path = tmp_path / ".magicmd.toml"
+    config_path.write_text(
+        """
+        [ui]
+        language = "en-US"
+        """,
+        encoding="utf-8",
+    )
+    monkeypatch.setattr("magicmd.cli.fetch_for_platform", lambda url, platform, config_path: html)
+
+    result = runner.invoke(
+        app,
+        [
+            "convert",
+            "https://juejin.cn/post/demo",
+            "--output",
+            str(tmp_path),
+            "--config",
+            str(config_path),
+            "--no-images",
+        ],
+    )
+
+    assert result.exit_code == 0
     assert "✓ [1/6] Detecting platform" in result.stdout
     assert "✓ [2/6] Fetching article" in result.stdout
     assert "✓ [3/6] Parsing article" in result.stdout
     assert "✓ [4/6] Writing Markdown package" in result.stdout
     assert "✓ [5/6] Skipping image download" in result.stdout
     assert "✓ [6/6] Saving extraction report" in result.stdout
+    assert "Created output package" in result.stdout
 
 
 def test_progress_reporter_prints_green_completion():
@@ -612,7 +652,7 @@ def test_batch_command_writes_quality_report(monkeypatch, tmp_path: Path):
     assert report["summary"]["ok"] == 1
     assert report["summary"]["failed"] == 1
     assert (tmp_path / "batch-report.md").exists()
-    assert "Batch report" in result.stdout
+    assert "批量报告" in result.stdout
 
 
 def test_batch_command_passes_overwrite_to_convert_url(monkeypatch, tmp_path: Path):
@@ -678,7 +718,7 @@ def test_batch_command_skip_existing_uses_existing_package(monkeypatch, tmp_path
     result = runner.invoke(app, ["batch", str(urls), "--output", str(tmp_path), "--skip-existing"])
 
     assert result.exit_code == 0
-    assert f"SKIP {url} -> {package}" in result.stdout
+    assert f"跳过 {url} -> {package}" in result.stdout
     report = json.loads((tmp_path / "batch-report.json").read_text(encoding="utf-8"))
     assert report["summary"]["skipped"] == 1
     item = report["items"][0]
@@ -737,7 +777,7 @@ def test_batch_command_skip_existing_uses_configured_output_names(monkeypatch, t
     )
 
     assert result.exit_code == 0
-    assert f"SKIP {url} -> {package}" in result.stdout
+    assert f"跳过 {url} -> {package}" in result.stdout
     report = json.loads((tmp_path / "batch-report.json").read_text(encoding="utf-8"))
     assert report["summary"]["skipped"] == 1
     assert report["items"][0]["package_dir"] == str(package)
