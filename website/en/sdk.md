@@ -94,6 +94,8 @@ print(result.docx_path)
 | `published_at`                 | Publish time when MagicMD can extract it.                      |
 | `markdown`                     | Converted Markdown body.                                       |
 | `content_hash`                 | Content hash for deduplication.                                |
+| `metadata.cover_image`         | WeChat article cover asset; empty when unavailable.            |
+| `metadata.share_cover_image`   | WeChat 1:1 share thumbnail asset; empty when unavailable.      |
 | `images`                       | Image asset list.                                              |
 | `warnings`                     | Fetch, parse, or media warnings.                               |
 | `metadata`                     | Structured data aligned with `metadata.json`.                  |
@@ -109,6 +111,8 @@ Two image fields are easy to confuse:
 | `local_path`    | The actual downloaded file path on disk.         |
 
 External systems usually copy the file at `local_path` into their own media directory, then replace `markdown_path` in the Markdown with the new public URL.
+
+WeChat cover assets live in `metadata.cover_image` and `metadata.share_cover_image`; they use the same `source_url`, `local_path`, and `alt` shape. They describe article card media and are not inserted into the Markdown body.
 
 ## Error Handling
 

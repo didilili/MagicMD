@@ -36,6 +36,8 @@ class Article(BaseModel):
     content_markdown: str = ""
     content_html: str = ""
     content_hash: str = ""
+    cover_image: ImageAsset | None = None
+    share_cover_image: ImageAsset | None = None
     images: list[ImageAsset] = Field(default_factory=list)
     extraction: ExtractionInfo
 
@@ -50,6 +52,10 @@ class Article(BaseModel):
             "excerpt": self.excerpt,
             "language": self.language,
             "content_hash": self.content_hash,
+            "cover_image": self.cover_image.model_dump() if self.cover_image else None,
+            "share_cover_image": (
+                self.share_cover_image.model_dump() if self.share_cover_image else None
+            ),
             "images": [image.model_dump() for image in self.images],
             "extraction": self.extraction.model_dump(),
         }

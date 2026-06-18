@@ -136,6 +136,61 @@ def test_download_images_honors_markdown_path_template(monkeypatch, tmp_path):
     assert "![Image](/static/assets/images/cover_01.png)" in next_article.content_markdown
 
 
+def test_download_images_saves_cover_images_without_rewriting_markdown(monkeypatch, tmp_path):
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, headers={"content-type": "image/jpeg"}, content=b"image")
+
+    article = Article(
+        title="封面文章",
+        platform="wechat",
+        source_url="https://mp.weixin.qq.com/s/demo",
+        content_markdown="正文\n\n![Image](https://example.com/body.jpg)",
+        cover_image=ImageAsset(source_url="https://example.com/cover.jpg", alt="cover"),
+        share_cover_image=ImageAsset(source_url="https://example.com/share.jpg", alt="share cover"),
+        images=[ImageAsset(source_url="https://example.com/body.jpg")],
+        extraction=ExtractionInfo(platform="wechat", parser="wechat"),
+    )
+    monkeypatch.setattr("magicmd.assets._image_transport", lambda: httpx.MockTransport(handler))
+
+    next_article = download_images(article, tmp_path)
+
+    assert (tmp_path / "images" / "img_001.jpg").exists()
+    assert (tmp_path / "images" / "cover.jpg").exists()
+    assert (tmp_path / "images" / "share_cover.jpg").exists()
+    assert next_article.images[0].local_path == "images/img_001.jpg"
+    assert next_article.cover_image is not None
+    assert next_article.cover_image.local_path == "images/cover.jpg"
+    assert next_article.share_cover_image is not None
+    assert next_article.share_cover_image.local_path == "images/share_cover.jpg"
+    assert "![Image](images/img_001.jpg)" in next_article.content_markdown
+    assert "cover.jpg" not in next_article.content_markdown
+    assert "share_cover.jpg" not in next_article.content_markdown
+
+
+def test_download_images_saves_cover_images_without_touching_markdown_when_body_has_no_images(
+    monkeypatch, tmp_path
+):
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, headers={"content-type": "image/jpeg"}, content=b"image")
+
+    article = Article(
+        title="纯封面文章",
+        platform="wechat",
+        source_url="https://mp.weixin.qq.com/s/demo",
+        content_markdown="正文\n\n",
+        cover_image=ImageAsset(source_url="https://example.com/cover.jpg", alt="cover"),
+        extraction=ExtractionInfo(platform="wechat", parser="wechat"),
+    )
+    monkeypatch.setattr("magicmd.assets._image_transport", lambda: httpx.MockTransport(handler))
+
+    next_article = download_images(article, tmp_path)
+
+    assert (tmp_path / "images" / "cover.jpg").exists()
+    assert next_article.cover_image is not None
+    assert next_article.cover_image.local_path == "images/cover.jpg"
+    assert next_article.content_markdown == "正文\n\n"
+
+
 def test_download_images_keeps_pngs_invisible_on_white_background(monkeypatch, tmp_path):
     invisible_png = _gray_alpha_png(4, 4, gray=255, alpha=255)
 

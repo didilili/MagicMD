@@ -12,6 +12,16 @@ def test_article_metadata_dump_uses_stable_keys():
         excerpt="摘要",
         content_markdown="正文",
         content_html="<p>正文</p>",
+        cover_image=ImageAsset(
+            source_url="https://example.com/cover.jpg",
+            local_path="images/cover.jpg",
+            alt="cover",
+        ),
+        share_cover_image=ImageAsset(
+            source_url="https://example.com/share.jpg",
+            local_path="images/share_cover.jpg",
+            alt="share cover",
+        ),
         images=[
             ImageAsset(
                 source_url="https://example.com/a.png",
@@ -26,6 +36,8 @@ def test_article_metadata_dump_uses_stable_keys():
 
     assert data["title"] == "Codex 实战"
     assert data["platform"] == "wechat"
+    assert data["cover_image"]["local_path"] == "images/cover.jpg"
+    assert data["share_cover_image"]["source_url"] == "https://example.com/share.jpg"
     assert data["images"][0]["local_path"] == "images/img_001.png"
     assert data["extraction"]["status"] == "success"
     assert "content_markdown" not in data

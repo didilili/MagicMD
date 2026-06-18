@@ -31,6 +31,8 @@ output/article-title/
 ├── metadata.json
 ├── extraction-report.json
 └── images/
+    ├── cover.jpg
+    ├── share_cover.jpg
     ├── img_001.png
     └── img_002.png
 ```
@@ -243,6 +245,8 @@ print(result.report)
 | `excerpt`                           | 页面能提取到的摘要。                                                                                                                                                                                              |
 | `markdown`                          | 转换后的 Markdown 字符串。                                                                                                                                                                                        |
 | `content_hash`                      | 基于正文内容生成的 hash，方便去重。                                                                                                                                                                               |
+| `metadata.cover_image`              | 微信文章封面图资产，包含 `source_url`、`local_path`、`alt`；没有提取到时为空。封面图不会插入正文 Markdown。                                                                                                       |
+| `metadata.share_cover_image`        | 微信 1:1 分享缩略图资产，字段结构同 `cover_image`；没有提取到时为空。                                                                                                                                             |
 | `images`                            | 图片资产列表，包含 `source_url`、`local_path`、`markdown_path`、`alt`。`markdown_path` 是 Markdown 中实际引用的路径；`local_path` 是本地已下载图片的文件系统路径，方便外部系统复制到自己的 media 目录后重写链接。 |
 | `warnings`                          | 抓取、解析、媒体下载中的 warning。                                                                                                                                                                                |
 | `metadata`                          | 与 `metadata.json` 对齐的结构化数据。                                                                                                                                                                             |
@@ -288,10 +292,12 @@ except ParseError:
 output/
 └── article-title/
     ├── article.md              # Markdown 正文
-    ├── metadata.json           # 标题、作者、时间、来源、hash 等
+    ├── metadata.json           # 标题、作者、时间、来源、封面、hash 等
     ├── extraction-report.json  # 抓取、解析、媒体和 warning
     └── images/                 # 下载后的本地图片
 ```
+
+微信公众号文章如果能提取到文章卡片封面，`metadata.json` 会包含 `cover_image` 和 `share_cover_image`。开启图片下载时，它们会随正文图片保存到 `images/`，但不会被自动插入 `article.md`。
 
 批量转换会额外生成：
 

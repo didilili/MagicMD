@@ -8,6 +8,7 @@ dist/
 build/
 *.egg-info/
 output/
+outputs/
 debug.html
 .magicmd.toml
 .superpowers/

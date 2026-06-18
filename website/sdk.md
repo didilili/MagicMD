@@ -94,6 +94,8 @@ print(result.docx_path)
 | `published_at`                 | 发布时间，能提取到时返回。                             |
 | `markdown`                     | 转换后的 Markdown 正文。                               |
 | `content_hash`                 | 基于正文内容生成的 hash，适合去重。                    |
+| `metadata.cover_image`         | 微信文章封面图资产；没有提取到时为空。                 |
+| `metadata.share_cover_image`   | 微信 1:1 分享缩略图资产；没有提取到时为空。            |
 | `images`                       | 图片资产列表。                                         |
 | `warnings`                     | 抓取、解析或媒体下载中的 warning。                     |
 | `metadata`                     | 与 `metadata.json` 对齐的结构化数据。                  |
@@ -109,6 +111,8 @@ print(result.docx_path)
 | `local_path`    | 图片下载到本机后的真实文件路径。    |
 
 外部系统通常先把 `local_path` 对应的文件复制到自己的 media 目录，再用新的公开 URL 替换 Markdown 里的 `markdown_path`。
+
+微信封面图在 `metadata.cover_image` 和 `metadata.share_cover_image` 中，字段结构同样包含 `source_url`、`local_path` 和 `alt`。它们属于文章卡片资产，不会自动插入 Markdown 正文。
 
 ## 错误处理
 

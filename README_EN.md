@@ -31,6 +31,8 @@ output/article-title/
 ├── metadata.json
 ├── extraction-report.json
 └── images/
+    ├── cover.jpg
+    ├── share_cover.jpg
     ├── img_001.png
     └── img_002.png
 ```
@@ -243,6 +245,8 @@ print(result.report)
 | `excerpt`                           | Extracted page summary when available.                                                                                                                                                                                                                                         |
 | `markdown`                          | Converted Markdown string.                                                                                                                                                                                                                                                     |
 | `content_hash`                      | Hash of the article body for deduplication.                                                                                                                                                                                                                                    |
+| `metadata.cover_image`              | WeChat article cover asset with `source_url`, `local_path`, and `alt`; empty when unavailable. Cover assets are not inserted into the Markdown body.                                                                                                                           |
+| `metadata.share_cover_image`        | WeChat 1:1 share thumbnail asset with the same shape as `cover_image`; empty when unavailable.                                                                                                                                                                                 |
 | `images`                            | Image assets with `source_url`, `local_path`, `markdown_path`, and `alt`. `markdown_path` is the path currently referenced by Markdown; `local_path` is the downloaded filesystem path so external systems can copy the file into their own media directory and rewrite links. |
 | `warnings`                          | Fetch, parse, and media warnings.                                                                                                                                                                                                                                              |
 | `metadata`                          | Structured data aligned with `metadata.json`.                                                                                                                                                                                                                                  |
@@ -288,10 +292,12 @@ A single conversion writes one content package:
 output/
 └── article-title/
     ├── article.md              # Markdown article
-    ├── metadata.json           # Title, author, time, source, hash, and more
+    ├── metadata.json           # Title, author, time, source, covers, hash, and more
     ├── extraction-report.json  # Fetch, parse, media, and warning details
     └── images/                 # Downloaded local images
 ```
+
+When MagicMD can extract WeChat card covers, `metadata.json` includes `cover_image` and `share_cover_image`. If image downloads are enabled, those assets are saved under `images/` alongside body images, without being inserted into `article.md`.
 
 Batch conversion also writes:
 

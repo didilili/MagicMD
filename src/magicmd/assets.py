@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 import re
 from pathlib import Path
 
@@ -131,7 +132,7 @@ def download_images(
     filename_pattern: str = "img_{index:03d}.{ext}",
     markdown_path_pattern: str = "{directory}/{filename}",
 ) -> Article:
-    if not article.images:
+    if not article.images and not article.cover_image and not article.share_cover_image:
         return article
     image_dir = package_dir / image_dir_name
     image_dir.mkdir(parents=True, exist_ok=True)
@@ -143,32 +144,94 @@ def download_images(
         client_kwargs["transport"] = transport
     with httpx.Client(**client_kwargs) as client:
         for image in article.images:
-            url = (
-                image.source_url
-                if not image.source_url.startswith("//")
-                else f"https:{image.source_url}"
-            )
-            try:
-                response = client.get(url, headers={"Referer": article.source_url})
-                response.raise_for_status()
-                ext = infer_image_extension(url, response.headers.get("content-type", ""))
-                saved_index = len(next_images) + 1
-                filename = filename_pattern.format(index=saved_index, ext=ext)
-                saved_path = image_dir / filename
-                local_path = markdown_path_pattern.format(
-                    directory=image_dir_name,
-                    filename=filename,
-                    index=saved_index,
-                    ext=ext,
+            saved_index = len(next_images) + 1
+
+            def filename_from_pattern(ext: str, index: int = saved_index) -> str:
+                return filename_pattern.format(index=index, ext=ext)
+
+            next_images.append(
+                _download_image_asset(
+                    client,
+                    image,
+                    article,
+                    image_dir,
+                    image_dir_name,
+                    filename_from_pattern,
+                    markdown_path_pattern,
+                    warnings,
+                    local_path_index=saved_index,
                 )
-                saved_path.write_bytes(response.content)
-                next_images.append(image.model_copy(update={"local_path": local_path}))
-            except Exception as exc:
-                warnings.append(f"image_download_failed:{url}:{exc}")
-                next_images.append(image)
-    next_article = article.model_copy(update={"images": next_images})
-    next_article.content_markdown = rewrite_markdown_image_links(
-        next_article.content_markdown, next_images
+            )
+        cover_local_path_index = len(next_images) + 1
+        share_cover_local_path_index = cover_local_path_index + (1 if article.cover_image else 0)
+        cover_image = _download_image_asset(
+            client,
+            article.cover_image,
+            article,
+            image_dir,
+            image_dir_name,
+            lambda ext: f"cover.{ext}",
+            markdown_path_pattern,
+            warnings,
+            local_path_index=cover_local_path_index,
+            warning_prefix="cover_image_download_failed",
+        )
+        share_cover_image = _download_image_asset(
+            client,
+            article.share_cover_image,
+            article,
+            image_dir,
+            image_dir_name,
+            lambda ext: f"share_cover.{ext}",
+            markdown_path_pattern,
+            warnings,
+            local_path_index=share_cover_local_path_index,
+            warning_prefix="share_cover_image_download_failed",
+        )
+    next_article = article.model_copy(
+        update={
+            "cover_image": cover_image,
+            "share_cover_image": share_cover_image,
+            "images": next_images,
+        }
     )
+    if next_images:
+        next_article.content_markdown = rewrite_markdown_image_links(
+            next_article.content_markdown, next_images
+        )
     next_article.extraction.warnings = warnings
     return next_article
+
+
+def _download_image_asset(
+    client: httpx.Client,
+    image: ImageAsset | None,
+    article: Article,
+    image_dir: Path,
+    image_dir_name: str,
+    filename_builder: Callable[[str], str],
+    markdown_path_pattern: str,
+    warnings: list[str],
+    local_path_index: int,
+    warning_prefix: str = "image_download_failed",
+) -> ImageAsset | None:
+    if image is None:
+        return None
+    url = image.source_url if not image.source_url.startswith("//") else f"https:{image.source_url}"
+    try:
+        response = client.get(url, headers={"Referer": article.source_url})
+        response.raise_for_status()
+        ext = infer_image_extension(url, response.headers.get("content-type", ""))
+        filename = filename_builder(ext)
+        saved_path = image_dir / filename
+        local_path = markdown_path_pattern.format(
+            directory=image_dir_name,
+            filename=filename,
+            index=local_path_index,
+            ext=ext,
+        )
+        saved_path.write_bytes(response.content)
+        return image.model_copy(update={"local_path": local_path})
+    except Exception as exc:
+        warnings.append(f"{warning_prefix}:{url}:{exc}")
+        return image

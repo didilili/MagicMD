@@ -19,6 +19,80 @@ def test_parse_wechat_html_extracts_title_author_body_and_images():
     assert article.images[0].source_url == "https://example.com/wechat.png"
 
 
+def test_parse_wechat_html_extracts_cover_images_from_metadata_and_scripts():
+    html = """
+    <html>
+      <head>
+        <meta property="og:image" content="http://mmbiz.qpic.cn/cover/0?wx_fmt=jpeg" />
+        <script>
+          var msg_cdn_url = "http://mmbiz.qpic.cn/fallback/0?wx_fmt=jpeg";
+          var cdn_url_1_1 = "http://mmbiz.qpic.cn/share/0?wx_fmt=png";
+        </script>
+      </head>
+      <body>
+        <h1 id="activity-name">带封面文章</h1>
+        <div id="js_content"><p>正文</p></div>
+      </body>
+    </html>
+    """
+
+    article = parse_wechat_html(html, "https://mp.weixin.qq.com/s/cover")
+
+    assert article.cover_image is not None
+    assert article.cover_image.source_url == "https://mmbiz.qpic.cn/cover/0?wx_fmt=jpeg"
+    assert article.share_cover_image is not None
+    assert article.share_cover_image.source_url == "https://mmbiz.qpic.cn/share/0?wx_fmt=png"
+    assert "cover/0" not in article.content_markdown
+
+
+def test_parse_wechat_html_prefers_wechat_wide_cover_over_square_open_graph_image():
+    html = """
+    <html>
+      <head>
+        <meta property="og:image" content="https://mmbiz.qpic.cn/square/0?wx_fmt=jpeg" />
+        <script>
+          var msg_cdn_url = "https://mmbiz.qpic.cn/square/0?wx_fmt=jpeg";
+          var cdn_url_1_1 = "https://mmbiz.qpic.cn/square/0?wx_fmt=jpeg";
+          cdn_url_235_1 = "https://mmbiz.qpic.cn/wide/0?wx_fmt=jpeg";
+        </script>
+      </head>
+      <body>
+        <h1 id="activity-name">横版封面文章</h1>
+        <div id="js_content"><p>正文</p></div>
+      </body>
+    </html>
+    """
+
+    article = parse_wechat_html(html, "https://mp.weixin.qq.com/s/wide-cover")
+
+    assert article.cover_image is not None
+    assert article.cover_image.source_url == "https://mmbiz.qpic.cn/wide/0?wx_fmt=jpeg"
+    assert article.share_cover_image is not None
+    assert article.share_cover_image.source_url == "https://mmbiz.qpic.cn/square/0?wx_fmt=jpeg"
+
+
+def test_parse_wechat_html_uses_msg_cdn_url_when_open_graph_cover_is_missing():
+    html = """
+    <html>
+      <head>
+        <script>
+          var msg_cdn_url = "http://mmbiz.qpic.cn/script-cover/0?wx_fmt=jpeg";
+        </script>
+      </head>
+      <body>
+        <h1 id="activity-name">脚本封面文章</h1>
+        <div id="js_content"><p>正文</p></div>
+      </body>
+    </html>
+    """
+
+    article = parse_wechat_html(html, "https://mp.weixin.qq.com/s/script-cover")
+
+    assert article.cover_image is not None
+    assert article.cover_image.source_url == ("https://mmbiz.qpic.cn/script-cover/0?wx_fmt=jpeg")
+    assert article.share_cover_image is None
+
+
 def test_parse_wechat_html_normalizes_rich_sections_styles_and_images():
     html = """
     <html>
