@@ -1349,10 +1349,68 @@ def test_publish_github_missing_token_reports_cli_error_without_traceback(
     assert "Traceback" not in rendered
 
 
+def test_publish_github_real_publish_reads_dotenv_next_to_config(monkeypatch, tmp_path: Path):
+    package_dir = tmp_path / "package"
+    package_dir.mkdir()
+    (package_dir / "article.md").write_text("# Publish With Dotenv\n", encoding="utf-8")
+    config_path = tmp_path / ".magicmd.toml"
+    config_path.write_text(
+        """
+        [publish.github]
+        repo = "owner/repo"
+        target_dir = "content/posts"
+        """,
+        encoding="utf-8",
+    )
+    (tmp_path / ".env").write_text("GITHUB_TOKEN=dotenv-token\n", encoding="utf-8")
+    monkeypatch.delenv("GITHUB_TOKEN", raising=False)
+    calls = {}
+
+    def fake_convert_article(**kwargs):
+        return ArticleConversionResult(
+            title="Publish With Dotenv",
+            platform="wechat",
+            source_url=kwargs["url"],
+            markdown="# Publish With Dotenv\n",
+            content_hash="abc123456",
+            package_dir=str(package_dir),
+        )
+
+    def fake_publish_to_github(plan, token=None):
+        calls["plan"] = plan
+        calls["token"] = token
+
+        class Result:
+            commit_sha = "abc123"
+            branch = plan.branch
+            pr_url = ""
+
+        return Result()
+
+    monkeypatch.setattr("magicmd.cli.convert_article", fake_convert_article)
+    monkeypatch.setattr("magicmd.cli.publish_to_github", fake_publish_to_github)
+
+    result = runner.invoke(
+        app,
+        [
+            "publish",
+            "github",
+            "https://mp.weixin.qq.com/s/example",
+            "--config",
+            str(config_path),
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert calls["plan"].repo == "owner/repo"
+    assert calls["token"] == "dotenv-token"
+
+
 def test_publish_github_real_publish_calls_publisher(monkeypatch, tmp_path: Path):
     package_dir = tmp_path / "package"
     package_dir.mkdir()
     (package_dir / "article.md").write_text("# Publish\n", encoding="utf-8")
+    monkeypatch.setenv("GITHUB_TOKEN", "test-token")
     calls = {}
 
     def fake_convert_article(**kwargs):
@@ -1402,6 +1460,7 @@ def test_publish_github_pr_outputs_pr_url(monkeypatch, tmp_path: Path):
     package_dir = tmp_path / "package"
     package_dir.mkdir()
     (package_dir / "article.md").write_text("# Publish PR\n", encoding="utf-8")
+    monkeypatch.setenv("GITHUB_TOKEN", "test-token")
 
     def fake_convert_article(**kwargs):
         return ArticleConversionResult(

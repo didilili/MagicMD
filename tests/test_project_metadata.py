@@ -116,6 +116,8 @@ def test_publish_workflow_documented_on_website():
     assert "看懂 dry-run 输出" in publish_doc
     assert "debug.html" in publish_doc
     assert "target_dir" in publish_doc
+    assert "GITHUB_TOKEN=ghp_xxx" in publish_doc
+    assert ".env" in publish_doc
     assert "magicmd publish github" in english_quick_start
     assert "[publish.github]" in english_config_doc
     assert "Recommended path: configure first, publish later" in english_publish_doc
@@ -125,3 +127,5 @@ def test_publish_workflow_documented_on_website():
     assert "Read the dry-run output" in english_publish_doc
     assert "debug.html" in english_publish_doc
     assert "target_dir" in english_publish_doc
+    assert "GITHUB_TOKEN=ghp_xxx" in english_publish_doc
+    assert ".env" in english_publish_doc

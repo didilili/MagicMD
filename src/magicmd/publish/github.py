@@ -131,11 +131,53 @@ def publish_to_git_worktree(plan: PublishPlan, repo_dir: Path) -> PublishResult:
     )
 
 
-def require_github_token(token: str | None = None) -> str:
+def _parse_dotenv_value(value: str) -> str:
+    value = value.strip()
+    if not value:
+        return ""
+    if value[0] in {"'", '"'}:
+        quote = value[0]
+        closing_index = value.find(quote, 1)
+        if closing_index == -1:
+            return value[1:]
+        return value[1:closing_index]
+    marker = value.find(" #")
+    if marker != -1:
+        value = value[:marker]
+    return value.strip()
+
+
+def load_dotenv_values(path: str | Path = ".env") -> dict[str, str]:
+    dotenv_path = Path(path)
+    if not dotenv_path.exists() or not dotenv_path.is_file():
+        return {}
+
+    values: dict[str, str] = {}
+    for raw_line in dotenv_path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#"):
+            continue
+        if line.startswith("export "):
+            line = line.removeprefix("export ").lstrip()
+        key, separator, value = line.partition("=")
+        key = key.strip()
+        if not separator or not key or any(character.isspace() for character in key):
+            continue
+        values[key] = _parse_dotenv_value(value)
+    return values
+
+
+def require_github_token(
+    token: str | None = None,
+    dotenv_path: str | Path | None = None,
+) -> str:
     resolved = token or os.environ.get("GITHUB_TOKEN", "")
     if not resolved:
+        resolved = load_dotenv_values(dotenv_path or ".env").get("GITHUB_TOKEN", "")
+    if not resolved:
         raise PublishGitHubError(
-            "GITHUB_TOKEN is required for real GitHub publishing. Use --dry-run to preview only."
+            "GITHUB_TOKEN is required for real GitHub publishing. "
+            "Set it in the environment or project .env. Use --dry-run to preview only."
         )
     return resolved
 

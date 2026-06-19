@@ -134,9 +134,7 @@ def load_config(path: str | Path | None = None) -> MagicMDConfig:
     from magicmd.presets import apply_preset
 
     default = MagicMDConfig().model_dump()
-    if not path:
-        return apply_preset(MagicMDConfig.model_validate(default))
-    config_path = Path(path)
+    config_path = Path(path) if path else Path(".magicmd.toml")
     if not config_path.exists():
         return apply_preset(MagicMDConfig.model_validate(default))
     loaded = tomllib.loads(config_path.read_text(encoding="utf-8"))

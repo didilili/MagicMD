@@ -9,6 +9,7 @@ from magicmd.publish.github import (
     build_authenticated_remote_url,
     build_github_remote_url,
     create_github_pull_request,
+    load_dotenv_values,
     mask_token,
     publish_to_github,
     publish_to_git_worktree,
@@ -174,6 +175,46 @@ def test_require_github_token_rejects_missing_token(monkeypatch):
 
     with pytest.raises(Exception, match="GITHUB_TOKEN"):
         require_github_token()
+
+
+def test_require_github_token_reads_project_dotenv(monkeypatch, tmp_path: Path):
+    monkeypatch.delenv("GITHUB_TOKEN", raising=False)
+    dotenv_path = tmp_path / ".env"
+    dotenv_path.write_text(
+        """
+        # Local publishing token
+        GITHUB_TOKEN="dotenv-token"
+        """,
+        encoding="utf-8",
+    )
+
+    assert require_github_token(dotenv_path=dotenv_path) == "dotenv-token"
+
+
+def test_require_github_token_prefers_environment_over_dotenv(monkeypatch, tmp_path: Path):
+    monkeypatch.setenv("GITHUB_TOKEN", "environment-token")
+    dotenv_path = tmp_path / ".env"
+    dotenv_path.write_text("GITHUB_TOKEN=dotenv-token\n", encoding="utf-8")
+
+    assert require_github_token(dotenv_path=dotenv_path) == "environment-token"
+
+
+def test_load_dotenv_values_ignores_comments_and_supports_export(tmp_path: Path):
+    dotenv_path = tmp_path / ".env"
+    dotenv_path.write_text(
+        """
+        # ignored
+        export GITHUB_TOKEN=dotenv-token # local only
+        INVALID LINE
+        OTHER='quoted value'
+        """,
+        encoding="utf-8",
+    )
+
+    assert load_dotenv_values(dotenv_path) == {
+        "GITHUB_TOKEN": "dotenv-token",
+        "OTHER": "quoted value",
+    }
 
 
 def test_create_github_pull_request_uses_default_branch():

@@ -111,12 +111,15 @@ magicmd publish github "https://mp.weixin.qq.com/s/example" --dry-run
 
 After checking the repository, branch, target path, and file list, publish it:
 
+```dotenv
+GITHUB_TOKEN=ghp_xxx
+```
+
 ```bash
-export GITHUB_TOKEN=ghp_xxx
 magicmd publish github "https://mp.weixin.qq.com/s/example" --pr
 ```
 
-Real publishing requires `GITHUB_TOKEN`. Dry-run mode does not need a token and does not create branches, commits, pushes, or Pull Requests. If dry-run shows the URL as the title, uses an `undated` directory, or includes `debug.html`, read the [troubleshooting notes in the publishing guide](/en/publish-github#spot-a-bad-publish-plan) before publishing for real.
+Real publishing requires `GITHUB_TOKEN`. Put it in `.env` at the project root and MagicMD reads it automatically. Dry-run mode does not need a token and does not create branches, commits, pushes, or Pull Requests. If dry-run shows the URL as the title, uses an `undated` directory, or includes `debug.html`, read the [troubleshooting notes in the publishing guide](/en/publish-github#spot-a-bad-publish-plan) before publishing for real.
 
 ## 7. Call MagicMD from Python
 

@@ -49,6 +49,24 @@ def test_load_config_defaults_cli_ui_language_to_chinese():
     assert config.ui.language == "zh-CN"
 
 
+def test_load_config_reads_default_magicmd_toml_from_current_directory(monkeypatch, tmp_path: Path):
+    config_path = tmp_path / ".magicmd.toml"
+    config_path.write_text(
+        """
+        [publish.github]
+        repo = "didilili/content"
+        target_dir = "content/posts"
+        """,
+        encoding="utf-8",
+    )
+    monkeypatch.chdir(tmp_path)
+
+    config = load_config()
+
+    assert config.publish.github.repo == "didilili/content"
+    assert config.publish.github.target_dir == "content/posts"
+
+
 def test_load_config_accepts_cli_ui_language(tmp_path: Path):
     config_path = tmp_path / ".magicmd.toml"
     config_path.write_text(

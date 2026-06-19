@@ -5,10 +5,10 @@ description: 使用 MagicMD 将公开文章转换成 Markdown 内容包，并发
 
 # 发布到 GitHub 内容仓库
 
-MagicMD 的 GitHub 发布工作流不是让你每次手敲一长串参数。更自然的方式是：先把目标仓库、目录、分支和提交信息写进 `.magicmd.toml`，以后日常发布只需要传文章链接。
+MagicMD 的 GitHub 发布工作流不是让你每次手敲一长串参数。更自然的方式是：把目标仓库、目录、分支和提交信息写进 `.magicmd.toml`，把本地密钥写进 `.env`，以后日常发布只需要传文章链接。
 
 ```text
-配置一次内容仓库 -> dry-run 预览 -> 发布到分支 -> 可选创建 Pull Request
+配置一次内容仓库 -> 保存一次本地 token -> dry-run 预览 -> 发布到分支 -> 可选创建 Pull Request
 ```
 
 ## 推荐路径：先配置，再发布
@@ -27,6 +27,14 @@ overwrite = false
 
 把 `owner/content` 换成你的真实内容仓库，例如 `didilili/blog-content`。把 `content/posts` 换成目标仓库里真正存放文章的目录。
 
+然后在同一个项目根目录创建 `.env`，保存 GitHub token：
+
+```dotenv
+GITHUB_TOKEN=ghp_xxx
+```
+
+`.env` 是本机私密文件，不要提交到 git。MagicMD 会在真实发布时自动读取它；dry-run 不需要 token。
+
 配置好之后，日常预览只需要：
 
 ```bash
@@ -36,7 +44,6 @@ magicmd publish github "https://mp.weixin.qq.com/s/example" --dry-run
 确认 dry-run 输出正常后，真实发布也只需要：
 
 ```bash
-export GITHUB_TOKEN=ghp_xxx
 magicmd publish github "https://mp.weixin.qq.com/s/example" --pr
 ```
 
@@ -167,11 +174,15 @@ dry-run 的价值就在这里：它让你在写入 GitHub 之前发现问题。
 
 ## 第三步：真实发布
 
-确认 dry-run 输出正常后，再设置 `GITHUB_TOKEN` 并去掉 `--dry-run`：
+确认 dry-run 输出正常后，去掉 `--dry-run` 即可真实发布。推荐把 token 放在项目根目录的 `.env`：
+
+```dotenv
+GITHUB_TOKEN=ghp_xxx
+```
+
+然后运行：
 
 ```bash
-export GITHUB_TOKEN=ghp_xxx
-
 magicmd publish github "https://mp.weixin.qq.com/s/example"
 ```
 
@@ -186,19 +197,24 @@ magicmd publish github "https://mp.weixin.qq.com/s/example"
 6. push 到 GitHub
 ```
 
-`GITHUB_TOKEN` 不会写入 `.magicmd.toml`，也不会写进 git remote URL。请只通过环境变量传入 token。
+`GITHUB_TOKEN` 不会写入 `.magicmd.toml`，也不会写进 git remote URL。MagicMD 会优先读取当前环境变量；如果没有，再读取 `.env`。如果你使用 `--config path/to/.magicmd.toml`，MagicMD 会读取同目录下的 `.env`。
 
 ## 创建 Pull Request
 
 如果希望 MagicMD 在 push 后自动创建 Pull Request，推荐在命令里加 `--pr`：
 
 ```bash
-export GITHUB_TOKEN=ghp_xxx
-
 magicmd publish github "https://mp.weixin.qq.com/s/example" --pr
 ```
 
-成功后终端会输出分支、commit 和 Pull Request 链接。PR 的目标分支是仓库默认分支。
+成功后终端会输出分支、commit 和 Pull Request 链接。PR 的目标分支是仓库默认分支。如果你已经在 `.magicmd.toml` 里设置 `create_pr = true`，这条命令也可以不加 `--pr`。
+
+如果你只是临时发布一次，也可以不用 `.env`，改成当前终端临时设置：
+
+```bash
+export GITHUB_TOKEN=ghp_xxx
+magicmd publish github "https://mp.weixin.qq.com/s/example" --pr
+```
 
 ## 临时覆盖配置
 
@@ -230,7 +246,7 @@ magicmd publish github "https://mp.weixin.qq.com/s/example" \
 - push 到发布分支
 - 如果使用 `--pr`，还需要创建 Pull Request
 
-如果使用 fine-grained token，建议只授权目标仓库，并给内容写入和 Pull Request 创建所需的最小权限。不要把 token 写进配置文件、README、shell 历史记录或仓库。
+如果使用 fine-grained token，建议只授权目标仓库，并给内容写入和 Pull Request 创建所需的最小权限。不要把 token 写进 `.magicmd.toml`、README、shell 历史记录或仓库。推荐放在本地 `.env`，并确认 `.env` 没有被提交。
 
 ## 常见问题
 
@@ -255,14 +271,16 @@ magicmd publish github "https://mp.weixin.qq.com/s/example" \
 dry-run 不需要 token。真实发布时如果缺少 token，会看到：
 
 ```text
-GITHUB_TOKEN is required for real GitHub publishing. Use --dry-run to preview only.
+GITHUB_TOKEN is required for real GitHub publishing. Set it in the environment or project .env. Use --dry-run to preview only.
 ```
 
-设置环境变量后重试：
+推荐在项目根目录创建 `.env` 后重试：
 
-```bash
-export GITHUB_TOKEN=ghp_xxx
+```dotenv
+GITHUB_TOKEN=ghp_xxx
 ```
+
+如果你使用 `--config path/to/.magicmd.toml`，`.env` 也放在这份配置文件同目录。
 
 ### 目标目录已有文件
 
@@ -290,11 +308,11 @@ magicmd publish github "https://mp.weixin.qq.com/s/example" --overwrite
 ```text
 1. 用配置生成器生成 .magicmd.toml
 2. 确认 [publish.github] 指向真实内容仓库
-3. 复制真实公开文章链接
-4. 运行 magicmd publish github URL --dry-run
-5. 检查标题、目录、分支、文件列表
-6. 打开本地 article.md 复核正文
-7. 设置 GITHUB_TOKEN
+3. 在项目根目录创建 .env，并写入 GITHUB_TOKEN
+4. 复制真实公开文章链接
+5. 运行 magicmd publish github URL --dry-run
+6. 检查标题、目录、分支、文件列表
+7. 打开本地 article.md 复核正文
 8. 运行 magicmd publish github URL --pr
 9. 在 GitHub 上 review 并 merge
 ```

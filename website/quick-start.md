@@ -111,12 +111,15 @@ magicmd publish github "https://mp.weixin.qq.com/s/example" --dry-run
 
 确认目标仓库、分支、目录和文件列表后，再执行实际发布：
 
+```dotenv
+GITHUB_TOKEN=ghp_xxx
+```
+
 ```bash
-export GITHUB_TOKEN=ghp_xxx
 magicmd publish github "https://mp.weixin.qq.com/s/example" --pr
 ```
 
-真实发布需要 `GITHUB_TOKEN`。dry-run 不需要 token，也不会创建分支、提交、push 或 Pull Request。如果 dry-run 里标题还是 URL、目录出现 `undated`，或者文件列表包含 `debug.html`，先查看 [GitHub 发布教程的排查说明](/publish-github#识别异常计划)，不要急着真实发布。
+真实发布需要 `GITHUB_TOKEN`。推荐把它放在项目根目录的 `.env`，MagicMD 会自动读取；dry-run 不需要 token，也不会创建分支、提交、push 或 Pull Request。如果 dry-run 里标题还是 URL、目录出现 `undated`，或者文件列表包含 `debug.html`，先查看 [GitHub 发布教程的排查说明](/publish-github#识别异常计划)，不要急着真实发布。
 
 ## 7. 在程序里调用
 

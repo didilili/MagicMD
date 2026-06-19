@@ -33,7 +33,7 @@ from magicmd.quality import (
     build_skipped_quality,
     write_batch_report,
 )
-from magicmd.publish.github import publish_to_github
+from magicmd.publish.github import publish_to_github, require_github_token
 from magicmd.publish.models import GithubPublishOptions
 from magicmd.publish.planner import build_github_publish_plan
 from magicmd.sdk import convert_article, download_configured_media
@@ -130,6 +130,12 @@ def _resolve_output(output: Path | None, config_path: Optional[Path]) -> Path:
     if output is not None:
         return output
     return Path(load_config(config_path).output.directory)
+
+
+def _resolve_dotenv_path(config_path: Optional[Path]) -> Path:
+    if config_path is not None:
+        return Path(config_path).expanduser().resolve().parent / ".env"
+    return Path(".env")
 
 
 def _display_path(path: str | Path) -> str:
@@ -385,7 +391,8 @@ def publish_github(
         if dry_run:
             typer.echo(_render_publish_plan(plan))
             return
-        published = publish_to_github(plan)
+        token = require_github_token(dotenv_path=_resolve_dotenv_path(config_path))
+        published = publish_to_github(plan, token=token)
     except (PublishError, ValueError) as exc:
         typer.echo(str(exc), err=True)
         raise typer.Exit(1) from exc

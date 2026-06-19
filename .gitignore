@@ -4,6 +4,9 @@ node_modules/
 __pycache__/
 .pytest_cache/
 .ruff_cache/
+.env
+.env.*
+!.env.example
 dist/
 build/
 *.egg-info/
