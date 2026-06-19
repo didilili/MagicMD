@@ -56,6 +56,7 @@ export default defineConfig({
           { text: 'Quick Start', link: '/en/quick-start' },
           { text: 'SDK', link: '/en/sdk' },
           { text: 'Agent Skill', link: '/en/agent-skill' },
+          { text: 'GitHub Publishing', link: '/en/publish-github' },
           { text: 'Config Builder', link: '/en/config-builder' },
           { text: 'Supported Sites', link: '/en/supported-sites' },
           {
@@ -74,6 +75,7 @@ export default defineConfig({
               { text: 'Quick Start', link: '/en/quick-start' },
               { text: 'SDK Integration', link: '/en/sdk' },
               { text: 'Agent Skill', link: '/en/agent-skill' },
+              { text: 'GitHub Publishing', link: '/en/publish-github' },
               { text: 'Config Builder', link: '/en/config-builder' },
               { text: 'Configuration', link: '/en/config' }
             ]
@@ -120,6 +122,7 @@ export default defineConfig({
       { text: '快速开始', link: '/quick-start' },
       { text: 'SDK 接入', link: '/sdk' },
       { text: 'Agent Skill', link: '/agent-skill' },
+      { text: 'GitHub 发布', link: '/publish-github' },
       { text: '配置生成器', link: '/config-builder' },
       { text: '支持站点', link: '/supported-sites' },
       {
@@ -138,6 +141,7 @@ export default defineConfig({
           { text: '快速开始', link: '/quick-start' },
           { text: 'SDK 接入', link: '/sdk' },
           { text: 'Agent Skill', link: '/agent-skill' },
+          { text: 'GitHub 发布', link: '/publish-github' },
           { text: '配置生成器', link: '/config-builder' },
           { text: '配置说明', link: '/config' }
         ]

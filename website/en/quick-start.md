@@ -101,6 +101,8 @@ You can also use the [Config Builder](/en/config-builder) to choose the publishi
 
 ## 6. Publish to a GitHub content repository
 
+Use this when you want to commit converted packages to a Hugo, Docusaurus, blog, or knowledge-base content repository. See [Publish to GitHub](/en/publish-github) for the full workflow.
+
 Preview the planned write first:
 
 ```bash
@@ -121,7 +123,7 @@ magicmd publish github "https://mp.weixin.qq.com/s/example" \
   --pr
 ```
 
-Real publishing requires `GITHUB_TOKEN`. Dry-run mode does not need a token and does not create branches, commits, pushes, or Pull Requests.
+Real publishing requires `GITHUB_TOKEN`. Dry-run mode does not need a token and does not create branches, commits, pushes, or Pull Requests. If dry-run shows the URL as the title, uses an `undated` directory, or includes `debug.html`, read the [troubleshooting notes in the publishing guide](/en/publish-github#spot-a-bad-publish-plan) before publishing for real.
 
 ## 7. Call MagicMD from Python
 

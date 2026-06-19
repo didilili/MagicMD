@@ -30,6 +30,8 @@ overwrite = false
 
 CLI 参数优先级高于配置文件；例如 `--repo` 会覆盖 `[publish.github].repo`。`magicmd publish github --dry-run` 不需要 token，真实发布需要设置 `GITHUB_TOKEN`。
 
+完整命令流程、dry-run 输出解读、token 权限和常见错误见 [发布到 GitHub 内容仓库](/publish-github)。
+
 ## 终端语言
 
 ```toml

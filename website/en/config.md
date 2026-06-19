@@ -30,6 +30,8 @@ overwrite = false
 
 CLI options override config values. For example, `--repo` overrides `[publish.github].repo`. `magicmd publish github --dry-run` does not need a token; real publishing requires `GITHUB_TOKEN`.
 
+See [Publish to GitHub](/en/publish-github) for the full command flow, dry-run output, token permissions, and common errors.
+
 ## Terminal Language
 
 ```toml
