@@ -22,7 +22,14 @@ type HelpKey =
   | 'downloadImages'
   | 'downloadVideos'
   | 'outputPreview'
-  | 'generated';
+  | 'generated'
+  | 'publishEnabled'
+  | 'publishRepo'
+  | 'publishTargetDir'
+  | 'publishBranch'
+  | 'publishCommitMessage'
+  | 'publishCreatePr'
+  | 'publishOverwrite';
 
 type BuilderState = {
   preset: Preset;
@@ -39,6 +46,13 @@ type BuilderState = {
   downloadImages: boolean;
   downloadVideos: boolean;
   docxEnabled: boolean;
+  publishEnabled: boolean;
+  publishRepo: string;
+  publishTargetDir: string;
+  publishBranch: string;
+  publishCommitMessage: string;
+  publishCreatePr: boolean;
+  publishOverwrite: boolean;
 };
 
 const presetDefaults: Record<Preset, Partial<BuilderState>> = {
@@ -90,7 +104,14 @@ const state = reactive<BuilderState>({
   videoPath: '{directory}/{filename}',
   downloadImages: true,
   downloadVideos: true,
-  docxEnabled: false
+  docxEnabled: false,
+  publishEnabled: false,
+  publishRepo: 'owner/content',
+  publishTargetDir: 'content/posts',
+  publishBranch: 'magicmd/{slug}',
+  publishCommitMessage: 'Add article: {title}',
+  publishCreatePr: false,
+  publishOverwrite: false
 });
 
 const copyState = ref<'idle' | 'copied' | 'failed'>('idle');
@@ -165,7 +186,21 @@ const ui = computed(() =>
           outputPreview:
             'This is the final Markdown file path that MagicMD will create for one article.',
           generated:
-            'Copy this file as .magicmd.toml and run MagicMD with --config to use these rules.'
+            'Copy this file as .magicmd.toml and run MagicMD with --config to use these rules.',
+          publishEnabled:
+            'Adds the optional [publish.github] block. Enable it when you want magicmd publish github to reuse the same repository and branch settings.',
+          publishRepo:
+            'Target GitHub repository in owner/name format. Replace owner/content with your real content repository.',
+          publishTargetDir:
+            'Fixed directory inside the target repository, such as content/posts. This field does not support template variables today.',
+          publishBranch:
+            'Branch template for MagicMD publishes. {slug}, {date}, {platform}, and {short_hash} are supported.',
+          publishCommitMessage:
+            'Commit message template for the publish commit. Keep it readable because it will appear in the target repository history.',
+          publishCreatePr:
+            'Create a Pull Request after pushing the publish branch. Real publishing still requires GITHUB_TOKEN.',
+          publishOverwrite:
+            'Allow planned target files to be overwritten. Leave this off unless you intentionally republish the same path.'
         },
         helpTitle: 'What is this?',
         basicSection: 'Basic',
@@ -174,6 +209,7 @@ const ui = computed(() =>
         hideAdvanced: 'Hide advanced settings',
         markdownSection: 'Markdown',
         mediaSection: 'Media',
+        githubSection: 'GitHub publishing',
         packageName: 'Package directory',
         markdownName: 'Markdown filename',
         metadataName: 'Metadata filename',
@@ -188,6 +224,13 @@ const ui = computed(() =>
         downloadImages: 'Download images',
         downloadVideos: 'Download videos',
         docxEnabled: 'Generate Word document',
+        publishEnabled: 'Generate GitHub publishing config',
+        publishRepo: 'Repository',
+        publishTargetDir: 'Target directory',
+        publishBranch: 'Publish branch',
+        publishCommitMessage: 'Commit message',
+        publishCreatePr: 'Create Pull Request',
+        publishOverwrite: 'Allow overwrite',
         generated: 'Generated in real time. Save it at your project root.',
         previewTabs: {
           toml: '.magicmd.toml',
@@ -209,6 +252,7 @@ const ui = computed(() =>
         imagesOnly: 'Download images',
         videosOnly: 'Download videos',
         wordOutput: 'Word output',
+        githubOutput: 'GitHub publishing',
         markdownPreviewTitle: (name: string) => `Preview of ${name}`,
         markdownPreviewHint: 'Updates as you change the config',
         sampleHeading: 'Converted preview',
@@ -270,7 +314,19 @@ const ui = computed(() =>
             '开启后会尝试下载视频。微信公众号视频可能有防盗链或临时签名，失败时仍需人工复核。',
           outputPreview: '这里展示 MagicMD 最终会生成的正文 Markdown 文件路径。',
           generated:
-            '复制这份内容保存为 .magicmd.toml，再用 --config 参数运行 MagicMD，就会按这些规则输出。'
+            '复制这份内容保存为 .magicmd.toml，再用 --config 参数运行 MagicMD，就会按这些规则输出。',
+          publishEnabled:
+            '追加可选的 [publish.github] 配置块。你要反复发布到同一个 GitHub 内容仓库时再开启。',
+          publishRepo:
+            '目标 GitHub 仓库，格式是 owner/name。请把 owner/content 换成你的真实内容仓库。',
+          publishTargetDir:
+            '目标仓库内的固定目录，例如 content/posts。这个字段当前不支持模板变量。',
+          publishBranch:
+            'MagicMD 发布分支模板，支持 {slug}、{date}、{platform}、{short_hash} 等变量。',
+          publishCommitMessage:
+            '发布 commit 的提交信息模板。它会出现在目标仓库历史里，建议保持清晰可读。',
+          publishCreatePr: 'push 发布分支后自动创建 Pull Request。真实发布仍然需要 GITHUB_TOKEN。',
+          publishOverwrite: '允许覆盖计划内的目标文件。除非你确认要重复发布同一路径，否则建议关闭。'
         },
         helpTitle: '这是什么？',
         basicSection: '基础设置',
@@ -279,6 +335,7 @@ const ui = computed(() =>
         hideAdvanced: '收起高级设置',
         markdownSection: 'Markdown 设置',
         mediaSection: '媒体设置',
+        githubSection: 'GitHub 发布',
         packageName: '内容包目录',
         markdownName: 'Markdown 文件名',
         metadataName: 'Metadata 文件名',
@@ -293,6 +350,13 @@ const ui = computed(() =>
         downloadImages: '下载图片',
         downloadVideos: '下载视频',
         docxEnabled: '生成 Word 文档',
+        publishEnabled: '生成 GitHub 发布配置',
+        publishRepo: '目标仓库',
+        publishTargetDir: '目标目录',
+        publishBranch: '发布分支',
+        publishCommitMessage: 'Commit message',
+        publishCreatePr: '创建 Pull Request',
+        publishOverwrite: '允许覆盖',
         generated: '实时生成，可直接落到项目根目录',
         previewTabs: {
           toml: '.magicmd.toml',
@@ -314,6 +378,7 @@ const ui = computed(() =>
         imagesOnly: '下载图片',
         videosOnly: '下载视频',
         wordOutput: 'Word 文档',
+        githubOutput: 'GitHub 发布',
         markdownPreviewTitle: (name: string) => `生成后的 ${name} 示例`,
         markdownPreviewHint: '随左侧配置实时变化',
         sampleHeading: '真实转换示例',
@@ -391,7 +456,11 @@ const toml = computed(() => {
       ? `\n[markdown.front_matter_fields]\ntitle = "{title}"\nauthor = "{author}"\nplatform = "{platform}"\nsource_url = "{source_url}"\npublished_at = "{published_at}"\n`
       : '';
 
-  return `[output]\ndirectory = "output"\n\n[output.naming]\npackage = ${quote(state.packageName)}\nmarkdown = ${quote(state.markdownName)}\nmetadata = ${quote(state.metadataName)}\nreport = ${quote(state.reportName)}\ndocx = "article.docx"\n\n[ui]\nlanguage = ${quote(state.uiLanguage)}\n\n[markdown]\npreset = ${quote(state.preset)}\nfront_matter = ${quote(state.frontMatter)}\ninclude_title = true\ninclude_source_block = ${state.includeSourceBlock}\ninclude_cover_image = ${state.includeCoverImage}\nheading_offset = 0\n${sourceBlock}${frontMatterFields}\n[images]\ndownload = ${state.downloadImages}\ndirectory = "images"\nfilename_pattern = "img_{index:03d}.{ext}"\nmarkdown_path = ${quote(state.imagePath)}\n\n[videos]\ndownload = ${state.downloadVideos}\ndirectory = "videos"\nfilename_pattern = "video_{index:03d}.{ext}"\nmarkdown_path = ${quote(state.videoPath)}\n\n[docx]\nenabled = ${state.docxEnabled}\npandoc_path = "pandoc"\nreference_doc = ""\n`;
+  const publishGithub = state.publishEnabled
+    ? `\n[publish.github]\nrepo = ${quote(state.publishRepo)}\ntarget_dir = ${quote(state.publishTargetDir)}\nbranch = ${quote(state.publishBranch)}\ncommit_message = ${quote(state.publishCommitMessage)}\ncreate_pr = ${state.publishCreatePr}\noverwrite = ${state.publishOverwrite}\n`
+    : '';
+
+  return `[output]\ndirectory = "output"\n\n[output.naming]\npackage = ${quote(state.packageName)}\nmarkdown = ${quote(state.markdownName)}\nmetadata = ${quote(state.metadataName)}\nreport = ${quote(state.reportName)}\ndocx = "article.docx"\n\n[ui]\nlanguage = ${quote(state.uiLanguage)}\n${publishGithub}\n[markdown]\npreset = ${quote(state.preset)}\nfront_matter = ${quote(state.frontMatter)}\ninclude_title = true\ninclude_source_block = ${state.includeSourceBlock}\ninclude_cover_image = ${state.includeCoverImage}\nheading_offset = 0\n${sourceBlock}${frontMatterFields}\n[images]\ndownload = ${state.downloadImages}\ndirectory = "images"\nfilename_pattern = "img_{index:03d}.{ext}"\nmarkdown_path = ${quote(state.imagePath)}\n\n[videos]\ndownload = ${state.downloadVideos}\ndirectory = "videos"\nfilename_pattern = "video_{index:03d}.{ext}"\nmarkdown_path = ${quote(state.videoPath)}\n\n[docx]\nenabled = ${state.docxEnabled}\npandoc_path = "pandoc"\nreference_doc = ""\n`;
 });
 
 const markdownExample = computed(() => {
@@ -683,6 +752,89 @@ function downloadToml() {
         </section>
 
         <section v-if="advancedOpen" class="builder-section">
+          <div class="section-title">
+            <span>{{ ui.githubSection }}</span>
+          </div>
+
+          <div class="toggle-row">
+            <label>
+              <input v-model="state.publishEnabled" type="checkbox" />
+              <span>{{ ui.publishEnabled }}</span>
+              <span class="help-tip" tabindex="0" :aria-label="helpText('publishEnabled')">
+                <span class="help-icon">?</span>
+                <span class="help-popover">{{ helpText('publishEnabled') }}</span>
+              </span>
+            </label>
+          </div>
+
+          <div v-if="state.publishEnabled" class="field-grid">
+            <label class="wide-field">
+              <span class="field-label">
+                <span>{{ ui.publishRepo }}</span>
+                <span class="help-tip" tabindex="0" :aria-label="helpText('publishRepo')">
+                  <span class="help-icon">?</span>
+                  <span class="help-popover">{{ helpText('publishRepo') }}</span>
+                </span>
+              </span>
+              <input v-model="state.publishRepo" name="publishRepo" autocomplete="off" />
+            </label>
+            <label>
+              <span class="field-label">
+                <span>{{ ui.publishTargetDir }}</span>
+                <span class="help-tip" tabindex="0" :aria-label="helpText('publishTargetDir')">
+                  <span class="help-icon">?</span>
+                  <span class="help-popover">{{ helpText('publishTargetDir') }}</span>
+                </span>
+              </span>
+              <input v-model="state.publishTargetDir" name="publishTargetDir" autocomplete="off" />
+            </label>
+            <label>
+              <span class="field-label">
+                <span>{{ ui.publishBranch }}</span>
+                <span class="help-tip" tabindex="0" :aria-label="helpText('publishBranch')">
+                  <span class="help-icon">?</span>
+                  <span class="help-popover">{{ helpText('publishBranch') }}</span>
+                </span>
+              </span>
+              <input v-model="state.publishBranch" name="publishBranch" autocomplete="off" />
+            </label>
+            <label class="wide-field">
+              <span class="field-label">
+                <span>{{ ui.publishCommitMessage }}</span>
+                <span class="help-tip" tabindex="0" :aria-label="helpText('publishCommitMessage')">
+                  <span class="help-icon">?</span>
+                  <span class="help-popover">{{ helpText('publishCommitMessage') }}</span>
+                </span>
+              </span>
+              <input
+                v-model="state.publishCommitMessage"
+                name="publishCommitMessage"
+                autocomplete="off"
+              />
+            </label>
+          </div>
+
+          <div v-if="state.publishEnabled" class="toggle-row">
+            <label>
+              <input v-model="state.publishCreatePr" type="checkbox" />
+              <span>{{ ui.publishCreatePr }}</span>
+              <span class="help-tip" tabindex="0" :aria-label="helpText('publishCreatePr')">
+                <span class="help-icon">?</span>
+                <span class="help-popover">{{ helpText('publishCreatePr') }}</span>
+              </span>
+            </label>
+            <label>
+              <input v-model="state.publishOverwrite" type="checkbox" />
+              <span>{{ ui.publishOverwrite }}</span>
+              <span class="help-tip" tabindex="0" :aria-label="helpText('publishOverwrite')">
+                <span class="help-icon">?</span>
+                <span class="help-popover">{{ helpText('publishOverwrite') }}</span>
+              </span>
+            </label>
+          </div>
+        </section>
+
+        <section v-if="advancedOpen" class="builder-section">
           <div class="toggle-row">
             <label>
               <input v-model="state.docxEnabled" type="checkbox" />
@@ -716,6 +868,7 @@ function downloadToml() {
             }}</code>
             <code>{{ mediaPreview }}</code>
             <code v-if="state.docxEnabled">{{ ui.wordOutput }}</code>
+            <code v-if="state.publishEnabled">{{ ui.githubOutput }}</code>
           </div>
         </div>
 
