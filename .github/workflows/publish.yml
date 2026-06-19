@@ -131,10 +131,11 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Set up Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 24
-          registry-url: https://registry.npmjs.org/
+          registry-url: https://registry.npmjs.org
+          package-manager-cache: false
 
       - name: Check npm wrapper package
         working-directory: npm/magicmd
@@ -142,4 +143,4 @@ jobs:
 
       - name: Publish npm wrapper
         working-directory: npm/magicmd
-        run: npm publish --registry=https://registry.npmjs.org/
+        run: npm publish --registry=https://registry.npmjs.org --provenance

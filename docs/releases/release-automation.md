@@ -123,7 +123,7 @@ In the npm package settings for `magicmd`, add a trusted publisher:
 The npm package already exists, so the initial manual publish limitation is no longer relevant. The workflow should publish from `npm/magicmd/`:
 
 ```bash
-npm publish --registry=https://registry.npmjs.org/
+npm publish --registry=https://registry.npmjs.org --provenance
 ```
 
 Do not rely on `npm whoami` in the workflow. With OIDC, `npm whoami` does not reflect trusted publishing authentication status; the auth exchange happens during `npm publish`.
@@ -223,10 +223,11 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Set up Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 24
-          registry-url: https://registry.npmjs.org/
+          registry-url: https://registry.npmjs.org
+          package-manager-cache: false
 
       - name: Dry run npm package
         working-directory: npm/magicmd
@@ -234,7 +235,7 @@ jobs:
 
       - name: Publish npm package
         working-directory: npm/magicmd
-        run: npm publish --registry=https://registry.npmjs.org/
+        run: npm publish --registry=https://registry.npmjs.org --provenance
 ```
 
 ## Open Decisions Before Implementation
@@ -265,7 +266,7 @@ git push origin "$TAG"
 uv publish --username __token__ --password "$PYPI_TOKEN"
 
 cd npm/magicmd
-npm publish --registry=https://registry.npmjs.org/
+npm publish --registry=https://registry.npmjs.org --provenance
 cd ../..
 
 gh release create "$TAG" \
