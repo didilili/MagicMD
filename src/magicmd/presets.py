@@ -8,7 +8,11 @@ def apply_preset(config: MagicMDConfig, overrides: dict | None = None) -> MagicM
     updates: dict = {}
     if preset == "plain":
         updates = {
-            "markdown": {"front_matter": "none", "include_source_block": False},
+            "markdown": {
+                "front_matter": "none",
+                "include_source_block": False,
+                "include_cover_image": False,
+            },
         }
     elif preset == "hugo":
         updates = {

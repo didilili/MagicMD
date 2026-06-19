@@ -23,3 +23,15 @@ def test_config_builder_includes_docx_export_options():
     assert 'docx = "article.docx"' in component
     assert "[docx]" in component
     assert 'pandoc_path = "pandoc"' in component
+
+
+def test_config_builder_includes_wechat_cover_toggle():
+    component = (ROOT / "website/.vitepress/components/ConfigBuilder.vue").read_text(
+        encoding="utf-8"
+    )
+
+    assert "includeCoverImage" in component
+    assert "include_cover_image = ${state.includeCoverImage}" in component
+    assert "显示微信封面图" in component
+    assert "Show WeChat cover image" in component
+    assert "![cover](images/cover.jpg)" in component

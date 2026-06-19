@@ -245,7 +245,7 @@ print(result.report)
 | `excerpt`                           | Extracted page summary when available.                                                                                                                                                                                                                                         |
 | `markdown`                          | Converted Markdown string.                                                                                                                                                                                                                                                     |
 | `content_hash`                      | Hash of the article body for deduplication.                                                                                                                                                                                                                                    |
-| `metadata.cover_image`              | WeChat article cover asset with `source_url`, `local_path`, and `alt`; empty when unavailable. Cover assets are not inserted into the Markdown body.                                                                                                                           |
+| `metadata.cover_image`              | WeChat article cover asset with `source_url`, `local_path`, and `alt`; empty when unavailable. Inserted near the top of Markdown by default; disable with `markdown.include_cover_image = false`.                                                                              |
 | `metadata.share_cover_image`        | WeChat 1:1 share thumbnail asset with the same shape as `cover_image`; empty when unavailable.                                                                                                                                                                                 |
 | `images`                            | Image assets with `source_url`, `local_path`, `markdown_path`, and `alt`. `markdown_path` is the path currently referenced by Markdown; `local_path` is the downloaded filesystem path so external systems can copy the file into their own media directory and rewrite links. |
 | `warnings`                          | Fetch, parse, and media warnings.                                                                                                                                                                                                                                              |
@@ -297,7 +297,7 @@ output/
     └── images/                 # Downloaded local images
 ```
 
-When MagicMD can extract WeChat card covers, `metadata.json` includes `cover_image` and `share_cover_image`. If image downloads are enabled, those assets are saved under `images/` alongside body images, without being inserted into `article.md`.
+When MagicMD can extract WeChat card covers, `metadata.json` includes `cover_image` and `share_cover_image`. If image downloads are enabled, those assets are saved under `images/` alongside body images. By default, Markdown places `cover_image` below the source block and separates it from the body with a horizontal rule.
 
 Batch conversion also writes:
 
@@ -364,6 +364,7 @@ save_debug_html = "on_failure"
 template = "default"
 front_matter = "yaml"
 include_source_block = true
+include_cover_image = true
 heading_offset = 0
 
 [images]
@@ -394,6 +395,7 @@ Useful options:
 | `output.save_debug_html`         | `always`, `on_failure`, or `never`; controls `debug.html` output.                                   |
 | `markdown.front_matter`          | `yaml` or `none`.                                                                                   |
 | `markdown.template`              | `default` or `clean`.                                                                               |
+| `markdown.include_cover_image`   | Whether to insert the WeChat article card cover near the top of the Markdown body.                  |
 | `markdown.heading_offset`        | Shifts Markdown heading levels.                                                                     |
 | `images.download`                | Whether images are downloaded.                                                                      |
 | `docx.enabled`                   | Whether to generate `article.docx` next to the Markdown package.                                    |

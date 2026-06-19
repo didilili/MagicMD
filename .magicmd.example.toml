@@ -27,6 +27,8 @@ template = "default"
 front_matter = "yaml"
 include_title = true
 include_source_block = true
+# Show WeChat article card cover below the source block when available.
+include_cover_image = true
 
 # Shift generated Markdown heading levels. Example: 1 turns `##` into `###`.
 heading_offset = 0

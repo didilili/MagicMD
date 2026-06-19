@@ -29,6 +29,7 @@ class MarkdownConfig(BaseModel):
     front_matter: str = "yaml"
     include_title: bool = True
     include_source_block: bool = True
+    include_cover_image: bool = True
     heading_offset: int = 0
     source_block_template: str = (
         "> Source: {platform}\n> Author: {author}\n> Original: {source_url}"

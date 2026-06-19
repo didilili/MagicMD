@@ -112,7 +112,7 @@ Two image fields are easy to confuse:
 
 External systems usually copy the file at `local_path` into their own media directory, then replace `markdown_path` in the Markdown with the new public URL.
 
-WeChat cover assets live in `metadata.cover_image` and `metadata.share_cover_image`; they use the same `source_url`, `local_path`, and `alt` shape. They describe article card media and are not inserted into the Markdown body.
+WeChat cover assets live in `metadata.cover_image` and `metadata.share_cover_image`; they use the same `source_url`, `local_path`, and `alt` shape. By default, Markdown places `cover_image` below the source block and separates it from the body with a horizontal rule; set `markdown.include_cover_image = false` for body-only Markdown.
 
 ## Error Handling
 

@@ -79,6 +79,7 @@ def test_load_config_accepts_v02_output_and_markdown_templates(tmp_path: Path):
         preset = "hugo"
         front_matter = "yaml"
         include_title = false
+        include_cover_image = false
         source_block_template = "> From: {source_url}"
 
         [markdown.front_matter_fields]
@@ -111,6 +112,7 @@ def test_load_config_accepts_v02_output_and_markdown_templates(tmp_path: Path):
     assert config.output.naming.docx == "article.docx"
     assert config.markdown.preset == "hugo"
     assert config.markdown.include_title is False
+    assert config.markdown.include_cover_image is False
     assert config.markdown.source_block_template == "> From: {source_url}"
     assert config.markdown.front_matter_fields == {
         "title": "{title}",
@@ -133,6 +135,12 @@ def test_load_config_disables_docx_by_default():
     assert config.output.naming.docx == "article.docx"
 
 
+def test_load_config_includes_wechat_cover_image_by_default():
+    config = load_config()
+
+    assert config.markdown.include_cover_image is True
+
+
 def test_load_config_applies_plain_preset(tmp_path: Path):
     config_path = tmp_path / ".magicmd.toml"
     config_path.write_text(
@@ -147,6 +155,7 @@ def test_load_config_applies_plain_preset(tmp_path: Path):
 
     assert config.markdown.front_matter == "none"
     assert config.markdown.include_source_block is False
+    assert config.markdown.include_cover_image is False
 
 
 def test_load_config_applies_hugo_preset(tmp_path: Path):
@@ -251,6 +260,7 @@ def test_packaged_config_template_is_available():
     assert 'report = "extraction-report.json"' in template_text
     assert 'docx = "article.docx"' in template_text
     assert "[markdown.front_matter_fields]" in template_text
+    assert "include_cover_image = true" in template_text
     assert "[videos]" in template_text
     assert 'markdown_path = "{directory}/{filename}"' in template_text
     assert "[docx]" in template_text
@@ -271,6 +281,7 @@ def test_example_config_template_loads():
     assert config.output.naming.markdown == "article.md"
     assert config.markdown.preset == "default"
     assert config.markdown.include_title is True
+    assert config.markdown.include_cover_image is True
     assert config.markdown.front_matter_fields["source_url"] == "{source_url}"
     assert config.ui.language == "zh-CN"
     assert config.images.markdown_path == "{directory}/{filename}"

@@ -245,7 +245,7 @@ print(result.report)
 | `excerpt`                           | 页面能提取到的摘要。                                                                                                                                                                                              |
 | `markdown`                          | 转换后的 Markdown 字符串。                                                                                                                                                                                        |
 | `content_hash`                      | 基于正文内容生成的 hash，方便去重。                                                                                                                                                                               |
-| `metadata.cover_image`              | 微信文章封面图资产，包含 `source_url`、`local_path`、`alt`；没有提取到时为空。封面图不会插入正文 Markdown。                                                                                                       |
+| `metadata.cover_image`              | 微信文章封面图资产，包含 `source_url`、`local_path`、`alt`；没有提取到时为空。默认会插入正文开头，可用 `markdown.include_cover_image = false` 关闭。                                                              |
 | `metadata.share_cover_image`        | 微信 1:1 分享缩略图资产，字段结构同 `cover_image`；没有提取到时为空。                                                                                                                                             |
 | `images`                            | 图片资产列表，包含 `source_url`、`local_path`、`markdown_path`、`alt`。`markdown_path` 是 Markdown 中实际引用的路径；`local_path` 是本地已下载图片的文件系统路径，方便外部系统复制到自己的 media 目录后重写链接。 |
 | `warnings`                          | 抓取、解析、媒体下载中的 warning。                                                                                                                                                                                |
@@ -297,7 +297,7 @@ output/
     └── images/                 # 下载后的本地图片
 ```
 
-微信公众号文章如果能提取到文章卡片封面，`metadata.json` 会包含 `cover_image` 和 `share_cover_image`。开启图片下载时，它们会随正文图片保存到 `images/`，但不会被自动插入 `article.md`。
+微信公众号文章如果能提取到文章卡片封面，`metadata.json` 会包含 `cover_image` 和 `share_cover_image`。开启图片下载时，它们会随正文图片保存到 `images/`；默认 Markdown 会把 `cover_image` 放在来源信息块下方，并用分割线和正文隔开。
 
 批量转换会额外生成：
 
@@ -364,6 +364,7 @@ save_debug_html = "on_failure"
 template = "default"
 front_matter = "yaml"
 include_source_block = true
+include_cover_image = true
 heading_offset = 0
 
 [images]
@@ -394,6 +395,7 @@ language = "zh-CN"
 | `output.save_debug_html`         | `always`、`on_failure`、`never`，控制是否保存 `debug.html`。  |
 | `markdown.front_matter`          | `yaml` 或 `none`。                                            |
 | `markdown.template`              | `default` 或 `clean`。                                        |
+| `markdown.include_cover_image`   | 是否把微信文章卡片封面插入 Markdown 正文开头。                |
 | `markdown.heading_offset`        | 统一调整 Markdown 标题层级。                                  |
 | `images.download`                | 是否下载图片。                                                |
 | `docx.enabled`                   | 是否在 Markdown 内容包旁额外生成 `article.docx`。             |

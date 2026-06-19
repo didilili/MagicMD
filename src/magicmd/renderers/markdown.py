@@ -26,6 +26,17 @@ def _shift_body_headings(markdown: str, offset: int) -> str:
     return re.sub(r"(?m)^(?P<hashes>#{1,6})(?P<space>\s+)", replace, markdown)
 
 
+def _cover_image_markdown(article: Article) -> str:
+    if not article.cover_image:
+        return ""
+    target = article.cover_image.local_path or article.cover_image.source_url
+    if not target:
+        return ""
+    alt = article.cover_image.alt or "cover"
+    escaped_alt = alt.replace("[", "\\[").replace("]", "\\]")
+    return f"![{escaped_alt}]({target})"
+
+
 def render_markdown(article: Article, markdown_config: MarkdownConfig | None = None) -> str:
     config = markdown_config or MarkdownConfig()
     variables = build_article_template_vars(article)
@@ -46,6 +57,10 @@ def render_markdown(article: Article, markdown_config: MarkdownConfig | None = N
         source_block = format_template(config.source_block_template, variables).strip()
         if source_block:
             lines.extend([source_block, "", "---", ""])
+
+    cover_image = _cover_image_markdown(article) if config.include_cover_image else ""
+    if cover_image:
+        lines.extend([cover_image, "", "---", ""])
 
     lines.extend([body, ""])
     return "\n".join(lines)

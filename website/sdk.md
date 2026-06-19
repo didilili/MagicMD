@@ -112,7 +112,7 @@ print(result.docx_path)
 
 外部系统通常先把 `local_path` 对应的文件复制到自己的 media 目录，再用新的公开 URL 替换 Markdown 里的 `markdown_path`。
 
-微信封面图在 `metadata.cover_image` 和 `metadata.share_cover_image` 中，字段结构同样包含 `source_url`、`local_path` 和 `alt`。它们属于文章卡片资产，不会自动插入 Markdown 正文。
+微信封面图在 `metadata.cover_image` 和 `metadata.share_cover_image` 中，字段结构同样包含 `source_url`、`local_path` 和 `alt`。默认 Markdown 会把 `cover_image` 放在来源信息块下方，并用分割线和正文隔开；如果只想保留正文，可以在配置里设置 `markdown.include_cover_image = false`。
 
 ## 错误处理
 

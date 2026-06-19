@@ -53,10 +53,13 @@ preset = "default"
 front_matter = "yaml"
 include_title = true
 include_source_block = true
+include_cover_image = true
 heading_offset = 0
 ```
 
 `heading_offset = 0` keeps article headings connected to the top-level article title. If the article title is `#`, major sections usually become `##`.
+
+When `include_cover_image = true`, MagicMD places the WeChat article card cover below the source block and separates it from the body with a horizontal rule. Set it to `false` when you want body-only Markdown.
 
 ## Front Matter
 

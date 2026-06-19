@@ -53,10 +53,13 @@ preset = "default"
 front_matter = "yaml"
 include_title = true
 include_source_block = true
+include_cover_image = true
 heading_offset = 0
 ```
 
 `heading_offset = 0` 表示正文标题会尽量接在文章一级标题之后。比如文章标题是一级标题，正文中的主要章节会从二级标题开始。
+
+`include_cover_image = true` 时，如果微信公众号文章能提取到卡片封面，MagicMD 会把封面图放在来源信息块下方，并用分割线和正文隔开。想只保留正文内容时，可以改成 `false`。
 
 ## Front matter
 

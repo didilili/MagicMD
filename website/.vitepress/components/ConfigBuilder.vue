@@ -15,6 +15,7 @@ type HelpKey =
   | 'reportName'
   | 'frontMatter'
   | 'includeSourceBlock'
+  | 'includeCoverImage'
   | 'imagePath'
   | 'videoPath'
   | 'docxEnabled'
@@ -32,6 +33,7 @@ type BuilderState = {
   reportName: string;
   frontMatter: FrontMatter;
   includeSourceBlock: boolean;
+  includeCoverImage: boolean;
   imagePath: string;
   videoPath: string;
   downloadImages: boolean;
@@ -44,6 +46,7 @@ const presetDefaults: Record<Preset, Partial<BuilderState>> = {
     markdownName: 'article.md',
     frontMatter: 'yaml',
     includeSourceBlock: true,
+    includeCoverImage: true,
     imagePath: '{directory}/{filename}',
     videoPath: '{directory}/{filename}'
   },
@@ -51,6 +54,7 @@ const presetDefaults: Record<Preset, Partial<BuilderState>> = {
     markdownName: 'article.md',
     frontMatter: 'none',
     includeSourceBlock: false,
+    includeCoverImage: false,
     imagePath: '{directory}/{filename}',
     videoPath: '{directory}/{filename}'
   },
@@ -58,6 +62,7 @@ const presetDefaults: Record<Preset, Partial<BuilderState>> = {
     markdownName: 'index.md',
     frontMatter: 'yaml',
     includeSourceBlock: true,
+    includeCoverImage: true,
     imagePath: '{directory}/{filename}',
     videoPath: '{directory}/{filename}'
   },
@@ -65,6 +70,7 @@ const presetDefaults: Record<Preset, Partial<BuilderState>> = {
     markdownName: 'index.md',
     frontMatter: 'yaml',
     includeSourceBlock: false,
+    includeCoverImage: true,
     imagePath: './{directory}/{filename}',
     videoPath: './{directory}/{filename}'
   }
@@ -79,6 +85,7 @@ const state = reactive<BuilderState>({
   reportName: 'extraction-report.json',
   frontMatter: 'yaml',
   includeSourceBlock: true,
+  includeCoverImage: true,
   imagePath: '{directory}/{filename}',
   videoPath: '{directory}/{filename}',
   downloadImages: true,
@@ -143,6 +150,8 @@ const ui = computed(() =>
             'YAML front matter is the metadata block at the top of a Markdown file. Static site generators often use it for title, date, tags, and author.',
           includeSourceBlock:
             'Adds a small source block below the title so readers can see the original platform, author, and URL.',
+          includeCoverImage:
+            'Shows the WeChat article card cover below the source block, separated from the body by a horizontal rule.',
           imagePath:
             'The path written into Markdown image links. {directory} uses the image folder, and {filename} uses the downloaded file name.',
           videoPath:
@@ -175,6 +184,7 @@ const ui = computed(() =>
         imagePath: 'Image Markdown path',
         videoPath: 'Video Markdown path',
         includeSourceBlock: 'Show source block',
+        includeCoverImage: 'Show WeChat cover image',
         downloadImages: 'Download images',
         downloadVideos: 'Download videos',
         docxEnabled: 'Generate Word document',
@@ -248,6 +258,7 @@ const ui = computed(() =>
             'Markdown 顶部的 YAML 元信息块。Hugo、Docusaurus、博客系统常用它识别标题、作者、日期等字段。',
           includeSourceBlock:
             '在正文标题下方增加来源信息块，显示原平台、作者和原文链接，方便以后回溯。',
+          includeCoverImage: '在来源信息块下方展示微信公众号文章卡片封面，并用分割线和正文隔开。',
           imagePath:
             '写入 Markdown 图片链接里的路径。{directory} 表示图片目录，{filename} 表示下载后的图片文件名。',
           videoPath: '写入 Markdown 视频链接里的路径。如果你要整体移动文章目录，建议保持相对路径。',
@@ -278,6 +289,7 @@ const ui = computed(() =>
         imagePath: '图片 Markdown 路径',
         videoPath: '视频 Markdown 路径',
         includeSourceBlock: '显示来源信息块',
+        includeCoverImage: '显示微信封面图',
         downloadImages: '下载图片',
         downloadVideos: '下载视频',
         docxEnabled: '生成 Word 文档',
@@ -379,7 +391,7 @@ const toml = computed(() => {
       ? `\n[markdown.front_matter_fields]\ntitle = "{title}"\nauthor = "{author}"\nplatform = "{platform}"\nsource_url = "{source_url}"\npublished_at = "{published_at}"\n`
       : '';
 
-  return `[output]\ndirectory = "output"\n\n[output.naming]\npackage = ${quote(state.packageName)}\nmarkdown = ${quote(state.markdownName)}\nmetadata = ${quote(state.metadataName)}\nreport = ${quote(state.reportName)}\ndocx = "article.docx"\n\n[ui]\nlanguage = ${quote(state.uiLanguage)}\n\n[markdown]\npreset = ${quote(state.preset)}\nfront_matter = ${quote(state.frontMatter)}\ninclude_title = true\ninclude_source_block = ${state.includeSourceBlock}\nheading_offset = 0\n${sourceBlock}${frontMatterFields}\n[images]\ndownload = ${state.downloadImages}\ndirectory = "images"\nfilename_pattern = "img_{index:03d}.{ext}"\nmarkdown_path = ${quote(state.imagePath)}\n\n[videos]\ndownload = ${state.downloadVideos}\ndirectory = "videos"\nfilename_pattern = "video_{index:03d}.{ext}"\nmarkdown_path = ${quote(state.videoPath)}\n\n[docx]\nenabled = ${state.docxEnabled}\npandoc_path = "pandoc"\nreference_doc = ""\n`;
+  return `[output]\ndirectory = "output"\n\n[output.naming]\npackage = ${quote(state.packageName)}\nmarkdown = ${quote(state.markdownName)}\nmetadata = ${quote(state.metadataName)}\nreport = ${quote(state.reportName)}\ndocx = "article.docx"\n\n[ui]\nlanguage = ${quote(state.uiLanguage)}\n\n[markdown]\npreset = ${quote(state.preset)}\nfront_matter = ${quote(state.frontMatter)}\ninclude_title = true\ninclude_source_block = ${state.includeSourceBlock}\ninclude_cover_image = ${state.includeCoverImage}\nheading_offset = 0\n${sourceBlock}${frontMatterFields}\n[images]\ndownload = ${state.downloadImages}\ndirectory = "images"\nfilename_pattern = "img_{index:03d}.{ext}"\nmarkdown_path = ${quote(state.imagePath)}\n\n[videos]\ndownload = ${state.downloadVideos}\ndirectory = "videos"\nfilename_pattern = "video_{index:03d}.{ext}"\nmarkdown_path = ${quote(state.videoPath)}\n\n[docx]\nenabled = ${state.docxEnabled}\npandoc_path = "pandoc"\nreference_doc = ""\n`;
 });
 
 const markdownExample = computed(() => {
@@ -409,12 +421,20 @@ const markdownExample = computed(() => {
   const imagePath = state.downloadImages
     ? renderMediaPath(state.imagePath, 'images', 'img_001.jpg')
     : 'https://mmbiz.qpic.cn/example.png';
+  const coverImage = state.downloadImages
+    ? state.imagePath === '{directory}/{filename}'
+      ? '![cover](images/cover.jpg)'
+      : `![cover](${renderMediaPath(state.imagePath, 'images', 'cover.jpg')})`
+    : '![cover](https://mmbiz.qpic.cn/cover.jpg)';
+  const coverBlock = state.includeCoverImage ? [coverImage, '', '---', ''] : [];
 
   return [
     ...frontMatter,
     `# ${demoArticle.title}`,
     '',
     ...sourceBlock,
+    ...(sourceBlock.length ? ['---', ''] : []),
+    ...coverBlock,
     `## ${ui.value.sampleHeading}`,
     '',
     ui.value.sampleBody,
@@ -601,6 +621,14 @@ function downloadToml() {
               <span class="help-tip" tabindex="0" :aria-label="helpText('includeSourceBlock')">
                 <span class="help-icon">?</span>
                 <span class="help-popover">{{ helpText('includeSourceBlock') }}</span>
+              </span>
+            </label>
+            <label>
+              <input v-model="state.includeCoverImage" type="checkbox" />
+              <span>{{ ui.includeCoverImage }}</span>
+              <span class="help-tip" tabindex="0" :aria-label="helpText('includeCoverImage')">
+                <span class="help-icon">?</span>
+                <span class="help-popover">{{ helpText('includeCoverImage') }}</span>
               </span>
             </label>
           </div>
