@@ -7,6 +7,7 @@ from magicmd.publish.planner import (
     build_github_publish_plan,
     build_publish_template_vars,
     render_publish_template,
+    sanitize_branch_name,
 )
 from magicmd.sdk import ArticleConversionResult
 
@@ -38,6 +39,12 @@ def test_build_publish_template_vars_from_conversion_result(tmp_path: Path):
 def test_render_publish_template_reports_unknown_fields(tmp_path: Path):
     with pytest.raises(ValueError, match="Unknown template field: missing"):
         render_publish_template("magicmd/{missing}", _result(tmp_path))
+
+
+@pytest.mark.parametrize("branch", ["release.lock", "magicmd/.hidden", "@"])
+def test_sanitize_branch_name_rejects_invalid_git_refs(branch: str):
+    with pytest.raises(Exception, match="Branch template produced"):
+        sanitize_branch_name(branch)
 
 
 def test_github_publish_options_defaults_are_safe():

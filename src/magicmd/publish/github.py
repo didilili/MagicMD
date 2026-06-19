@@ -209,6 +209,18 @@ def create_github_pull_request(
             if repo_response.status_code >= 400:
                 raise PublishGitHubError(f"GitHub repo lookup failed: {repo_response.text}")
             default_branch = repo_response.json().get("default_branch") or "main"
+            repo_owner = repo.split("/", 1)[0]
+
+            existing_response = http_client.get(
+                f"https://api.github.com/repos/{repo}/pulls",
+                headers=_github_headers(token),
+                params={"head": f"{repo_owner}:{branch}", "state": "open"},
+            )
+            if existing_response.status_code >= 400:
+                raise PublishGitHubError(f"GitHub PR lookup failed: {existing_response.text}")
+            existing_prs = existing_response.json()
+            if existing_prs:
+                return str(existing_prs[0].get("html_url", ""))
 
             pr_response = http_client.post(
                 f"https://api.github.com/repos/{repo}/pulls",

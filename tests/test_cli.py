@@ -1141,10 +1141,36 @@ def test_convert_url_passes_configured_media_path_templates(monkeypatch, tmp_pat
     )
 
 
+def _write_publish_package(
+    package_dir: Path,
+    title: str = "Publish",
+    markdown: str = "# Publish\n",
+    source_url: str = "https://mp.weixin.qq.com/s/example",
+    warnings: list[str] | None = None,
+    debug: bool = False,
+) -> None:
+    package_dir.mkdir(parents=True, exist_ok=True)
+    (package_dir / "article.md").write_text(markdown, encoding="utf-8")
+    (package_dir / "metadata.json").write_text(
+        json.dumps(
+            {
+                "title": title,
+                "platform": "wechat",
+                "source_url": source_url,
+                "extraction": {"warnings": warnings or []},
+                "images": [],
+            },
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+    if debug:
+        (package_dir / "debug.html").write_text("<html>debug</html>", encoding="utf-8")
+
+
 def test_publish_github_dry_run_prints_plan(monkeypatch, tmp_path: Path):
     package_dir = tmp_path / "package"
-    package_dir.mkdir()
-    (package_dir / "article.md").write_text("# Dry Run\n", encoding="utf-8")
+    _write_publish_package(package_dir, title="Dry Run", markdown="# Dry Run\n")
 
     def fake_convert_article(**kwargs):
         return ArticleConversionResult(
@@ -1185,8 +1211,11 @@ def test_publish_github_dry_run_prints_plan(monkeypatch, tmp_path: Path):
 
 def test_publish_github_cli_can_disable_true_boolean_config(monkeypatch, tmp_path: Path):
     package_dir = tmp_path / "package"
-    package_dir.mkdir()
-    (package_dir / "article.md").write_text("# Config Booleans\n", encoding="utf-8")
+    _write_publish_package(
+        package_dir,
+        title="Config Booleans",
+        markdown="# Config Booleans\n",
+    )
     config_path = tmp_path / ".magicmd.toml"
     config_path.write_text(
         """
@@ -1232,8 +1261,11 @@ def test_publish_github_cli_can_disable_true_boolean_config(monkeypatch, tmp_pat
 
 def test_publish_github_cli_can_enable_false_boolean_config(monkeypatch, tmp_path: Path):
     package_dir = tmp_path / "package"
-    package_dir.mkdir()
-    (package_dir / "article.md").write_text("# Config Booleans\n", encoding="utf-8")
+    _write_publish_package(
+        package_dir,
+        title="Config Booleans",
+        markdown="# Config Booleans\n",
+    )
     config_path = tmp_path / ".magicmd.toml"
     config_path.write_text(
         """
@@ -1279,8 +1311,7 @@ def test_publish_github_cli_can_enable_false_boolean_config(monkeypatch, tmp_pat
 
 def test_publish_github_requires_repo_or_config(monkeypatch, tmp_path: Path):
     package_dir = tmp_path / "package"
-    package_dir.mkdir()
-    (package_dir / "article.md").write_text("# Missing Repo\n", encoding="utf-8")
+    _write_publish_package(package_dir, title="Missing Repo", markdown="# Missing Repo\n")
 
     def fake_convert_article(**kwargs):
         return ArticleConversionResult(
@@ -1310,12 +1341,115 @@ def test_publish_github_requires_repo_or_config(monkeypatch, tmp_path: Path):
     assert "--repo is required" in (result.stdout + result.stderr)
 
 
+def test_publish_github_rejects_invalid_repo_before_publish(monkeypatch, tmp_path: Path):
+    package_dir = tmp_path / "package"
+    _write_publish_package(package_dir, title="Invalid Repo", markdown="# Invalid Repo\n")
+
+    def fake_convert_article(**kwargs):
+        return ArticleConversionResult(
+            title="Invalid Repo",
+            platform="wechat",
+            source_url=kwargs["url"],
+            markdown="# Invalid Repo\n",
+            content_hash="abc123456",
+            package_dir=str(package_dir),
+        )
+
+    monkeypatch.setattr("magicmd.cli.convert_article", fake_convert_article)
+
+    result = runner.invoke(
+        app,
+        [
+            "publish",
+            "github",
+            "https://mp.weixin.qq.com/s/example",
+            "--repo",
+            "not a repo",
+            "--target-dir",
+            "content/posts",
+            "--dry-run",
+        ],
+    )
+
+    assert result.exit_code != 0
+    assert "--repo must use GitHub owner/name format" in (result.stdout + result.stderr)
+
+
+def test_publish_github_normalizes_github_url_repo(monkeypatch, tmp_path: Path):
+    package_dir = tmp_path / "package"
+    _write_publish_package(package_dir, title="URL Repo", markdown="# URL Repo\n")
+
+    def fake_convert_article(**kwargs):
+        return ArticleConversionResult(
+            title="URL Repo",
+            platform="wechat",
+            source_url=kwargs["url"],
+            markdown="# URL Repo\n",
+            content_hash="abc123456",
+            package_dir=str(package_dir),
+        )
+
+    monkeypatch.setattr("magicmd.cli.convert_article", fake_convert_article)
+
+    result = runner.invoke(
+        app,
+        [
+            "publish",
+            "github",
+            "https://mp.weixin.qq.com/s/example",
+            "--repo",
+            "https://github.com/owner/repo.git",
+            "--target-dir",
+            "content/posts",
+            "--dry-run",
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert "Repository: owner/repo" in result.stdout
+
+
+def test_publish_github_rejects_invalid_branch_during_dry_run(monkeypatch, tmp_path: Path):
+    package_dir = tmp_path / "package"
+    _write_publish_package(package_dir, title="Invalid Branch", markdown="# Invalid Branch\n")
+
+    def fake_convert_article(**kwargs):
+        return ArticleConversionResult(
+            title="Invalid Branch",
+            platform="wechat",
+            source_url=kwargs["url"],
+            markdown="# Invalid Branch\n",
+            content_hash="abc123456",
+            package_dir=str(package_dir),
+        )
+
+    monkeypatch.setattr("magicmd.cli.convert_article", fake_convert_article)
+
+    result = runner.invoke(
+        app,
+        [
+            "publish",
+            "github",
+            "https://mp.weixin.qq.com/s/example",
+            "--repo",
+            "owner/repo",
+            "--target-dir",
+            "content/posts",
+            "--branch",
+            "magicmd/release.lock",
+            "--dry-run",
+        ],
+    )
+
+    assert result.exit_code != 0
+    assert "ending with .lock" in (result.stdout + result.stderr)
+
+
 def test_publish_github_missing_token_reports_cli_error_without_traceback(
     monkeypatch, tmp_path: Path
 ):
     package_dir = tmp_path / "package"
-    package_dir.mkdir()
-    (package_dir / "article.md").write_text("# Missing Token\n", encoding="utf-8")
+    _write_publish_package(package_dir, title="Missing Token", markdown="# Missing Token\n")
     monkeypatch.delenv("GITHUB_TOKEN", raising=False)
 
     def fake_convert_article(**kwargs):
@@ -1349,10 +1483,158 @@ def test_publish_github_missing_token_reports_cli_error_without_traceback(
     assert "Traceback" not in rendered
 
 
+def test_publish_github_blocks_risky_package_without_force(monkeypatch, tmp_path: Path):
+    package_dir = tmp_path / "package"
+    _write_publish_package(
+        package_dir,
+        title="https://mp.weixin.qq.com/s/example",
+        markdown="# Broken\n",
+        warnings=["wechat_content_not_found"],
+        debug=True,
+    )
+    monkeypatch.setenv("GITHUB_TOKEN", "test-token")
+    calls = {"published": False}
+
+    def fake_convert_article(**kwargs):
+        return ArticleConversionResult(
+            title="https://mp.weixin.qq.com/s/example",
+            platform="wechat",
+            source_url=kwargs["url"],
+            markdown="# Broken\n",
+            content_hash="abc123456",
+            package_dir=str(package_dir),
+        )
+
+    def fake_publish_to_github(plan, token=None):
+        calls["published"] = True
+        raise AssertionError("publish_to_github should not be called")
+
+    monkeypatch.setattr("magicmd.cli.convert_article", fake_convert_article)
+    monkeypatch.setattr("magicmd.cli.publish_to_github", fake_publish_to_github)
+
+    result = runner.invoke(
+        app,
+        [
+            "publish",
+            "github",
+            "https://mp.weixin.qq.com/s/example",
+            "--repo",
+            "owner/repo",
+            "--target-dir",
+            "content/posts",
+        ],
+    )
+
+    rendered = result.stdout + result.stderr
+    assert result.exit_code != 0
+    assert calls["published"] is False
+    assert "Publish quality check failed" in rendered
+    assert "debug.html" in rendered
+    assert "article title still looks like the source URL" in rendered
+
+
+def test_publish_github_dry_run_prints_quality_warnings(monkeypatch, tmp_path: Path):
+    package_dir = tmp_path / "package"
+    _write_publish_package(
+        package_dir,
+        title="https://mp.weixin.qq.com/s/example",
+        markdown="# Broken\n",
+        warnings=["wechat_content_not_found"],
+        debug=True,
+    )
+
+    def fake_convert_article(**kwargs):
+        return ArticleConversionResult(
+            title="https://mp.weixin.qq.com/s/example",
+            platform="wechat",
+            source_url=kwargs["url"],
+            markdown="# Broken\n",
+            content_hash="abc123456",
+            package_dir=str(package_dir),
+        )
+
+    monkeypatch.setattr("magicmd.cli.convert_article", fake_convert_article)
+
+    result = runner.invoke(
+        app,
+        [
+            "publish",
+            "github",
+            "https://mp.weixin.qq.com/s/example",
+            "--repo",
+            "owner/repo",
+            "--target-dir",
+            "content/posts",
+            "--dry-run",
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert "Quality warnings:" in result.stdout
+    assert "publish plan includes debug.html" in result.stdout
+
+
+def test_publish_github_force_allows_risky_package(monkeypatch, tmp_path: Path):
+    package_dir = tmp_path / "package"
+    _write_publish_package(
+        package_dir,
+        title="https://mp.weixin.qq.com/s/example",
+        markdown="# Broken\n",
+        warnings=["wechat_content_not_found"],
+        debug=True,
+    )
+    monkeypatch.setenv("GITHUB_TOKEN", "test-token")
+    calls = {}
+
+    def fake_convert_article(**kwargs):
+        return ArticleConversionResult(
+            title="https://mp.weixin.qq.com/s/example",
+            platform="wechat",
+            source_url=kwargs["url"],
+            markdown="# Broken\n",
+            content_hash="abc123456",
+            package_dir=str(package_dir),
+        )
+
+    def fake_publish_to_github(plan, token=None):
+        calls["plan"] = plan
+
+        class Result:
+            commit_sha = "abc123"
+            branch = plan.branch
+            pr_url = ""
+
+        return Result()
+
+    monkeypatch.setattr("magicmd.cli.convert_article", fake_convert_article)
+    monkeypatch.setattr("magicmd.cli.publish_to_github", fake_publish_to_github)
+
+    result = runner.invoke(
+        app,
+        [
+            "publish",
+            "github",
+            "https://mp.weixin.qq.com/s/example",
+            "--repo",
+            "owner/repo",
+            "--target-dir",
+            "content/posts",
+            "--force",
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert calls["plan"].repo == "owner/repo"
+    assert "publishing despite quality issues" in (result.stdout + result.stderr)
+
+
 def test_publish_github_real_publish_reads_dotenv_next_to_config(monkeypatch, tmp_path: Path):
     package_dir = tmp_path / "package"
-    package_dir.mkdir()
-    (package_dir / "article.md").write_text("# Publish With Dotenv\n", encoding="utf-8")
+    _write_publish_package(
+        package_dir,
+        title="Publish With Dotenv",
+        markdown="# Publish With Dotenv\n",
+    )
     config_path = tmp_path / ".magicmd.toml"
     config_path.write_text(
         """
@@ -1408,8 +1690,7 @@ def test_publish_github_real_publish_reads_dotenv_next_to_config(monkeypatch, tm
 
 def test_publish_github_real_publish_calls_publisher(monkeypatch, tmp_path: Path):
     package_dir = tmp_path / "package"
-    package_dir.mkdir()
-    (package_dir / "article.md").write_text("# Publish\n", encoding="utf-8")
+    _write_publish_package(package_dir, title="Publish", markdown="# Publish\n")
     monkeypatch.setenv("GITHUB_TOKEN", "test-token")
     calls = {}
 
@@ -1458,8 +1739,7 @@ def test_publish_github_real_publish_calls_publisher(monkeypatch, tmp_path: Path
 
 def test_publish_github_pr_outputs_pr_url(monkeypatch, tmp_path: Path):
     package_dir = tmp_path / "package"
-    package_dir.mkdir()
-    (package_dir / "article.md").write_text("# Publish PR\n", encoding="utf-8")
+    _write_publish_package(package_dir, title="Publish PR", markdown="# Publish PR\n")
     monkeypatch.setenv("GITHUB_TOKEN", "test-token")
 
     def fake_convert_article(**kwargs):
