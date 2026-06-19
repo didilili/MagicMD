@@ -33,15 +33,16 @@ MagicMD 的 GitHub Issues 主要留给真实问题：某篇文章转换错了、
 - Agent Skill 文档改为面向 Codex、Claude Code 等支持 Skill 的 Agent 工具，并支持用一句话描述安装需求。
 - 增加 Ruff、Prettier、lint-staged、Husky 和 commitlint 工作流，降低协作和发布时的格式风险。
 
-## 下一阶段
-
-### v0.5 - 中文优先与 Agent 使用体验
+### v0.5.x
 
 - 建立更系统的真实站点回归集，优先覆盖微信公众号、掘金和 CSDN 的中文技术文章。
 - 把 Agent 使用入口继续产品化：让用户能用一句话完成安装、转换、批量整理和结果检查。
 - 优化官网首页和快速开始，让新用户更快理解“中文文章归档到 Markdown 内容包”的核心场景。
 - 增加发布后 smoke test checklist，覆盖 PyPI、npm、GitHub Release 和 Skill 安装路径。
 - 评估 PyPI Trusted Publisher 和 npm GitHub Actions 发布流程，减少手动 token 发布和权限切换带来的风险。
+- 增加可选 DOCX 导出，并默认保留微信公众号封面图，让归档内容包更完整。
+
+## 下一阶段
 
 ### v0.6 - 发布工作流
 
@@ -101,15 +102,16 @@ GitHub Issues are mainly for real user reports: bad conversions, failed installs
 - Generalized the Agent Skill guide for Codex, Claude Code, and other Skill-capable agent tools, including one-sentence install requests.
 - Added Ruff, Prettier, lint-staged, Husky, and commitlint workflows to reduce formatting and collaboration risk.
 
-## Next
-
-### v0.5 - Chinese-first and agent experience
+### v0.5.x
 
 - Build a more systematic live-site regression corpus, prioritizing Chinese technical articles from WeChat, Juejin, and CSDN.
 - Productize the Agent entrypoint so users can install, convert, batch organize, and inspect results with short natural-language requests.
 - Improve the website homepage and quick start around the core promise: archiving Chinese articles into Markdown content packages.
 - Add a post-release smoke test checklist for PyPI, npm, GitHub Release, and Skill installation paths.
 - Evaluate PyPI Trusted Publisher and npm GitHub Actions publishing to reduce manual token and permission friction.
+- Added optional DOCX export and default WeChat cover-image output so archived content packages are more complete.
+
+## Next
 
 ### v0.6 - Publishing workflow
 

@@ -5,7 +5,7 @@
 ## 1. Confirm GitHub Release
 
 ```bash
-VERSION=0.4.0
+VERSION=0.5.0
 TAG="v${VERSION}"
 
 gh release view "$TAG" --repo didilili/MagicMD --json tagName,name,url,isDraft,isPrerelease,publishedAt
