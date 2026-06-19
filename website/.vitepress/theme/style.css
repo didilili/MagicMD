@@ -841,8 +841,8 @@
 
   .VPDoc:has(._config-builder) .container {
     box-sizing: border-box;
-    width: min(1680px, calc(100vw - 80px));
-    max-width: min(1680px, calc(100vw - 80px)) !important;
+    width: min(1360px, calc(100vw - 96px));
+    max-width: min(1360px, calc(100vw - 96px)) !important;
   }
 
   .VPDoc:has(._config-builder) .content {
@@ -856,7 +856,7 @@
   .VPDoc:has(._config-builder) .content-container {
     box-sizing: border-box;
     width: 100%;
-    max-width: min(1680px, calc(100vw - 80px)) !important;
+    max-width: min(1360px, calc(100vw - 96px)) !important;
   }
 
   .VPDoc:has(._config-builder) .main {
