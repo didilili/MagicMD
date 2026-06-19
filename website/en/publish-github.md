@@ -5,10 +5,10 @@ description: Convert a public article with MagicMD and publish the Markdown pack
 
 # Publish to GitHub
 
-MagicMD's GitHub workflow is not meant to make users type a long command every time. The natural path is to put the repository, target directory, branch, and commit message in `.magicmd.toml` once, then publish daily with only the article URL.
+MagicMD's GitHub workflow is not meant to make users type a long command every time. The natural path is to put the repository, target directory, branch, and commit message in `.magicmd.toml`, put your local token in `.env`, then publish daily with only the article URL.
 
 ```text
-configure the content repo once -> preview with dry-run -> push a branch -> optionally open a Pull Request
+configure the content repo once -> save the local token once -> preview with dry-run -> push a branch -> optionally open a Pull Request
 ```
 
 ## Recommended path: configure first, publish later
@@ -27,6 +27,14 @@ overwrite = false
 
 Replace `owner/content` with your real content repository, such as `didilili/blog-content`. Replace `content/posts` with the directory where your target repository stores articles.
 
+Then create `.env` in the same project root and save your GitHub token:
+
+```dotenv
+GITHUB_TOKEN=ghp_xxx
+```
+
+`.env` is a private local file. Do not commit it to git. MagicMD reads it automatically for real publishing; dry-run does not need a token.
+
 After that, previewing a publish is short:
 
 ```bash
@@ -36,7 +44,6 @@ magicmd publish github "https://mp.weixin.qq.com/s/example" --dry-run
 After dry-run looks right, real publishing is short too:
 
 ```bash
-export GITHUB_TOKEN=ghp_xxx
 magicmd publish github "https://mp.weixin.qq.com/s/example" --pr
 ```
 
@@ -167,11 +174,15 @@ This is the main value of dry-run: you can catch a bad conversion before it reac
 
 ## Step 3: Publish for real
 
-After dry-run looks right, set `GITHUB_TOKEN` and remove `--dry-run`:
+After dry-run looks right, remove `--dry-run` to publish for real. The recommended path is to put the token in `.env` at the project root:
+
+```dotenv
+GITHUB_TOKEN=ghp_xxx
+```
+
+Then run:
 
 ```bash
-export GITHUB_TOKEN=ghp_xxx
-
 magicmd publish github "https://mp.weixin.qq.com/s/example"
 ```
 
@@ -186,19 +197,24 @@ Real publishing does this:
 6. Push the branch to GitHub
 ```
 
-`GITHUB_TOKEN` is not written to `.magicmd.toml` or stored in the git remote URL. Pass it through the environment only.
+`GITHUB_TOKEN` is not written to `.magicmd.toml` or stored in the git remote URL. MagicMD reads the current environment first; if it is missing, it reads `.env`. If you pass `--config path/to/.magicmd.toml`, MagicMD reads `.env` from that config file's directory.
 
 ## Create a Pull Request
 
 Pass `--pr` when you want MagicMD to create a Pull Request after pushing:
 
 ```bash
-export GITHUB_TOKEN=ghp_xxx
-
 magicmd publish github "https://mp.weixin.qq.com/s/example" --pr
 ```
 
-On success, MagicMD prints the branch, commit, and Pull Request URL. The PR targets the repository default branch.
+On success, MagicMD prints the branch, commit, and Pull Request URL. The PR targets the repository default branch. If `.magicmd.toml` already has `create_pr = true`, you can omit `--pr`.
+
+For one-off publishing, you can skip `.env` and set the token only for the current terminal session:
+
+```bash
+export GITHUB_TOKEN=ghp_xxx
+magicmd publish github "https://mp.weixin.qq.com/s/example" --pr
+```
 
 ## Temporarily override config
 
@@ -230,7 +246,7 @@ Real publishing needs a token that can access and write to the target repository
 - push to the publish branch
 - create a Pull Request when `--pr` is enabled
 
-If you use a fine-grained token, authorize only the target repository and grant the smallest permissions needed for content writes and Pull Request creation. Do not write the token into config files, README files, shell history, or the repository.
+If you use a fine-grained token, authorize only the target repository and grant the smallest permissions needed for content writes and Pull Request creation. Do not write the token into `.magicmd.toml`, README files, shell history, or the repository. Put it in local `.env` and make sure `.env` is not committed.
 
 ## Common problems
 
@@ -255,14 +271,16 @@ Use the Config Builder to complete the config, or pass the CLI option temporaril
 Dry-run does not need a token. Real publishing does. If the token is missing:
 
 ```text
-GITHUB_TOKEN is required for real GitHub publishing. Use --dry-run to preview only.
+GITHUB_TOKEN is required for real GitHub publishing. Set it in the environment or project .env. Use --dry-run to preview only.
 ```
 
-Set it and retry:
+Create `.env` at the project root and retry:
 
-```bash
-export GITHUB_TOKEN=ghp_xxx
+```dotenv
+GITHUB_TOKEN=ghp_xxx
 ```
+
+If you pass `--config path/to/.magicmd.toml`, put `.env` next to that config file.
 
 ### Target directory already has files
 
@@ -290,11 +308,11 @@ Before real publishing, check:
 ```text
 1. Generate .magicmd.toml with the Config Builder
 2. Confirm [publish.github] points to the real content repository
-3. Copy a real public article URL
-4. Run magicmd publish github URL --dry-run
-5. Check title, directory, branch, and file list
-6. Open local article.md and review the body
-7. Set GITHUB_TOKEN
+3. Create .env at the project root and add GITHUB_TOKEN
+4. Copy a real public article URL
+5. Run magicmd publish github URL --dry-run
+6. Check title, directory, branch, and file list
+7. Open local article.md and review the body
 8. Run magicmd publish github URL --pr
 9. Review and merge the Pull Request on GitHub
 ```

@@ -28,7 +28,13 @@ overwrite = false
 
 `repo` 是目标 GitHub 仓库，`target_dir` 是仓库内的内容目录。`branch` 和 `commit_message` 支持 `{title}`、`{slug}`、`{date}`、`{platform}`、`{short_hash}` 等模板变量。
 
-CLI 参数优先级高于配置文件；例如 `--repo` 会覆盖 `[publish.github].repo`。`magicmd publish github --dry-run` 不需要 token，真实发布需要设置 `GITHUB_TOKEN`。
+CLI 参数优先级高于配置文件；例如 `--repo` 会覆盖 `[publish.github].repo`。`magicmd publish github --dry-run` 不需要 token，真实发布需要 `GITHUB_TOKEN`。推荐把 token 放在项目根目录的 `.env`：
+
+```dotenv
+GITHUB_TOKEN=ghp_xxx
+```
+
+`.magicmd.toml` 用来保存发布规则，`.env` 用来保存本地密钥。不要把 `.env` 提交到 git。
 
 完整命令流程、dry-run 输出解读、token 权限和常见错误见 [发布到 GitHub 内容仓库](/publish-github)。
 

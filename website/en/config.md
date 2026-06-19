@@ -28,7 +28,13 @@ overwrite = false
 
 `repo` is the target GitHub repository, and `target_dir` is the content directory inside that repository. `branch` and `commit_message` support template variables such as `{title}`, `{slug}`, `{date}`, `{platform}`, and `{short_hash}`.
 
-CLI options override config values. For example, `--repo` overrides `[publish.github].repo`. `magicmd publish github --dry-run` does not need a token; real publishing requires `GITHUB_TOKEN`.
+CLI options override config values. For example, `--repo` overrides `[publish.github].repo`. `magicmd publish github --dry-run` does not need a token; real publishing requires `GITHUB_TOKEN`. Put it in `.env` at the project root:
+
+```dotenv
+GITHUB_TOKEN=ghp_xxx
+```
+
+Use `.magicmd.toml` for publishing rules and `.env` for local secrets. Do not commit `.env` to git.
 
 See [Publish to GitHub](/en/publish-github) for the full command flow, dry-run output, token permissions, and common errors.
 
