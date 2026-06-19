@@ -3,7 +3,11 @@ from pathlib import Path
 import pytest
 
 from magicmd.publish.models import GithubPublishOptions
-from magicmd.publish.planner import build_publish_template_vars, render_publish_template
+from magicmd.publish.planner import (
+    build_github_publish_plan,
+    build_publish_template_vars,
+    render_publish_template,
+)
 from magicmd.sdk import ArticleConversionResult
 
 
@@ -43,3 +47,48 @@ def test_github_publish_options_defaults_are_safe():
     assert options.commit_message == "Add article: {title}"
     assert options.create_pr is False
     assert options.overwrite is False
+
+
+def test_build_github_publish_plan_collects_package_files(tmp_path: Path):
+    package_dir = tmp_path / "package"
+    image_dir = package_dir / "images"
+    image_dir.mkdir(parents=True)
+    (package_dir / "article.md").write_text("# Title\n", encoding="utf-8")
+    (package_dir / "metadata.json").write_text("{}", encoding="utf-8")
+    (image_dir / "img_001.png").write_bytes(b"png")
+
+    plan = build_github_publish_plan(
+        _result(package_dir),
+        GithubPublishOptions(repo="owner/repo", target_dir="content/posts"),
+    )
+
+    assert plan.repo == "owner/repo"
+    assert plan.target_dir == "content/posts"
+    assert plan.branch == "magicmd/magicmd-发布测试"
+    assert plan.commit_message == "Add article: MagicMD 发布测试"
+    assert [file.target_path for file in plan.files] == [
+        "content/posts/article.md",
+        "content/posts/images/img_001.png",
+        "content/posts/metadata.json",
+    ]
+
+
+def test_build_github_publish_plan_requires_package_dir(tmp_path: Path):
+    result = _result(tmp_path).model_copy(update={"package_dir": None})
+
+    with pytest.raises(Exception, match="requires a written package_dir"):
+        build_github_publish_plan(
+            result,
+            GithubPublishOptions(repo="owner/repo", target_dir="content/posts"),
+        )
+
+
+def test_build_github_publish_plan_rejects_empty_file_package(tmp_path: Path):
+    package_dir = tmp_path / "empty"
+    package_dir.mkdir()
+
+    with pytest.raises(Exception, match="does not contain files"):
+        build_github_publish_plan(
+            _result(package_dir),
+            GithubPublishOptions(repo="owner/repo", target_dir="content/posts"),
+        )
