@@ -14,7 +14,7 @@ from rich.console import Console
 from rich.text import Text
 
 from magicmd import __version__
-from magicmd.config import load_config
+from magicmd.config import GithubPublishConfig, load_config
 from magicmd.detect import detect_platform
 from magicmd.diagnostics import (
     build_doctor_json_payload,
@@ -32,9 +32,13 @@ from magicmd.quality import (
     build_skipped_quality,
     write_batch_report,
 )
+from magicmd.publish.models import GithubPublishOptions
+from magicmd.publish.planner import build_github_publish_plan
 from magicmd.sdk import convert_article, download_configured_media
 
 app = typer.Typer(help="Convert public article links into Markdown packages.", no_args_is_help=True)
+publish_app = typer.Typer(help="Publish converted article packages.")
+app.add_typer(publish_app, name="publish")
 
 
 def _version_callback(value: bool):
@@ -233,6 +237,49 @@ def _resolve_docx_override(output_format: str) -> bool | None:
     raise click.ClickException("--format must be one of: auto, markdown, docx")
 
 
+def _resolve_github_publish_options(
+    config_values: GithubPublishConfig,
+    repo: str | None,
+    target_dir: str | None,
+    branch: str | None,
+    commit_message: str | None,
+    create_pr: bool,
+    overwrite: bool,
+) -> GithubPublishOptions:
+    resolved_repo = repo or config_values.repo
+    resolved_target_dir = target_dir or config_values.target_dir
+    if not resolved_repo:
+        raise click.ClickException("--repo is required unless [publish.github].repo is set")
+    if not resolved_target_dir:
+        raise click.ClickException(
+            "--target-dir is required unless [publish.github].target_dir is set"
+        )
+    return GithubPublishOptions(
+        repo=resolved_repo,
+        target_dir=resolved_target_dir,
+        branch=branch or config_values.branch,
+        commit_message=commit_message or config_values.commit_message,
+        create_pr=create_pr or config_values.create_pr,
+        overwrite=overwrite or config_values.overwrite,
+    )
+
+
+def _render_publish_plan(plan) -> str:
+    lines = [
+        "Publish plan",
+        f"Repository: {plan.repo}",
+        f"Branch: {plan.branch}",
+        f"Target directory: {plan.target_dir}",
+        f"Commit message: {plan.commit_message}",
+        f"Create PR: {plan.create_pr}",
+        "Files:",
+    ]
+    for file in plan.files:
+        lines.append(f"- {file.target_path} ({file.size_bytes} bytes)")
+    lines.append("Dry run only: no remote writes were performed.")
+    return "\n".join(lines)
+
+
 @app.command()
 def convert(
     url: str,
@@ -273,6 +320,56 @@ def convert(
             f"{quality.get('error')}. Debug package saved at: {_display_path(package_dir)}"
         )
     typer.echo(ui_text(config.ui.language, "created_package", path=_display_path(package_dir)))
+
+
+@publish_app.command("github")
+def publish_github(
+    url: str,
+    repo: Optional[str] = typer.Option(None, "--repo", help="GitHub repository owner/name."),
+    target_dir: Optional[str] = typer.Option(None, "--target-dir", help="Repository target path."),
+    branch: Optional[str] = typer.Option(None, "--branch", help="Publish branch template."),
+    commit_message: Optional[str] = typer.Option(
+        None, "--commit-message", help="Commit message template."
+    ),
+    config_path: Optional[Path] = typer.Option(None, "--config", help="Config file path."),
+    output: Optional[Path] = typer.Option(None, "--output", "-o", help="Local output directory."),
+    platform: str = typer.Option("auto", "--platform", help="auto, wechat, juejin, csdn, generic."),
+    no_images: bool = typer.Option(False, "--no-images", help="Do not download images."),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Preview the publish plan only."),
+    create_pr: bool = typer.Option(False, "--pr", help="Create a Pull Request after pushing."),
+    overwrite: bool = typer.Option(False, "--overwrite", help="Overwrite planned target files."),
+):
+    config = load_config(config_path)
+    try:
+        options = _resolve_github_publish_options(
+            config.publish.github,
+            repo,
+            target_dir,
+            branch,
+            commit_message,
+            create_pr,
+            overwrite,
+        )
+    except click.ClickException as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(1) from exc
+    try:
+        result = convert_article(
+            url=url,
+            platform=platform,
+            output_dir=_resolve_output(output, config_path),
+            download_images=not no_images,
+            config_path=config_path,
+            _fetch_for_platform=fetch_for_platform,
+            _parse_article=parse_article,
+        )
+    except MagicMDError as exc:
+        raise ConversionStageError(exc.stage, exc) from exc
+    plan = build_github_publish_plan(result, options)
+    if dry_run:
+        typer.echo(_render_publish_plan(plan))
+        return
+    raise click.ClickException("Real GitHub publishing is not implemented yet. Use --dry-run.")
 
 
 @app.command()
