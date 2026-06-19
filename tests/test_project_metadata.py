@@ -35,7 +35,9 @@ def test_publish_workflow_supports_trusted_publishing_for_pypi_and_npm():
     assert "environment: pypi" in workflow
     assert "environment: npm" in workflow
     assert "id-token: write" in workflow
-    assert "npm publish --registry=https://registry.npmjs.org/" in workflow
+    assert "actions/setup-node@v6" in workflow
+    assert "package-manager-cache: false" in workflow
+    assert "npm publish --registry=https://registry.npmjs.org --provenance" in workflow
     assert "working-directory: npm/magicmd" in workflow
 
 
