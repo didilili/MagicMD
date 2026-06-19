@@ -89,7 +89,7 @@ def test_publish_to_git_worktree_rejects_existing_files_without_overwrite(tmp_pa
         publish_to_git_worktree(_plan(package_dir), repo)
 
 
-def test_publish_to_git_worktree_rejects_nonempty_target_dir_without_overwrite(tmp_path: Path):
+def test_publish_to_git_worktree_allows_unrelated_files_in_target_dir(tmp_path: Path):
     repo = _repo(tmp_path)
     target = repo / "content/posts"
     target.mkdir(parents=True)
@@ -97,7 +97,24 @@ def test_publish_to_git_worktree_rejects_nonempty_target_dir_without_overwrite(t
     package_dir = tmp_path / "package"
     package_dir.mkdir()
 
-    with pytest.raises(Exception, match="Target directory already exists"):
+    publish_to_git_worktree(_plan(package_dir), repo)
+
+    assert (target / "other.md").read_text(encoding="utf-8") == "existing"
+    assert (target / "article.md").read_text(encoding="utf-8") == "# Article\n"
+    committed_paths = _run_git(repo, "diff-tree", "--no-commit-id", "--name-only", "-r", "HEAD")
+    assert "content/posts/article.md" in committed_paths
+    assert "content/posts/other.md" not in committed_paths
+
+
+def test_publish_to_git_worktree_rejects_target_dir_file(tmp_path: Path):
+    repo = _repo(tmp_path)
+    target = repo / "content/posts"
+    target.parent.mkdir(parents=True)
+    target.write_text("not a directory", encoding="utf-8")
+    package_dir = tmp_path / "package"
+    package_dir.mkdir()
+
+    with pytest.raises(Exception, match="Target directory is not a directory"):
         publish_to_git_worktree(_plan(package_dir), repo)
 
 

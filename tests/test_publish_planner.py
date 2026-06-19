@@ -80,6 +80,22 @@ def test_build_github_publish_plan_collects_package_files(tmp_path: Path):
     ]
 
 
+def test_build_github_publish_plan_renders_target_dir_template(tmp_path: Path):
+    package_dir = tmp_path / "package"
+    package_dir.mkdir()
+    (package_dir / "article.md").write_text("# Title\n", encoding="utf-8")
+
+    plan = build_github_publish_plan(
+        _result(package_dir),
+        GithubPublishOptions(repo="owner/repo", target_dir="content/posts/{date}-{slug}"),
+    )
+
+    assert plan.target_dir == "content/posts/2026-06-19-magicmd-发布测试"
+    assert [file.target_path for file in plan.files] == [
+        "content/posts/2026-06-19-magicmd-发布测试/article.md",
+    ]
+
+
 def test_build_github_publish_plan_requires_package_dir(tmp_path: Path):
     result = _result(tmp_path).model_copy(update={"package_dir": None})
 

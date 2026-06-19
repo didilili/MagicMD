@@ -19,14 +19,14 @@ magicmd batch urls.txt -o output/ --config .magicmd.toml
 ```toml
 [publish.github]
 repo = "owner/content"
-target_dir = "content/posts"
+target_dir = "content/posts/{date}-{slug}"
 branch = "magicmd/{slug}"
 commit_message = "Add article: {title}"
-create_pr = false
+create_pr = true
 overwrite = false
 ```
 
-`repo` is the target GitHub repository, and `target_dir` is the content directory inside that repository. `branch` and `commit_message` support template variables such as `{title}`, `{slug}`, `{date}`, `{platform}`, and `{short_hash}`.
+`repo` is the target GitHub repository, and `target_dir` is the content directory inside that repository. `target_dir`, `branch`, and `commit_message` support template variables such as `{title}`, `{slug}`, `{date}`, `{platform}`, and `{short_hash}`. Prefer including `{date}-{slug}` in `target_dir` so each article gets its own folder.
 
 CLI options override config values. For example, `--repo` overrides `[publish.github].repo`. `magicmd publish github --dry-run` does not need a token; real publishing requires `GITHUB_TOKEN`. Put it in `.env` at the project root:
 
