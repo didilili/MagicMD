@@ -14,6 +14,22 @@ magicmd "https://mp.weixin.qq.com/s/example" --config .magicmd.toml
 magicmd batch urls.txt -o output/ --config .magicmd.toml
 ```
 
+## GitHub 发布
+
+```toml
+[publish.github]
+repo = "owner/content"
+target_dir = "content/posts"
+branch = "magicmd/{slug}"
+commit_message = "Add article: {title}"
+create_pr = false
+overwrite = false
+```
+
+`repo` 是目标 GitHub 仓库，`target_dir` 是仓库内的内容目录。`branch` 和 `commit_message` 支持 `{title}`、`{slug}`、`{date}`、`{platform}`、`{short_hash}` 等模板变量。
+
+CLI 参数优先级高于配置文件；例如 `--repo` 会覆盖 `[publish.github].repo`。`magicmd publish github --dry-run` 不需要 token，真实发布需要设置 `GITHUB_TOKEN`。
+
 ## 终端语言
 
 ```toml

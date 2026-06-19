@@ -99,6 +99,30 @@ magicmd "https://mp.weixin.qq.com/s/example" --config .magicmd.toml
 
 也可以直接用 [配置生成器](/config-builder) 选择发布目标、文件命名和媒体路径，再把生成的 `.magicmd.toml` 放到项目根目录。
 
-## 6. 在程序里调用
+## 6. 发布到 GitHub 内容仓库
+
+先用 dry-run 查看 MagicMD 会写入哪些文件：
+
+```bash
+magicmd publish github "https://mp.weixin.qq.com/s/example" \
+  --repo owner/content \
+  --target-dir content/posts \
+  --dry-run
+```
+
+确认目标仓库、分支、目录和文件列表后，再执行实际发布：
+
+```bash
+export GITHUB_TOKEN=ghp_xxx
+magicmd publish github "https://mp.weixin.qq.com/s/example" \
+  --repo owner/content \
+  --target-dir content/posts \
+  --branch magicmd/{slug} \
+  --pr
+```
+
+真实发布需要 `GITHUB_TOKEN`。dry-run 不需要 token，也不会创建分支、提交、push 或 Pull Request。
+
+## 7. 在程序里调用
 
 如果你要把 MagicMD 接入自己的 Python 后端、CMS、HaoGit 或定时任务，不需要解析 CLI 输出。直接使用 [SDK 接入](/sdk)，调用 `from magicmd import convert_article`，拿到结构化的 Markdown、metadata、图片和转换报告。

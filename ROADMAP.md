@@ -46,8 +46,9 @@ MagicMD 的 GitHub Issues 主要留给真实问题：某篇文章转换错了、
 
 ### v0.6 - 发布工作流
 
-- 评估 GitHub token 发布器：把转换后的文章提交到指定仓库。
-- 支持配置目标目录、分支、提交信息和是否自动创建 Pull Request。
+- 增加 `magicmd publish github`：把转换后的内容包提交到指定 GitHub 内容仓库。
+- 支持 dry-run 预览目标仓库、分支、目录、commit message 和文件列表。
+- 支持配置目标目录、分支、提交信息、覆盖策略和是否自动创建 Pull Request。
 - 先保证它是可选工作流，不影响 MagicMD 的核心转换能力。
 
 ## Later
@@ -115,8 +116,9 @@ GitHub Issues are mainly for real user reports: bad conversions, failed installs
 
 ### v0.6 - Publishing workflow
 
-- Evaluate a GitHub token publisher for committing converted articles to a configured repository.
-- Support target directory, branch, commit message, and optional Pull Request creation.
+- Add `magicmd publish github` for committing converted content packages to a configured GitHub content repository.
+- Support dry-run previews for repository, branch, target directory, commit message, and file list.
+- Support target directory, branch, commit message, overwrite behavior, and optional Pull Request creation.
 - Keep this as an optional workflow, separate from MagicMD's conversion core.
 
 ## Later
