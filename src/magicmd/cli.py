@@ -26,6 +26,7 @@ from magicmd.fetchers.browser import fetch_browser
 from magicmd.fetchers.http import fetch_http
 from magicmd.i18n import ui_text
 from magicmd.platforms.registry import get_platform_adapter
+from magicmd.publish.errors import PublishError
 from magicmd.quality import (
     build_failure_quality,
     build_package_quality,
@@ -244,8 +245,8 @@ def _resolve_github_publish_options(
     target_dir: str | None,
     branch: str | None,
     commit_message: str | None,
-    create_pr: bool,
-    overwrite: bool,
+    create_pr: bool | None,
+    overwrite: bool | None,
 ) -> GithubPublishOptions:
     resolved_repo = repo or config_values.repo
     resolved_target_dir = target_dir or config_values.target_dir
@@ -260,8 +261,8 @@ def _resolve_github_publish_options(
         target_dir=resolved_target_dir,
         branch=branch or config_values.branch,
         commit_message=commit_message or config_values.commit_message,
-        create_pr=create_pr or config_values.create_pr,
-        overwrite=overwrite or config_values.overwrite,
+        create_pr=config_values.create_pr if create_pr is None else create_pr,
+        overwrite=config_values.overwrite if overwrite is None else overwrite,
     )
 
 
@@ -269,10 +270,15 @@ def _render_publish_plan(plan) -> str:
     lines = [
         "Publish plan",
         f"Repository: {plan.repo}",
+        f"Title: {plan.title}",
+        f"Platform: {plan.platform}",
+        f"Source URL: {plan.source_url}",
+        f"Package directory: {plan.package_dir}",
         f"Branch: {plan.branch}",
         f"Target directory: {plan.target_dir}",
         f"Commit message: {plan.commit_message}",
         f"Create PR: {plan.create_pr}",
+        f"Overwrite: {plan.overwrite}",
         "Files:",
     ]
     for file in plan.files:
@@ -337,8 +343,12 @@ def publish_github(
     platform: str = typer.Option("auto", "--platform", help="auto, wechat, juejin, csdn, generic."),
     no_images: bool = typer.Option(False, "--no-images", help="Do not download images."),
     dry_run: bool = typer.Option(False, "--dry-run", help="Preview the publish plan only."),
-    create_pr: bool = typer.Option(False, "--pr", help="Create a Pull Request after pushing."),
-    overwrite: bool = typer.Option(False, "--overwrite", help="Overwrite planned target files."),
+    create_pr: bool | None = typer.Option(
+        None, "--pr/--no-pr", help="Create a Pull Request after pushing."
+    ),
+    overwrite: bool | None = typer.Option(
+        None, "--overwrite/--no-overwrite", help="Overwrite planned target files."
+    ),
 ):
     config = load_config(config_path)
     try:
@@ -366,11 +376,15 @@ def publish_github(
         )
     except MagicMDError as exc:
         raise ConversionStageError(exc.stage, exc) from exc
-    plan = build_github_publish_plan(result, options)
-    if dry_run:
-        typer.echo(_render_publish_plan(plan))
-        return
-    published = publish_to_github(plan)
+    try:
+        plan = build_github_publish_plan(result, options)
+        if dry_run:
+            typer.echo(_render_publish_plan(plan))
+            return
+        published = publish_to_github(plan)
+    except (PublishError, ValueError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(1) from exc
     typer.echo(f"Published to {plan.repo}")
     typer.echo(f"Branch: {published.branch}")
     typer.echo(f"Commit: {published.commit_sha}")

@@ -105,7 +105,9 @@ def test_publish_workflow_documented_on_website():
     quick_start = Path("website/quick-start.md").read_text(encoding="utf-8")
     config_doc = Path("website/config.md").read_text(encoding="utf-8")
     english_quick_start = Path("website/en/quick-start.md").read_text(encoding="utf-8")
+    english_config_doc = Path("website/en/config.md").read_text(encoding="utf-8")
 
     assert "magicmd publish github" in quick_start
     assert "[publish.github]" in config_doc
     assert "magicmd publish github" in english_quick_start
+    assert "[publish.github]" in english_config_doc

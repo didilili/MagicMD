@@ -9,14 +9,27 @@ from pathlib import Path
 import httpx
 
 from magicmd.publish.errors import PublishGitError, PublishGitHubError
-from magicmd.publish.models import PublishPlan, PublishResult
+from magicmd.publish.models import PublishFile, PublishPlan, PublishResult
 
 
-def _run_git(repo_dir: Path, *args: str) -> str:
+GIT_USER_NAME = "MagicMD"
+GIT_USER_EMAIL = "magicmd@example.com"
+
+
+def _git_env(extra: dict[str, str] | None = None) -> dict[str, str] | None:
+    if extra is None:
+        return None
+    env = os.environ.copy()
+    env.update(extra)
+    return env
+
+
+def _run_git(repo_dir: Path, *args: str, env: dict[str, str] | None = None) -> str:
     result = subprocess.run(
         ["git", "-C", str(repo_dir), *args],
         text=True,
         capture_output=True,
+        env=_git_env(env),
     )
     if result.returncode != 0:
         message = (result.stderr or result.stdout).strip()
@@ -24,11 +37,73 @@ def _run_git(repo_dir: Path, *args: str) -> str:
     return result.stdout.strip()
 
 
+def _has_git_config(repo_dir: Path, key: str) -> bool:
+    result = subprocess.run(
+        ["git", "-C", str(repo_dir), "config", "--get", key],
+        text=True,
+        capture_output=True,
+    )
+    return result.returncode == 0 and bool(result.stdout.strip())
+
+
+def _ensure_git_identity(repo_dir: Path) -> None:
+    if not _has_git_config(repo_dir, "user.name"):
+        _run_git(repo_dir, "config", "user.name", GIT_USER_NAME)
+    if not _has_git_config(repo_dir, "user.email"):
+        _run_git(repo_dir, "config", "user.email", GIT_USER_EMAIL)
+
+
+def _remote_branch_exists(repo_dir: Path, branch: str) -> bool:
+    result = subprocess.run(
+        ["git", "-C", str(repo_dir), "rev-parse", "--verify", f"origin/{branch}"],
+        text=True,
+        capture_output=True,
+    )
+    return result.returncode == 0
+
+
+def _checkout_publish_branch(repo_dir: Path, branch: str) -> None:
+    if _remote_branch_exists(repo_dir, branch):
+        _run_git(repo_dir, "checkout", "-B", branch, f"origin/{branch}")
+    else:
+        _run_git(repo_dir, "checkout", "-B", branch)
+
+
+def _resolve_repo_target(repo_dir: Path, repo_path: str) -> Path:
+    raw_path = Path(repo_path)
+    if raw_path.is_absolute():
+        raise PublishGitError(f"Target path must stay inside the repository: {repo_path}")
+    target_path = (repo_dir / raw_path).resolve()
+    if target_path != repo_dir and repo_dir not in target_path.parents:
+        raise PublishGitError(f"Target path must stay inside the repository: {repo_path}")
+    return target_path
+
+
+def _has_unplanned_files(target_dir: Path, planned_targets: set[Path]) -> bool:
+    if target_dir.is_file():
+        return True
+    if not target_dir.exists():
+        return False
+    for child in target_dir.rglob("*"):
+        if child.is_file() and child.resolve() not in planned_targets:
+            return True
+    return False
+
+
 def _copy_planned_files(plan: PublishPlan, repo_dir: Path) -> None:
+    target_dir = _resolve_repo_target(repo_dir, plan.target_dir)
+    planned_files: list[tuple[PublishFile, Path]] = []
     for file in plan.files:
-        target_path = repo_dir / file.target_path
+        target_path = _resolve_repo_target(repo_dir, file.target_path)
         if target_path.exists() and not plan.overwrite:
             raise PublishGitError(f"Target file already exists: {file.target_path}")
+        planned_files.append((file, target_path))
+    planned_targets = {target_path for _, target_path in planned_files}
+    if not plan.overwrite and _has_unplanned_files(target_dir, planned_targets):
+        raise PublishGitError(
+            f"Target directory already exists and is not empty: {plan.target_dir}"
+        )
+    for file, target_path in planned_files:
         target_path.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(file.source_path, target_path)
 
@@ -38,7 +113,8 @@ def publish_to_git_worktree(plan: PublishPlan, repo_dir: Path) -> PublishResult:
     if not (repo_dir / ".git").exists():
         raise PublishGitError(f"Not a git repository: {repo_dir}")
 
-    _run_git(repo_dir, "checkout", "-B", plan.branch)
+    _ensure_git_identity(repo_dir)
+    _checkout_publish_branch(repo_dir, plan.branch)
     _copy_planned_files(plan, repo_dir)
     _run_git(repo_dir, "add", "--", plan.target_dir)
     status = _run_git(repo_dir, "status", "--porcelain", "--", plan.target_dir)
@@ -108,8 +184,17 @@ def create_github_pull_request(
             http_client.close()
 
 
-def build_authenticated_remote_url(repo: str, token: str) -> str:
-    return f"https://x-access-token:{token}@github.com/{repo}.git"
+def build_authenticated_remote_url(repo: str, _token: str) -> str:
+    return f"https://github.com/{repo}.git"
+
+
+def _github_git_auth_env(repo: str, token: str) -> dict[str, str]:
+    remote_url = build_authenticated_remote_url(repo, token)
+    return {
+        "GIT_CONFIG_COUNT": "1",
+        "GIT_CONFIG_KEY_0": f"http.{remote_url}.extraHeader",
+        "GIT_CONFIG_VALUE_0": f"Authorization: Bearer {token}",
+    }
 
 
 def mask_token(message: str, token: str) -> str:
@@ -124,15 +209,17 @@ def publish_to_github(
     with tempfile.TemporaryDirectory(prefix="magicmd-publish-") as temp_dir:
         worktree = Path(temp_dir) / "repo"
         remote_url = build_authenticated_remote_url(plan.repo, resolved_token)
+        auth_env = _github_git_auth_env(plan.repo, resolved_token)
         try:
             subprocess.run(
                 ["git", "clone", remote_url, str(worktree)],
                 text=True,
                 capture_output=True,
                 check=True,
+                env=_git_env(auth_env),
             )
             result = publish_to_git_worktree(plan, worktree)
-            _run_git(worktree, "push", "origin", plan.branch)
+            _run_git(worktree, "push", "origin", plan.branch, env=auth_env)
             _run_git(worktree, "remote", "set-url", "origin", f"https://github.com/{plan.repo}.git")
             if plan.create_pr:
                 result.pr_url = create_github_pull_request(
