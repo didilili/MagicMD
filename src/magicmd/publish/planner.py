@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import re
+from pathlib import Path
 
 from magicmd.publish.errors import PublishPlanError
+from magicmd.publish.models import GithubPublishOptions, PublishFile, PublishPlan
 from magicmd.sdk import ArticleConversionResult
 from magicmd.template_vars import format_template
 
@@ -41,3 +43,61 @@ def sanitize_branch_name(branch: str) -> str:
 
 def render_publish_template(template: str, result: ArticleConversionResult) -> str:
     return format_template(template, build_publish_template_vars(result))
+
+
+def _normalize_repo_path(path: str) -> str:
+    normalized = path.replace("\\", "/").strip("/")
+    if not normalized:
+        raise PublishPlanError("target_dir must not be empty")
+    if normalized.startswith("../") or "/../" in f"/{normalized}/":
+        raise PublishPlanError("target_dir must stay inside the repository")
+    return normalized
+
+
+def _collect_package_files(package_dir: Path, target_dir: str) -> list[PublishFile]:
+    files: list[PublishFile] = []
+    for source_path in sorted(path for path in package_dir.rglob("*") if path.is_file()):
+        relative_path = source_path.relative_to(package_dir).as_posix()
+        files.append(
+            PublishFile(
+                source_path=str(source_path),
+                target_path=f"{target_dir}/{relative_path}",
+                size_bytes=source_path.stat().st_size,
+            )
+        )
+    return files
+
+
+def build_github_publish_plan(
+    result: ArticleConversionResult,
+    options: GithubPublishOptions,
+) -> PublishPlan:
+    if result.package_dir is None:
+        raise PublishPlanError("Publishing requires a written package_dir")
+    package_dir = Path(result.package_dir)
+    if not package_dir.exists():
+        raise PublishPlanError(f"package_dir does not exist: {package_dir}")
+
+    target_dir = _normalize_repo_path(options.target_dir)
+    files = _collect_package_files(package_dir, target_dir)
+    if not files:
+        raise PublishPlanError(f"package_dir does not contain files: {package_dir}")
+
+    branch = sanitize_branch_name(render_publish_template(options.branch, result))
+    commit_message = render_publish_template(options.commit_message, result).strip()
+    if not commit_message:
+        raise PublishPlanError("commit_message template produced an empty commit message")
+
+    return PublishPlan(
+        repo=options.repo,
+        target_dir=target_dir,
+        branch=branch,
+        commit_message=commit_message,
+        create_pr=options.create_pr,
+        overwrite=options.overwrite,
+        title=result.title,
+        platform=result.platform,
+        source_url=result.source_url,
+        package_dir=str(package_dir),
+        files=files,
+    )
