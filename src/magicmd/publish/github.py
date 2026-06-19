@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import base64
 import shutil
 import subprocess
 import tempfile
@@ -158,24 +159,27 @@ def create_github_pull_request(
     owns_client = client is None
     http_client = client or httpx.Client(timeout=20)
     try:
-        repo_response = http_client.get(
-            f"https://api.github.com/repos/{repo}",
-            headers=_github_headers(token),
-        )
-        if repo_response.status_code >= 400:
-            raise PublishGitHubError(f"GitHub repo lookup failed: {repo_response.text}")
-        default_branch = repo_response.json().get("default_branch") or "main"
+        try:
+            repo_response = http_client.get(
+                f"https://api.github.com/repos/{repo}",
+                headers=_github_headers(token),
+            )
+            if repo_response.status_code >= 400:
+                raise PublishGitHubError(f"GitHub repo lookup failed: {repo_response.text}")
+            default_branch = repo_response.json().get("default_branch") or "main"
 
-        pr_response = http_client.post(
-            f"https://api.github.com/repos/{repo}/pulls",
-            headers=_github_headers(token),
-            json={
-                "title": title,
-                "head": branch,
-                "base": default_branch,
-                "body": body,
-            },
-        )
+            pr_response = http_client.post(
+                f"https://api.github.com/repos/{repo}/pulls",
+                headers=_github_headers(token),
+                json={
+                    "title": title,
+                    "head": branch,
+                    "base": default_branch,
+                    "body": body,
+                },
+            )
+        except (httpx.TimeoutException, httpx.TransportError, httpx.HTTPError) as exc:
+            raise PublishGitHubError(f"GitHub PR request failed: {exc}") from exc
         if pr_response.status_code >= 400:
             raise PublishGitHubError(f"GitHub PR creation failed: {pr_response.text}")
         return str(pr_response.json().get("html_url", ""))
@@ -184,16 +188,25 @@ def create_github_pull_request(
             http_client.close()
 
 
-def build_authenticated_remote_url(repo: str, _token: str) -> str:
+def build_github_remote_url(repo: str) -> str:
     return f"https://github.com/{repo}.git"
 
 
+def build_authenticated_remote_url(repo: str, _token: str) -> str:
+    return build_github_remote_url(repo)
+
+
+def _github_git_auth_header(token: str) -> str:
+    credential = base64.b64encode(f"x-access-token:{token}".encode("utf-8")).decode("ascii")
+    return f"Authorization: Basic {credential}"
+
+
 def _github_git_auth_env(repo: str, token: str) -> dict[str, str]:
-    remote_url = build_authenticated_remote_url(repo, token)
+    remote_url = build_github_remote_url(repo)
     return {
         "GIT_CONFIG_COUNT": "1",
         "GIT_CONFIG_KEY_0": f"http.{remote_url}.extraHeader",
-        "GIT_CONFIG_VALUE_0": f"Authorization: Bearer {token}",
+        "GIT_CONFIG_VALUE_0": _github_git_auth_header(token),
     }
 
 
@@ -208,7 +221,7 @@ def publish_to_github(
     resolved_token = require_github_token(token)
     with tempfile.TemporaryDirectory(prefix="magicmd-publish-") as temp_dir:
         worktree = Path(temp_dir) / "repo"
-        remote_url = build_authenticated_remote_url(plan.repo, resolved_token)
+        remote_url = build_github_remote_url(plan.repo)
         auth_env = _github_git_auth_env(plan.repo, resolved_token)
         try:
             subprocess.run(
