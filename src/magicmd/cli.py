@@ -32,6 +32,7 @@ from magicmd.quality import (
     build_skipped_quality,
     write_batch_report,
 )
+from magicmd.publish.github import publish_to_github
 from magicmd.publish.models import GithubPublishOptions
 from magicmd.publish.planner import build_github_publish_plan
 from magicmd.sdk import convert_article, download_configured_media
@@ -369,7 +370,12 @@ def publish_github(
     if dry_run:
         typer.echo(_render_publish_plan(plan))
         return
-    raise click.ClickException("Real GitHub publishing is not implemented yet. Use --dry-run.")
+    published = publish_to_github(plan)
+    typer.echo(f"Published to {plan.repo}")
+    typer.echo(f"Branch: {published.branch}")
+    typer.echo(f"Commit: {published.commit_sha}")
+    if published.pr_url:
+        typer.echo(f"Pull Request: {published.pr_url}")
 
 
 @app.command()
