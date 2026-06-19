@@ -441,7 +441,7 @@ If a platform changes its page structure and conversion quality drops, keep the 
 
 ## Next
 
-v0.4.0 makes CLI output Chinese-first and rounds out the bilingual website docs, Config Builder language option, and Agent Skill guide. Next up: more live regression samples, broader site support, and smoother backend integration. See [ROADMAP.md](./ROADMAP.md).
+v0.5.0 adds DOCX export, WeChat cover-image output, live regression manifests, and the manual Trusted Publishing release workflow. Next up: evaluating optional publishing workflows such as committing converted articles to a GitHub repository. See [ROADMAP.md](./ROADMAP.md).
 
 ## License
 

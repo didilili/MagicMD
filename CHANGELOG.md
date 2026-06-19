@@ -4,13 +4,31 @@
 
 ### 中文
 
+- 暂无。
+
+### English
+
+- Nothing yet.
+
+## v0.5.0 - 2026-06-19
+
+### 中文
+
 - 新增可选 DOCX 导出：`magicmd convert URL --format docx` 或 `[docx] enabled = true` 会在保留 Markdown 内容包的同时额外生成 `article.docx`，导出由 Pandoc 执行，并支持配置 `pandoc_path` 和 `reference_doc`。
 - 修复 `--overwrite` 覆盖同名内容包时旧图片、旧 DOCX 等生成文件可能残留的问题；现在会先清理已有生成包，再写入本次转换结果。
+- 新增微信封面图元数据提取和默认输出，生成的 Markdown 内容包会更完整地保留公众号文章卡片信息。
+- 新增真实站点回归清单和 dry run 记录，覆盖微信公众号、掘金、CSDN 等样本，便于发布前检查解析质量是否退化。
+- 新增手动触发的 PyPI / npm Trusted Publishing workflow，并补齐发布自动化说明和发布后 smoke test 清单。
+- 优化官网首页、Agent Skill 文档和配置生成器体验；配置生成器在宽屏下保留更接近文档页的左右留白。
 
 ### English
 
 - Added optional DOCX export: `magicmd convert URL --format docx` or `[docx] enabled = true` keeps the Markdown package and also generates `article.docx` through Pandoc, with configurable `pandoc_path` and `reference_doc`.
 - Fixed stale generated files when `--overwrite` replaces an existing package; MagicMD now clears the old package before writing the current conversion result.
+- Added WeChat cover-image metadata extraction and default output so Markdown packages preserve more of the original article card.
+- Added live-site regression manifests and dry-run records for WeChat, Juejin, CSDN, and related samples, making pre-release quality checks more systematic.
+- Added a manually triggered PyPI / npm Trusted Publishing workflow, plus release automation notes and a post-release smoke test checklist.
+- Improved the website homepage, Agent Skill docs, and Config Builder experience; the Config Builder now keeps more document-like side gutters on wide screens.
 
 ## v0.4.0 - 2026-06-17
 

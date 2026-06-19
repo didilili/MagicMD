@@ -441,7 +441,7 @@ MagicMD 只处理公开文章页面。它不会绕过登录、付费墙、私有
 
 ## 接下来
 
-v0.4.0 已把 CLI 提示调整为中文优先，并补齐官网中英文文档、配置生成器语言选项和 Agent Skill 使用说明。下一步会继续做真实样本回归、更多站点适配和业务系统接入体验优化。完整计划见 [ROADMAP.md](./ROADMAP.md)。
+v0.5.0 已补齐 DOCX 导出、微信封面图、真实回归清单和手动 Trusted Publishing 发布流程。下一步会继续评估把转换后的文章发布到 GitHub 仓库等可选工作流。完整计划见 [ROADMAP.md](./ROADMAP.md)。
 
 ## License
 
