@@ -99,6 +99,30 @@ magicmd "https://mp.weixin.qq.com/s/example" --config .magicmd.toml
 
 You can also use the [Config Builder](/en/config-builder) to choose the publishing target, filenames, and media paths, then save the generated `.magicmd.toml` at your project root.
 
-## 6. Call MagicMD from Python
+## 6. Publish to a GitHub content repository
+
+Preview the planned write first:
+
+```bash
+magicmd publish github "https://mp.weixin.qq.com/s/example" \
+  --repo owner/content \
+  --target-dir content/posts \
+  --dry-run
+```
+
+After checking the repository, branch, target path, and file list, publish it:
+
+```bash
+export GITHUB_TOKEN=ghp_xxx
+magicmd publish github "https://mp.weixin.qq.com/s/example" \
+  --repo owner/content \
+  --target-dir content/posts \
+  --branch magicmd/{slug} \
+  --pr
+```
+
+Real publishing requires `GITHUB_TOKEN`. Dry-run mode does not need a token and does not create branches, commits, pushes, or Pull Requests.
+
+## 7. Call MagicMD from Python
 
 If you are integrating MagicMD into a Python backend, CMS, HaoGit-style project, or scheduled job, do not parse CLI output. Use [SDK Integration](/en/sdk) and call `from magicmd import convert_article` to receive structured Markdown, metadata, images, and extraction reports.
