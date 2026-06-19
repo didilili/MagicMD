@@ -11,6 +11,7 @@ from typer.testing import CliRunner
 from magicmd import __version__
 from magicmd.cli import ConversionStageError, ProgressReporter, app, entrypoint
 from magicmd.cli import convert_url, fetch_for_platform
+from magicmd.sdk import ArticleConversionResult
 
 
 runner = CliRunner()
@@ -1108,3 +1109,74 @@ def test_convert_url_passes_configured_media_path_templates(monkeypatch, tmp_pat
         "clip_{index:02d}.{ext}",
         "/static/{directory}/{filename}",
     )
+
+
+def test_publish_github_dry_run_prints_plan(monkeypatch, tmp_path: Path):
+    package_dir = tmp_path / "package"
+    package_dir.mkdir()
+    (package_dir / "article.md").write_text("# Dry Run\n", encoding="utf-8")
+
+    def fake_convert_article(**kwargs):
+        return ArticleConversionResult(
+            title="Dry Run",
+            platform="wechat",
+            source_url=kwargs["url"],
+            markdown="# Dry Run\n",
+            content_hash="abc123456",
+            package_dir=str(package_dir),
+        )
+
+    monkeypatch.setattr("magicmd.cli.convert_article", fake_convert_article)
+
+    result = runner.invoke(
+        app,
+        [
+            "publish",
+            "github",
+            "https://mp.weixin.qq.com/s/example",
+            "--repo",
+            "owner/repo",
+            "--target-dir",
+            "content/posts",
+            "--dry-run",
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert "Publish plan" in result.stdout
+    assert "owner/repo" in result.stdout
+    assert "content/posts/article.md" in result.stdout
+    assert "Dry run only" in result.stdout
+
+
+def test_publish_github_requires_repo_or_config(monkeypatch, tmp_path: Path):
+    package_dir = tmp_path / "package"
+    package_dir.mkdir()
+    (package_dir / "article.md").write_text("# Missing Repo\n", encoding="utf-8")
+
+    def fake_convert_article(**kwargs):
+        return ArticleConversionResult(
+            title="Missing Repo",
+            platform="wechat",
+            source_url=kwargs["url"],
+            markdown="# Missing Repo\n",
+            content_hash="abc123456",
+            package_dir=str(package_dir),
+        )
+
+    monkeypatch.setattr("magicmd.cli.convert_article", fake_convert_article)
+
+    result = runner.invoke(
+        app,
+        [
+            "publish",
+            "github",
+            "https://mp.weixin.qq.com/s/example",
+            "--target-dir",
+            "content/posts",
+            "--dry-run",
+        ],
+    )
+
+    assert result.exit_code != 0
+    assert "--repo is required" in (result.stdout + result.stderr)
