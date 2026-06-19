@@ -43,7 +43,9 @@ def test_load_config_accepts_browser_fetch_options(tmp_path: Path):
     assert config.fetch.browser_attempts == 4
 
 
-def test_load_config_defaults_cli_ui_language_to_chinese():
+def test_load_config_defaults_cli_ui_language_to_chinese(monkeypatch, tmp_path: Path):
+    monkeypatch.chdir(tmp_path)
+
     config = load_config()
 
     assert config.ui.language == "zh-CN"
@@ -146,7 +148,9 @@ def test_load_config_accepts_v02_output_and_markdown_templates(tmp_path: Path):
     assert config.docx.reference_doc == "templates/reference.docx"
 
 
-def test_load_config_disables_docx_by_default():
+def test_load_config_disables_docx_by_default(monkeypatch, tmp_path: Path):
+    monkeypatch.chdir(tmp_path)
+
     config = load_config()
 
     assert config.docx.enabled is False
@@ -178,7 +182,9 @@ def test_load_config_accepts_publish_github_config(tmp_path: Path):
     assert config.publish.github.overwrite is True
 
 
-def test_load_config_defaults_publish_github_to_disabled():
+def test_load_config_defaults_publish_github_to_disabled(monkeypatch, tmp_path: Path):
+    monkeypatch.chdir(tmp_path)
+
     config = load_config()
 
     assert config.publish.github.repo == ""
@@ -189,7 +195,9 @@ def test_load_config_defaults_publish_github_to_disabled():
     assert config.publish.github.overwrite is False
 
 
-def test_load_config_includes_wechat_cover_image_by_default():
+def test_load_config_includes_wechat_cover_image_by_default(monkeypatch, tmp_path: Path):
+    monkeypatch.chdir(tmp_path)
+
     config = load_config()
 
     assert config.markdown.include_cover_image is True
@@ -281,7 +289,9 @@ def test_load_config_rejects_unknown_preset(tmp_path: Path):
         load_config(config_path)
 
 
-def test_default_platform_fetch_modes_match_live_validation_baseline():
+def test_default_platform_fetch_modes_match_live_validation_baseline(monkeypatch, tmp_path: Path):
+    monkeypatch.chdir(tmp_path)
+
     config = load_config()
 
     assert config.platforms["wechat"].browser == "camoufox"
