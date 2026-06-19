@@ -2,6 +2,7 @@ from pathlib import Path
 
 import json
 import io
+import subprocess
 import sys
 
 import pytest
@@ -283,6 +284,35 @@ def test_entrypoint_reports_cli_errors_without_traceback(monkeypatch, capsys):
     rendered = captured.out + captured.err
     assert exc_info.value.code != 0
     assert "No such option" in rendered
+    assert "Traceback" not in rendered
+
+
+def test_entrypoint_publish_github_config_error_exits_nonzero(tmp_path: Path):
+    config_path = tmp_path / ".magicmd.toml"
+    config_path.write_text('[output]\ndirectory = "output"\n', encoding="utf-8")
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-c",
+            "from magicmd.cli import entrypoint; entrypoint()",
+            "publish",
+            "github",
+            "https://example.com/post",
+            "--target-dir",
+            "content/posts",
+            "--config",
+            str(config_path),
+            "--dry-run",
+        ],
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+
+    rendered = result.stdout + result.stderr
+    assert result.returncode == 1
+    assert "--repo is required" in rendered
     assert "Traceback" not in rendered
 
 

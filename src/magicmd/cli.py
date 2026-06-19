@@ -114,7 +114,11 @@ def entrypoint():
     if len(sys.argv) > 1 and sys.argv[1].startswith(("http://", "https://")):
         sys.argv.insert(1, "convert")
     try:
-        app(standalone_mode=False)
+        exit_code = app(standalone_mode=False)
+        if isinstance(exit_code, int) and exit_code != 0:
+            raise SystemExit(exit_code)
+    except click.exceptions.Exit as exc:
+        raise SystemExit(exc.exit_code) from exc
     except Exception as exc:
         if hasattr(exc, "show") and hasattr(exc, "exit_code"):
             exc.show()
