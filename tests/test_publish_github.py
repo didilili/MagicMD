@@ -8,10 +8,11 @@ from magicmd.publish.github import (
     build_authenticated_remote_url,
     create_github_pull_request,
     mask_token,
+    publish_to_github,
     publish_to_git_worktree,
     require_github_token,
 )
-from magicmd.publish.models import PublishFile, PublishPlan
+from magicmd.publish.models import PublishFile, PublishPlan, PublishResult
 
 
 def _run_git(repo: Path, *args: str) -> str:
@@ -84,6 +85,87 @@ def test_publish_to_git_worktree_rejects_existing_files_without_overwrite(tmp_pa
         publish_to_git_worktree(_plan(package_dir), repo)
 
 
+def test_publish_to_git_worktree_rejects_nonempty_target_dir_without_overwrite(tmp_path: Path):
+    repo = _repo(tmp_path)
+    target = repo / "content/posts"
+    target.mkdir(parents=True)
+    (target / "other.md").write_text("existing", encoding="utf-8")
+    package_dir = tmp_path / "package"
+    package_dir.mkdir()
+
+    with pytest.raises(Exception, match="Target directory already exists"):
+        publish_to_git_worktree(_plan(package_dir), repo)
+
+
+@pytest.mark.parametrize("case", ["absolute", "relative_parent"])
+def test_publish_to_git_worktree_rejects_target_paths_outside_repo(tmp_path: Path, case: str):
+    repo = _repo(tmp_path)
+    package_dir = tmp_path / "package"
+    package_dir.mkdir()
+    article = package_dir / "article.md"
+    article.write_text("# Article\n", encoding="utf-8")
+    if case == "absolute":
+        outside_path = tmp_path / "outside-absolute.md"
+        target_path = str(outside_path)
+    else:
+        target_path = "../../outside-relative.md"
+        outside_path = (repo / target_path).resolve()
+    if outside_path.exists():
+        outside_path.unlink()
+    plan = _plan(package_dir).model_copy(
+        update={
+            "target_dir": "content/posts",
+            "files": [
+                PublishFile(
+                    source_path=str(article),
+                    target_path=target_path,
+                    size_bytes=article.stat().st_size,
+                )
+            ],
+        }
+    )
+
+    with pytest.raises(Exception, match="Target path must stay inside the repository"):
+        publish_to_git_worktree(plan, repo)
+
+    assert not outside_path.exists()
+
+
+def test_publish_to_git_worktree_bases_existing_remote_branch(tmp_path: Path):
+    repo = _repo(tmp_path)
+    default_branch = _run_git(repo, "branch", "--show-current")
+    _run_git(repo, "checkout", "-b", "magicmd/article")
+    (repo / "remote.md").write_text("remote branch content\n", encoding="utf-8")
+    _run_git(repo, "add", "remote.md")
+    _run_git(repo, "commit", "-m", "Remote branch change")
+    remote_sha = _run_git(repo, "rev-parse", "HEAD")
+    _run_git(repo, "checkout", default_branch)
+    _run_git(repo, "branch", "-D", "magicmd/article")
+    _run_git(repo, "update-ref", "refs/remotes/origin/magicmd/article", remote_sha)
+    package_dir = tmp_path / "package"
+    package_dir.mkdir()
+
+    publish_to_git_worktree(_plan(package_dir), repo)
+
+    assert _run_git(repo, "rev-parse", "HEAD^") == remote_sha
+
+
+def test_publish_to_git_worktree_sets_local_git_identity(monkeypatch, tmp_path: Path):
+    monkeypatch.setenv("GIT_CONFIG_GLOBAL", str(tmp_path / "missing-global-gitconfig"))
+    monkeypatch.setenv("GIT_CONFIG_NOSYSTEM", "1")
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    _run_git(repo, "init")
+    package_dir = tmp_path / "package"
+    package_dir.mkdir()
+
+    result = publish_to_git_worktree(_plan(package_dir), repo)
+
+    assert result.commit_sha
+    assert _run_git(repo, "config", "user.name") == "MagicMD"
+    assert _run_git(repo, "config", "user.email") == "magicmd@example.com"
+
+
 def test_require_github_token_rejects_missing_token(monkeypatch):
     monkeypatch.delenv("GITHUB_TOKEN", raising=False)
 
@@ -122,10 +204,49 @@ def test_create_github_pull_request_uses_default_branch():
 def test_build_authenticated_remote_url_for_https_clone():
     url = build_authenticated_remote_url("owner/repo", "secret-token")
 
-    assert url == "https://x-access-token:secret-token@github.com/owner/repo.git"
+    assert url == "https://github.com/owner/repo.git"
+    assert "secret-token" not in url
 
 
 def test_mask_token_removes_token_from_messages():
     message = "https://x-access-token:secret-token@github.com/owner/repo.git failed"
 
     assert "secret-token" not in mask_token(message, "secret-token")
+
+
+def test_publish_to_github_does_not_pass_token_in_git_argv(monkeypatch, tmp_path: Path):
+    package_dir = tmp_path / "package"
+    package_dir.mkdir()
+    commands: list[list[str]] = []
+
+    def fake_subprocess_run(args, **kwargs):
+        command = [str(arg) for arg in args]
+        commands.append(command)
+        assert "secret-token" not in " ".join(command)
+        if command[:2] == ["git", "clone"]:
+            Path(command[-1]).mkdir(parents=True, exist_ok=True)
+        return subprocess.CompletedProcess(args, 0, stdout="", stderr="")
+
+    def fake_publish_to_git_worktree(plan, repo_dir):
+        return PublishResult(
+            repo=plan.repo, branch=plan.branch, commit_sha="abc123", files=plan.files
+        )
+
+    def fake_run_git(repo_dir, *args, env=None):
+        command = ["git", "-C", str(repo_dir), *args]
+        commands.append(command)
+        assert "secret-token" not in " ".join(command)
+        assert env is None or env["GIT_CONFIG_VALUE_0"] == "Authorization: Bearer secret-token"
+        return ""
+
+    monkeypatch.setattr("magicmd.publish.github.subprocess.run", fake_subprocess_run)
+    monkeypatch.setattr(
+        "magicmd.publish.github.publish_to_git_worktree", fake_publish_to_git_worktree
+    )
+    monkeypatch.setattr("magicmd.publish.github._run_git", fake_run_git)
+
+    publish_to_github(_plan(package_dir), token="secret-token")
+
+    assert commands
+    assert commands[0][:2] == ["git", "clone"]
+    assert commands[0][2] == "https://github.com/owner/repo.git"

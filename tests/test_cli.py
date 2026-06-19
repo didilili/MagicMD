@@ -1145,8 +1145,106 @@ def test_publish_github_dry_run_prints_plan(monkeypatch, tmp_path: Path):
     assert result.exit_code == 0
     assert "Publish plan" in result.stdout
     assert "owner/repo" in result.stdout
+    assert "Title: Dry Run" in result.stdout
+    assert "Platform: wechat" in result.stdout
+    assert "Source URL: https://mp.weixin.qq.com/s/example" in result.stdout
+    assert f"Package directory: {package_dir}" in result.stdout
     assert "content/posts/article.md" in result.stdout
     assert "Dry run only" in result.stdout
+
+
+def test_publish_github_cli_can_disable_true_boolean_config(monkeypatch, tmp_path: Path):
+    package_dir = tmp_path / "package"
+    package_dir.mkdir()
+    (package_dir / "article.md").write_text("# Config Booleans\n", encoding="utf-8")
+    config_path = tmp_path / ".magicmd.toml"
+    config_path.write_text(
+        """
+        [publish.github]
+        repo = "owner/repo"
+        target_dir = "content/posts"
+        create_pr = true
+        overwrite = true
+        """,
+        encoding="utf-8",
+    )
+
+    def fake_convert_article(**kwargs):
+        return ArticleConversionResult(
+            title="Config Booleans",
+            platform="wechat",
+            source_url=kwargs["url"],
+            markdown="# Config Booleans\n",
+            content_hash="abc123456",
+            package_dir=str(package_dir),
+        )
+
+    monkeypatch.setattr("magicmd.cli.convert_article", fake_convert_article)
+
+    result = runner.invoke(
+        app,
+        [
+            "publish",
+            "github",
+            "https://mp.weixin.qq.com/s/example",
+            "--config",
+            str(config_path),
+            "--no-pr",
+            "--no-overwrite",
+            "--dry-run",
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert "Create PR: False" in result.stdout
+    assert "Overwrite: False" in result.stdout
+
+
+def test_publish_github_cli_can_enable_false_boolean_config(monkeypatch, tmp_path: Path):
+    package_dir = tmp_path / "package"
+    package_dir.mkdir()
+    (package_dir / "article.md").write_text("# Config Booleans\n", encoding="utf-8")
+    config_path = tmp_path / ".magicmd.toml"
+    config_path.write_text(
+        """
+        [publish.github]
+        repo = "owner/repo"
+        target_dir = "content/posts"
+        create_pr = false
+        overwrite = false
+        """,
+        encoding="utf-8",
+    )
+
+    def fake_convert_article(**kwargs):
+        return ArticleConversionResult(
+            title="Config Booleans",
+            platform="wechat",
+            source_url=kwargs["url"],
+            markdown="# Config Booleans\n",
+            content_hash="abc123456",
+            package_dir=str(package_dir),
+        )
+
+    monkeypatch.setattr("magicmd.cli.convert_article", fake_convert_article)
+
+    result = runner.invoke(
+        app,
+        [
+            "publish",
+            "github",
+            "https://mp.weixin.qq.com/s/example",
+            "--config",
+            str(config_path),
+            "--pr",
+            "--overwrite",
+            "--dry-run",
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert "Create PR: True" in result.stdout
+    assert "Overwrite: True" in result.stdout
 
 
 def test_publish_github_requires_repo_or_config(monkeypatch, tmp_path: Path):
@@ -1180,6 +1278,45 @@ def test_publish_github_requires_repo_or_config(monkeypatch, tmp_path: Path):
 
     assert result.exit_code != 0
     assert "--repo is required" in (result.stdout + result.stderr)
+
+
+def test_publish_github_missing_token_reports_cli_error_without_traceback(
+    monkeypatch, tmp_path: Path
+):
+    package_dir = tmp_path / "package"
+    package_dir.mkdir()
+    (package_dir / "article.md").write_text("# Missing Token\n", encoding="utf-8")
+    monkeypatch.delenv("GITHUB_TOKEN", raising=False)
+
+    def fake_convert_article(**kwargs):
+        return ArticleConversionResult(
+            title="Missing Token",
+            platform="wechat",
+            source_url=kwargs["url"],
+            markdown="# Missing Token\n",
+            content_hash="abc123456",
+            package_dir=str(package_dir),
+        )
+
+    monkeypatch.setattr("magicmd.cli.convert_article", fake_convert_article)
+
+    result = runner.invoke(
+        app,
+        [
+            "publish",
+            "github",
+            "https://mp.weixin.qq.com/s/example",
+            "--repo",
+            "owner/repo",
+            "--target-dir",
+            "content/posts",
+        ],
+    )
+
+    rendered = result.stdout + result.stderr
+    assert result.exit_code != 0
+    assert "GITHUB_TOKEN is required" in rendered
+    assert "Traceback" not in rendered
 
 
 def test_publish_github_real_publish_calls_publisher(monkeypatch, tmp_path: Path):
