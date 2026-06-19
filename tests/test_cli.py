@@ -72,7 +72,8 @@ def test_doctor_command_honors_config_and_output_options(tmp_path: Path):
     assert "juejin: http" in result.stdout
 
 
-def test_doctor_command_json_output(tmp_path: Path):
+def test_doctor_command_json_output(monkeypatch, tmp_path: Path):
+    monkeypatch.chdir(tmp_path)
     output_dir = tmp_path / "json-output"
 
     result = runner.invoke(app, ["doctor", "--json", "--output", str(output_dir)])
@@ -1310,6 +1311,7 @@ def test_publish_github_cli_can_enable_false_boolean_config(monkeypatch, tmp_pat
 
 
 def test_publish_github_requires_repo_or_config(monkeypatch, tmp_path: Path):
+    monkeypatch.chdir(tmp_path)
     package_dir = tmp_path / "package"
     _write_publish_package(package_dir, title="Missing Repo", markdown="# Missing Repo\n")
 
