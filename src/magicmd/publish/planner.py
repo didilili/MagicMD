@@ -99,7 +99,7 @@ def build_github_publish_plan(
     if not package_dir.exists():
         raise PublishPlanError(f"package_dir does not exist: {package_dir}")
 
-    target_dir = _normalize_repo_path(options.target_dir)
+    target_dir = _normalize_repo_path(render_publish_template(options.target_dir, result))
     files = _collect_package_files(package_dir, target_dir)
     if not files:
         raise PublishPlanError(f"package_dir does not contain files: {package_dir}")

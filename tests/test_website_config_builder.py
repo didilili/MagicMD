@@ -46,9 +46,11 @@ def test_config_builder_includes_github_publish_options():
     assert "[publish.github]" in component
     assert "repo = ${quote(state.publishRepo)}" in component
     assert "target_dir = ${quote(state.publishTargetDir)}" in component
+    assert "content/posts/{date}-{slug}" in component
     assert "branch = ${quote(state.publishBranch)}" in component
     assert "commit_message = ${quote(state.publishCommitMessage)}" in component
     assert "create_pr = ${state.publishCreatePr}" in component
+    assert "publishCreatePr: true" in component
     assert "overwrite = ${state.publishOverwrite}" in component
     assert "生成 GitHub 发布配置" in component
     assert "Generate GitHub publishing config" in component

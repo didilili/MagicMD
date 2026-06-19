@@ -116,6 +116,10 @@ def test_publish_workflow_documented_on_website():
     assert "看懂 dry-run 输出" in publish_doc
     assert "debug.html" in publish_doc
     assert "target_dir" in publish_doc
+    assert "创建一个内容仓库" in publish_doc
+    assert "生成 GitHub token" in publish_doc
+    assert "Contents permission" in publish_doc
+    assert 'target_dir = "content/posts/{date}-{slug}"' in publish_doc
     assert "GITHUB_TOKEN=ghp_xxx" in publish_doc
     assert ".env" in publish_doc
     assert "magicmd publish github" in english_quick_start
@@ -127,5 +131,9 @@ def test_publish_workflow_documented_on_website():
     assert "Read the dry-run output" in english_publish_doc
     assert "debug.html" in english_publish_doc
     assert "target_dir" in english_publish_doc
+    assert "Create a content repository" in english_publish_doc
+    assert "Create a GitHub token" in english_publish_doc
+    assert "Contents permission" in english_publish_doc
+    assert 'target_dir = "content/posts/{date}-{slug}"' in english_publish_doc
     assert "GITHUB_TOKEN=ghp_xxx" in english_publish_doc
     assert ".env" in english_publish_doc

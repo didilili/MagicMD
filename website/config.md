@@ -19,14 +19,14 @@ magicmd batch urls.txt -o output/ --config .magicmd.toml
 ```toml
 [publish.github]
 repo = "owner/content"
-target_dir = "content/posts"
+target_dir = "content/posts/{date}-{slug}"
 branch = "magicmd/{slug}"
 commit_message = "Add article: {title}"
-create_pr = false
+create_pr = true
 overwrite = false
 ```
 
-`repo` 是目标 GitHub 仓库，`target_dir` 是仓库内的内容目录。`branch` 和 `commit_message` 支持 `{title}`、`{slug}`、`{date}`、`{platform}`、`{short_hash}` 等模板变量。
+`repo` 是目标 GitHub 仓库，`target_dir` 是仓库内的内容目录。`target_dir`、`branch` 和 `commit_message` 支持 `{title}`、`{slug}`、`{date}`、`{platform}`、`{short_hash}` 等模板变量。推荐让 `target_dir` 带上 `{date}-{slug}`，这样每篇文章都有独立目录。
 
 CLI 参数优先级高于配置文件；例如 `--repo` 会覆盖 `[publish.github].repo`。`magicmd publish github --dry-run` 不需要 token，真实发布需要 `GITHUB_TOKEN`。推荐把 token 放在项目根目录的 `.env`：
 

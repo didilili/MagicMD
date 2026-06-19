@@ -80,30 +80,16 @@ def _resolve_repo_target(repo_dir: Path, repo_path: str) -> Path:
     return target_path
 
 
-def _has_unplanned_files(target_dir: Path, planned_targets: set[Path]) -> bool:
-    if target_dir.is_file():
-        return True
-    if not target_dir.exists():
-        return False
-    for child in target_dir.rglob("*"):
-        if child.is_file() and child.resolve() not in planned_targets:
-            return True
-    return False
-
-
 def _copy_planned_files(plan: PublishPlan, repo_dir: Path) -> None:
     target_dir = _resolve_repo_target(repo_dir, plan.target_dir)
+    if target_dir.exists() and not target_dir.is_dir():
+        raise PublishGitError(f"Target directory is not a directory: {plan.target_dir}")
     planned_files: list[tuple[PublishFile, Path]] = []
     for file in plan.files:
         target_path = _resolve_repo_target(repo_dir, file.target_path)
         if target_path.exists() and not plan.overwrite:
             raise PublishGitError(f"Target file already exists: {file.target_path}")
         planned_files.append((file, target_path))
-    planned_targets = {target_path for _, target_path in planned_files}
-    if not plan.overwrite and _has_unplanned_files(target_dir, planned_targets):
-        raise PublishGitError(
-            f"Target directory already exists and is not empty: {plan.target_dir}"
-        )
     for file, target_path in planned_files:
         target_path.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(file.source_path, target_path)
@@ -117,8 +103,9 @@ def publish_to_git_worktree(plan: PublishPlan, repo_dir: Path) -> PublishResult:
     _ensure_git_identity(repo_dir)
     _checkout_publish_branch(repo_dir, plan.branch)
     _copy_planned_files(plan, repo_dir)
-    _run_git(repo_dir, "add", "--", plan.target_dir)
-    status = _run_git(repo_dir, "status", "--porcelain", "--", plan.target_dir)
+    planned_paths = [file.target_path for file in plan.files]
+    _run_git(repo_dir, "add", "--", *planned_paths)
+    status = _run_git(repo_dir, "status", "--porcelain", "--", *planned_paths)
     if not status:
         raise PublishGitError("No publish changes to commit")
     _run_git(repo_dir, "commit", "-m", plan.commit_message)

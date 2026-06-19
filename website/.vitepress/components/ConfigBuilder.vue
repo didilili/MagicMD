@@ -107,10 +107,10 @@ const state = reactive<BuilderState>({
   docxEnabled: false,
   publishEnabled: false,
   publishRepo: 'owner/content',
-  publishTargetDir: 'content/posts',
+  publishTargetDir: 'content/posts/{date}-{slug}',
   publishBranch: 'magicmd/{slug}',
   publishCommitMessage: 'Add article: {title}',
-  publishCreatePr: false,
+  publishCreatePr: true,
   publishOverwrite: false
 });
 
@@ -192,7 +192,7 @@ const ui = computed(() =>
           publishRepo:
             'Target GitHub repository in owner/name format. Replace owner/content with your real content repository.',
           publishTargetDir:
-            'Fixed directory inside the target repository, such as content/posts. This field does not support template variables today.',
+            'Directory inside the target repository. Use templates like content/posts/{date}-{slug} so each article gets its own folder.',
           publishBranch:
             'Branch template for MagicMD publishes. {slug}, {date}, {platform}, and {short_hash} are supported.',
           publishCommitMessage:
@@ -320,7 +320,7 @@ const ui = computed(() =>
           publishRepo:
             '目标 GitHub 仓库，格式是 owner/name。请把 owner/content 换成你的真实内容仓库。',
           publishTargetDir:
-            '目标仓库内的固定目录，例如 content/posts。这个字段当前不支持模板变量。',
+            '目标仓库内的目录。建议使用 content/posts/{date}-{slug} 这样的模板，让每篇文章都有自己的目录。',
           publishBranch:
             'MagicMD 发布分支模板，支持 {slug}、{date}、{platform}、{short_hash} 等变量。',
           publishCommitMessage:
