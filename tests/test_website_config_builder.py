@@ -37,6 +37,23 @@ def test_config_builder_includes_wechat_cover_toggle():
     assert "![cover](images/cover.jpg)" in component
 
 
+def test_config_builder_includes_github_publish_options():
+    component = (ROOT / "website/.vitepress/components/ConfigBuilder.vue").read_text(
+        encoding="utf-8"
+    )
+
+    assert "publishEnabled" in component
+    assert "[publish.github]" in component
+    assert "repo = ${quote(state.publishRepo)}" in component
+    assert "target_dir = ${quote(state.publishTargetDir)}" in component
+    assert "branch = ${quote(state.publishBranch)}" in component
+    assert "commit_message = ${quote(state.publishCommitMessage)}" in component
+    assert "create_pr = ${state.publishCreatePr}" in component
+    assert "overwrite = ${state.publishOverwrite}" in component
+    assert "生成 GitHub 发布配置" in component
+    assert "Generate GitHub publishing config" in component
+
+
 def test_config_builder_desktop_layout_keeps_document_like_side_gutters():
     style = (ROOT / "website/.vitepress/theme/style.css").read_text(encoding="utf-8")
 
