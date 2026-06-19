@@ -75,14 +75,14 @@ magicmd publish github "https://mp.weixin.qq.com/s/example" --dry-run
 
 你需要填写：
 
-| 字段             | 怎么填                                                                                |
-| ---------------- | ------------------------------------------------------------------------------------- |
-| `repo`           | 目标仓库，格式是 `owner/name`。                                                       |
-| `target_dir`     | 目标仓库内的固定目录，例如 `content/posts`。当前不支持模板变量。                      |
-| `branch`         | 发布分支模板，默认 `magicmd/{slug}`。                                                 |
-| `commit_message` | 发布提交信息模板，默认 `Add article: {title}`。                                       |
-| `create_pr`      | 是否在 push 后创建 Pull Request。命令行也可以用 `--pr` 或 `--no-pr` 临时覆盖。        |
-| `overwrite`      | 是否允许覆盖已存在的计划文件。命令行也可以用 `--overwrite` 或 `--no-overwrite` 覆盖。 |
+| 字段             | 怎么填                                                                                       |
+| ---------------- | -------------------------------------------------------------------------------------------- |
+| `repo`           | 目标仓库，格式是 `owner/name`。也可以临时传 GitHub 仓库 URL，MagicMD 会规范成 `owner/name`。 |
+| `target_dir`     | 目标仓库内的固定目录，例如 `content/posts`。当前不支持模板变量。                             |
+| `branch`         | 发布分支模板，默认 `magicmd/{slug}`。                                                        |
+| `commit_message` | 发布提交信息模板，默认 `Add article: {title}`。                                              |
+| `create_pr`      | 是否在 push 后创建 Pull Request。命令行也可以用 `--pr` 或 `--no-pr` 临时覆盖。               |
+| `overwrite`      | 是否允许覆盖已存在的计划文件。命令行也可以用 `--overwrite` 或 `--no-overwrite` 覆盖。        |
 
 `branch` 和 `commit_message` 支持这些常用模板变量：
 
@@ -172,6 +172,8 @@ Files:
 
 dry-run 的价值就在这里：它让你在写入 GitHub 之前发现问题。
 
+真实发布时，MagicMD 会再次检查这些风险。默认情况下，如果提取失败、标题还是 URL、缺少正文文件，或者发布计划包含 `debug.html`，命令会停止，不会 push 到 GitHub。
+
 ## 第三步：真实发布
 
 确认 dry-run 输出正常后，去掉 `--dry-run` 即可真实发布。推荐把 token 放在项目根目录的 `.env`：
@@ -198,6 +200,14 @@ magicmd publish github "https://mp.weixin.qq.com/s/example"
 ```
 
 `GITHUB_TOKEN` 不会写入 `.magicmd.toml`，也不会写进 git remote URL。MagicMD 会优先读取当前环境变量；如果没有，再读取 `.env`。如果你使用 `--config path/to/.magicmd.toml`，MagicMD 会读取同目录下的 `.env`。
+
+如果你明确知道这次内容包有风险但仍然要发布，可以加 `--force`。这通常只适合内部调试或临时迁移：
+
+```bash
+magicmd publish github "https://mp.weixin.qq.com/s/example" --force
+```
+
+日常发布不建议使用 `--force`。
 
 ## 创建 Pull Request
 

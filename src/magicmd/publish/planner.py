@@ -38,7 +38,28 @@ def sanitize_branch_name(branch: str) -> str:
     sanitized = sanitized.strip("/.")
     if not sanitized:
         raise PublishPlanError("Branch template produced an empty branch name")
+    _ensure_valid_branch_name(sanitized)
     return sanitized
+
+
+def _ensure_valid_branch_name(branch: str) -> None:
+    if branch == "@":
+        raise PublishPlanError("Branch template produced an invalid branch name: @")
+    if any(ord(character) < 32 or ord(character) == 127 for character in branch):
+        raise PublishPlanError("Branch template produced a branch name with control characters")
+    if branch.endswith(".lock"):
+        raise PublishPlanError("Branch template produced a branch name ending with .lock")
+    for component in branch.split("/"):
+        if not component:
+            raise PublishPlanError("Branch template produced an invalid branch path")
+        if component.startswith("."):
+            raise PublishPlanError(
+                "Branch template produced an invalid branch path component starting with ."
+            )
+        if component.endswith(".lock"):
+            raise PublishPlanError(
+                "Branch template produced an invalid branch path component ending with .lock"
+            )
 
 
 def render_publish_template(template: str, result: ArticleConversionResult) -> str:

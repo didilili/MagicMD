@@ -75,14 +75,14 @@ Config Builder -> Show advanced settings -> Generate GitHub publishing config
 
 Fill in:
 
-| Field            | How to fill it                                                                                              |
-| ---------------- | ----------------------------------------------------------------------------------------------------------- |
-| `repo`           | Target repository in `owner/name` format.                                                                   |
-| `target_dir`     | Fixed directory inside the target repository, such as `content/posts`. It does not support templates today. |
-| `branch`         | Publish branch template. Defaults to `magicmd/{slug}`.                                                      |
-| `commit_message` | Commit message template. Defaults to `Add article: {title}`.                                                |
-| `create_pr`      | Whether to create a Pull Request after pushing. Override with `--pr` or `--no-pr`.                          |
-| `overwrite`      | Whether planned target files may be overwritten. Override with `--overwrite` or `--no-overwrite`.           |
+| Field            | How to fill it                                                                                                                     |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `repo`           | Target repository in `owner/name` format. You may temporarily pass a GitHub repository URL; MagicMD normalizes it to `owner/name`. |
+| `target_dir`     | Fixed directory inside the target repository, such as `content/posts`. It does not support templates today.                        |
+| `branch`         | Publish branch template. Defaults to `magicmd/{slug}`.                                                                             |
+| `commit_message` | Commit message template. Defaults to `Add article: {title}`.                                                                       |
+| `create_pr`      | Whether to create a Pull Request after pushing. Override with `--pr` or `--no-pr`.                                                 |
+| `overwrite`      | Whether planned target files may be overwritten. Override with `--overwrite` or `--no-overwrite`.                                  |
 
 `branch` and `commit_message` support these common template variables:
 
@@ -172,6 +172,8 @@ Those are warning signs:
 
 This is the main value of dry-run: you can catch a bad conversion before it reaches GitHub.
 
+When publishing for real, MagicMD checks these risks again. By default, it stops before pushing if extraction failed, the title still looks like the URL, the article Markdown is missing, or the plan includes `debug.html`.
+
 ## Step 3: Publish for real
 
 After dry-run looks right, remove `--dry-run` to publish for real. The recommended path is to put the token in `.env` at the project root:
@@ -198,6 +200,14 @@ Real publishing does this:
 ```
 
 `GITHUB_TOKEN` is not written to `.magicmd.toml` or stored in the git remote URL. MagicMD reads the current environment first; if it is missing, it reads `.env`. If you pass `--config path/to/.magicmd.toml`, MagicMD reads `.env` from that config file's directory.
+
+If you understand the risk and still need to publish the package, pass `--force`. This is mainly for internal debugging or one-off migrations:
+
+```bash
+magicmd publish github "https://mp.weixin.qq.com/s/example" --force
+```
+
+Avoid `--force` for normal publishing.
 
 ## Create a Pull Request
 

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 import shutil
 import sys
 from time import perf_counter
@@ -26,7 +27,7 @@ from magicmd.fetchers.browser import fetch_browser
 from magicmd.fetchers.http import fetch_http
 from magicmd.i18n import ui_text
 from magicmd.platforms.registry import get_platform_adapter
-from magicmd.publish.errors import PublishError
+from magicmd.publish.errors import PublishError, PublishPlanError
 from magicmd.quality import (
     build_failure_quality,
     build_package_quality,
@@ -130,6 +131,22 @@ def _resolve_output(output: Path | None, config_path: Optional[Path]) -> Path:
     if output is not None:
         return output
     return Path(load_config(config_path).output.directory)
+
+
+def _normalize_github_repo(repo: str) -> str:
+    normalized = repo.strip()
+    if normalized.startswith("https://github.com/"):
+        normalized = normalized.removeprefix("https://github.com/").removesuffix(".git")
+    elif normalized.startswith("http://github.com/"):
+        normalized = normalized.removeprefix("http://github.com/").removesuffix(".git")
+    elif normalized.startswith("git@github.com:"):
+        normalized = normalized.removeprefix("git@github.com:").removesuffix(".git")
+    normalized = normalized.strip("/")
+    if not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", normalized):
+        raise click.ClickException(
+            "--repo must use GitHub owner/name format, for example: didilili/content"
+        )
+    return normalized
 
 
 def _resolve_dotenv_path(config_path: Optional[Path]) -> Path:
@@ -267,7 +284,7 @@ def _resolve_github_publish_options(
             "--target-dir is required unless [publish.github].target_dir is set"
         )
     return GithubPublishOptions(
-        repo=resolved_repo,
+        repo=_normalize_github_repo(resolved_repo),
         target_dir=resolved_target_dir,
         branch=branch or config_values.branch,
         commit_message=commit_message or config_values.commit_message,
@@ -276,7 +293,7 @@ def _resolve_github_publish_options(
     )
 
 
-def _render_publish_plan(plan) -> str:
+def _render_publish_plan(plan, quality_issues: list[str] | None = None) -> str:
     lines = [
         "Publish plan",
         f"Repository: {plan.repo}",
@@ -293,8 +310,40 @@ def _render_publish_plan(plan) -> str:
     ]
     for file in plan.files:
         lines.append(f"- {file.target_path} ({file.size_bytes} bytes)")
+    if quality_issues:
+        lines.append("Quality warnings:")
+        for issue in quality_issues:
+            lines.append(f"- {issue}")
     lines.append("Dry run only: no remote writes were performed.")
     return "\n".join(lines)
+
+
+def _looks_like_url(value: str) -> bool:
+    return value.strip().startswith(("http://", "https://"))
+
+
+def _publish_quality_issues(plan, quality: dict[str, Any]) -> list[str]:
+    issues: list[str] = []
+    if quality.get("status") == "fail":
+        error = str(quality.get("error") or "extraction failed")
+        issues.append(f"extraction failed: {error}")
+    quality_issues = set(quality.get("quality_issues") or [])
+    if "missing_article_markdown" in quality_issues:
+        issues.append("article markdown is missing")
+    if "missing_metadata" in quality_issues:
+        issues.append("metadata is missing")
+    if plan.title.strip() == plan.source_url.strip() or _looks_like_url(plan.title):
+        issues.append("article title still looks like the source URL")
+    debug_files = [
+        file.target_path for file in plan.files if Path(file.target_path).name == "debug.html"
+    ]
+    if debug_files:
+        issues.append("publish plan includes debug.html")
+    return issues
+
+
+def _render_publish_quality_issues(issues: list[str]) -> str:
+    return "\n".join(["Publish quality check failed:", *[f"- {issue}" for issue in issues]])
 
 
 @app.command()
@@ -359,6 +408,9 @@ def publish_github(
     overwrite: bool | None = typer.Option(
         None, "--overwrite/--no-overwrite", help="Overwrite planned target files."
     ),
+    force: bool = typer.Option(
+        False, "--force", help="Publish even when quality checks report risky output."
+    ),
 ):
     config = load_config(config_path)
     try:
@@ -388,9 +440,23 @@ def publish_github(
         raise ConversionStageError(exc.stage, exc) from exc
     try:
         plan = build_github_publish_plan(result, options)
+        quality = build_package_quality(
+            url,
+            plan.package_dir,
+            markdown_filename=config.output.naming.markdown,
+            metadata_filename=config.output.naming.metadata,
+        )
+        quality_issues = _publish_quality_issues(plan, quality)
         if dry_run:
-            typer.echo(_render_publish_plan(plan))
+            typer.echo(_render_publish_plan(plan, quality_issues))
             return
+        if quality_issues and not force:
+            raise PublishPlanError(_render_publish_quality_issues(quality_issues))
+        if quality_issues:
+            typer.echo(
+                "Warning: publishing despite quality issues because --force was used.",
+                err=True,
+            )
         token = require_github_token(dotenv_path=_resolve_dotenv_path(config_path))
         published = publish_to_github(plan, token=token)
     except (PublishError, ValueError) as exc:
