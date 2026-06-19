@@ -66,6 +66,19 @@ class DocxConfig(BaseModel):
     reference_doc: str = ""
 
 
+class GithubPublishConfig(BaseModel):
+    repo: str = ""
+    target_dir: str = ""
+    branch: str = "magicmd/{slug}"
+    commit_message: str = "Add article: {title}"
+    create_pr: bool = False
+    overwrite: bool = False
+
+
+class PublishConfig(BaseModel):
+    github: GithubPublishConfig = Field(default_factory=GithubPublishConfig)
+
+
 class FetchConfig(BaseModel):
     timeout_seconds: int = 20
     browser_timeout_seconds: int = 15
@@ -89,6 +102,7 @@ class MagicMDConfig(BaseModel):
     images: ImagesConfig = Field(default_factory=ImagesConfig)
     videos: VideosConfig = Field(default_factory=VideosConfig)
     docx: DocxConfig = Field(default_factory=DocxConfig)
+    publish: PublishConfig = Field(default_factory=PublishConfig)
     fetch: FetchConfig = Field(default_factory=FetchConfig)
     ui: UiConfig = Field(default_factory=UiConfig)
     platforms: dict[str, PlatformConfig] = Field(

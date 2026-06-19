@@ -66,6 +66,14 @@ enabled = false
 pandoc_path = "pandoc"
 reference_doc = ""
 
+[publish.github]
+repo = ""
+target_dir = ""
+branch = "magicmd/{slug}"
+commit_message = "Add article: {title}"
+create_pr = false
+overwrite = false
+
 [fetch]
 timeout_seconds = 20
 browser_timeout_seconds = 15

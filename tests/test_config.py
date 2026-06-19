@@ -135,6 +135,42 @@ def test_load_config_disables_docx_by_default():
     assert config.output.naming.docx == "article.docx"
 
 
+def test_load_config_accepts_publish_github_config(tmp_path: Path):
+    config_path = tmp_path / ".magicmd.toml"
+    config_path.write_text(
+        """
+        [publish.github]
+        repo = "didilili/content"
+        target_dir = "content/posts"
+        branch = "magicmd/{slug}"
+        commit_message = "Add article: {title}"
+        create_pr = true
+        overwrite = true
+        """,
+        encoding="utf-8",
+    )
+
+    config = load_config(config_path)
+
+    assert config.publish.github.repo == "didilili/content"
+    assert config.publish.github.target_dir == "content/posts"
+    assert config.publish.github.branch == "magicmd/{slug}"
+    assert config.publish.github.commit_message == "Add article: {title}"
+    assert config.publish.github.create_pr is True
+    assert config.publish.github.overwrite is True
+
+
+def test_load_config_defaults_publish_github_to_disabled():
+    config = load_config()
+
+    assert config.publish.github.repo == ""
+    assert config.publish.github.target_dir == ""
+    assert config.publish.github.branch == "magicmd/{slug}"
+    assert config.publish.github.commit_message == "Add article: {title}"
+    assert config.publish.github.create_pr is False
+    assert config.publish.github.overwrite is False
+
+
 def test_load_config_includes_wechat_cover_image_by_default():
     config = load_config()
 
@@ -265,6 +301,9 @@ def test_packaged_config_template_is_available():
     assert 'markdown_path = "{directory}/{filename}"' in template_text
     assert "[docx]" in template_text
     assert "enabled = false" in template_text
+    assert "[publish.github]" in template_text
+    assert 'branch = "magicmd/{slug}"' in template_text
+    assert 'commit_message = "Add article: {title}"' in template_text
 
 
 def test_root_and_packaged_config_templates_match():
