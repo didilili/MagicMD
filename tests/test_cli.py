@@ -1180,3 +1180,96 @@ def test_publish_github_requires_repo_or_config(monkeypatch, tmp_path: Path):
 
     assert result.exit_code != 0
     assert "--repo is required" in (result.stdout + result.stderr)
+
+
+def test_publish_github_real_publish_calls_publisher(monkeypatch, tmp_path: Path):
+    package_dir = tmp_path / "package"
+    package_dir.mkdir()
+    (package_dir / "article.md").write_text("# Publish\n", encoding="utf-8")
+    calls = {}
+
+    def fake_convert_article(**kwargs):
+        return ArticleConversionResult(
+            title="Publish",
+            platform="wechat",
+            source_url=kwargs["url"],
+            markdown="# Publish\n",
+            content_hash="abc123456",
+            package_dir=str(package_dir),
+        )
+
+    def fake_publish_to_github(plan, token=None):
+        calls["plan"] = plan
+        calls["token"] = token
+
+        class Result:
+            commit_sha = "abc123"
+            branch = plan.branch
+            pr_url = ""
+
+        return Result()
+
+    monkeypatch.setattr("magicmd.cli.convert_article", fake_convert_article)
+    monkeypatch.setattr("magicmd.cli.publish_to_github", fake_publish_to_github)
+
+    result = runner.invoke(
+        app,
+        [
+            "publish",
+            "github",
+            "https://mp.weixin.qq.com/s/example",
+            "--repo",
+            "owner/repo",
+            "--target-dir",
+            "content/posts",
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert calls["plan"].repo == "owner/repo"
+    assert "Published to owner/repo" in result.stdout
+    assert "abc123" in result.stdout
+
+
+def test_publish_github_pr_outputs_pr_url(monkeypatch, tmp_path: Path):
+    package_dir = tmp_path / "package"
+    package_dir.mkdir()
+    (package_dir / "article.md").write_text("# Publish PR\n", encoding="utf-8")
+
+    def fake_convert_article(**kwargs):
+        return ArticleConversionResult(
+            title="Publish PR",
+            platform="wechat",
+            source_url=kwargs["url"],
+            markdown="# Publish PR\n",
+            content_hash="abc123456",
+            package_dir=str(package_dir),
+        )
+
+    def fake_publish_to_github(plan, token=None):
+        class Result:
+            commit_sha = "abc123"
+            branch = plan.branch
+            pr_url = "https://github.com/owner/repo/pull/1"
+
+        return Result()
+
+    monkeypatch.setattr("magicmd.cli.convert_article", fake_convert_article)
+    monkeypatch.setattr("magicmd.cli.publish_to_github", fake_publish_to_github)
+
+    result = runner.invoke(
+        app,
+        [
+            "publish",
+            "github",
+            "https://mp.weixin.qq.com/s/example",
+            "--repo",
+            "owner/repo",
+            "--target-dir",
+            "content/posts",
+            "--pr",
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert "Pull Request: https://github.com/owner/repo/pull/1" in result.stdout
