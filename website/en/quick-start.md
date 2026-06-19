@@ -101,26 +101,19 @@ You can also use the [Config Builder](/en/config-builder) to choose the publishi
 
 ## 6. Publish to a GitHub content repository
 
-Use this when you want to commit converted packages to a Hugo, Docusaurus, blog, or knowledge-base content repository. See [Publish to GitHub](/en/publish-github) for the full workflow.
+Use this when you want to commit converted packages to a Hugo, Docusaurus, blog, or knowledge-base content repository. Start with the [Config Builder](/en/config-builder), enable “Generate GitHub publishing config”, and save the target repository settings in `.magicmd.toml`. See [Publish to GitHub](/en/publish-github) for the full workflow.
 
-Preview the planned write first:
+After the config is ready, preview the planned write:
 
 ```bash
-magicmd publish github "https://mp.weixin.qq.com/s/example" \
-  --repo owner/content \
-  --target-dir content/posts \
-  --dry-run
+magicmd publish github "https://mp.weixin.qq.com/s/example" --dry-run
 ```
 
 After checking the repository, branch, target path, and file list, publish it:
 
 ```bash
 export GITHUB_TOKEN=ghp_xxx
-magicmd publish github "https://mp.weixin.qq.com/s/example" \
-  --repo owner/content \
-  --target-dir content/posts \
-  --branch magicmd/{slug} \
-  --pr
+magicmd publish github "https://mp.weixin.qq.com/s/example" --pr
 ```
 
 Real publishing requires `GITHUB_TOKEN`. Dry-run mode does not need a token and does not create branches, commits, pushes, or Pull Requests. If dry-run shows the URL as the title, uses an `undated` directory, or includes `debug.html`, read the [troubleshooting notes in the publishing guide](/en/publish-github#spot-a-bad-publish-plan) before publishing for real.

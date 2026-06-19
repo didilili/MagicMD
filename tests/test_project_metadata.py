@@ -111,11 +111,17 @@ def test_publish_workflow_documented_on_website():
 
     assert "magicmd publish github" in quick_start
     assert "[publish.github]" in config_doc
+    assert "推荐路径：先配置，再发布" in publish_doc
+    assert 'magicmd publish github "https://mp.weixin.qq.com/s/example" --dry-run' in publish_doc
     assert "看懂 dry-run 输出" in publish_doc
     assert "debug.html" in publish_doc
     assert "target_dir" in publish_doc
     assert "magicmd publish github" in english_quick_start
     assert "[publish.github]" in english_config_doc
+    assert "Recommended path: configure first, publish later" in english_publish_doc
+    assert 'magicmd publish github "https://mp.weixin.qq.com/s/example" --dry-run' in (
+        english_publish_doc
+    )
     assert "Read the dry-run output" in english_publish_doc
     assert "debug.html" in english_publish_doc
     assert "target_dir" in english_publish_doc

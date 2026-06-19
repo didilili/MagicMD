@@ -5,13 +5,42 @@ description: Convert a public article with MagicMD and publish the Markdown pack
 
 # Publish to GitHub
 
-MagicMD still starts by converting a public article into a local Markdown package. The GitHub publishing workflow adds one optional step after conversion: commit `article.md`, `metadata.json`, `extraction-report.json`, and media files to your content repository.
-
-Use it for Hugo, Docusaurus, blog repositories, knowledge bases, content archives, or any project that stores Markdown content in GitHub.
+MagicMD's GitHub workflow is not meant to make users type a long command every time. The natural path is to put the repository, target directory, branch, and commit message in `.magicmd.toml` once, then publish daily with only the article URL.
 
 ```text
-public article URL -> Markdown package -> GitHub content branch -> optional Pull Request
+configure the content repo once -> preview with dry-run -> push a branch -> optionally open a Pull Request
 ```
+
+## Recommended path: configure first, publish later
+
+For the first setup, use the [Config Builder](/en/config-builder), or put this block in `.magicmd.toml` at your project root:
+
+```toml
+[publish.github]
+repo = "owner/content"
+target_dir = "content/posts"
+branch = "magicmd/{slug}"
+commit_message = "Add article: {title}"
+create_pr = false
+overwrite = false
+```
+
+Replace `owner/content` with your real content repository, such as `didilili/blog-content`. Replace `content/posts` with the directory where your target repository stores articles.
+
+After that, previewing a publish is short:
+
+```bash
+magicmd publish github "https://mp.weixin.qq.com/s/example" --dry-run
+```
+
+After dry-run looks right, real publishing is short too:
+
+```bash
+export GITHUB_TOKEN=ghp_xxx
+magicmd publish github "https://mp.weixin.qq.com/s/example" --pr
+```
+
+`--pr` creates a Pull Request after pushing the publish branch. If your config already has `create_pr = true`, you can omit `--pr`.
 
 ## When to use it
 
@@ -21,25 +50,60 @@ If you only want a local archive, keep using the normal conversion command:
 magicmd "https://mp.weixin.qq.com/s/example"
 ```
 
-If you want to send the converted package to another GitHub repository, such as `owner/content` under `content/posts`, use the publishing command:
+If you want to publish the converted package to a Hugo, Docusaurus, blog, knowledge-base, or content archive repository, use:
+
+```bash
+magicmd publish github "https://mp.weixin.qq.com/s/example" --dry-run
+```
+
+MagicMD first creates a local package, then plans `article.md`, `metadata.json`, `extraction-report.json`, and media files into your GitHub content repository.
+
+## Step 1: Configure the publishing target
+
+The recommended path starts in the Config Builder:
+
+```text
+Config Builder -> Show advanced settings -> Generate GitHub publishing config
+```
+
+Fill in:
+
+| Field            | How to fill it                                                                                              |
+| ---------------- | ----------------------------------------------------------------------------------------------------------- |
+| `repo`           | Target repository in `owner/name` format.                                                                   |
+| `target_dir`     | Fixed directory inside the target repository, such as `content/posts`. It does not support templates today. |
+| `branch`         | Publish branch template. Defaults to `magicmd/{slug}`.                                                      |
+| `commit_message` | Commit message template. Defaults to `Add article: {title}`.                                                |
+| `create_pr`      | Whether to create a Pull Request after pushing. Override with `--pr` or `--no-pr`.                          |
+| `overwrite`      | Whether planned target files may be overwritten. Override with `--overwrite` or `--no-overwrite`.           |
+
+`branch` and `commit_message` support these common template variables:
+
+| Variable       | Meaning                                                         |
+| -------------- | --------------------------------------------------------------- |
+| `{title}`      | Article title                                                   |
+| `{slug}`       | URL-friendly title slug                                         |
+| `{date}`       | Article publish date, or `undated` when missing                 |
+| `{platform}`   | Platform name, such as `wechat`, `juejin`, `csdn`, or `generic` |
+| `{short_hash}` | First 6 characters of the content hash                          |
+
+## Step 2: Preview with dry-run
+
+After the config file is ready, run dry-run:
+
+```bash
+magicmd publish github "https://mp.weixin.qq.com/s/example" --dry-run
+```
+
+If `.magicmd.toml` is not in the current directory, pass it explicitly:
 
 ```bash
 magicmd publish github "https://mp.weixin.qq.com/s/example" \
-  --repo owner/content \
-  --target-dir content/posts \
+  --config path/to/.magicmd.toml \
   --dry-run
 ```
 
-## Step 1: Preview with dry-run
-
-Always start with `--dry-run`. It prints the plan only. It does not create branches, commits, pushes, or Pull Requests, and it does not need `GITHUB_TOKEN`.
-
-```bash
-magicmd publish github "https://mp.weixin.qq.com/s/example" \
-  --repo owner/content \
-  --target-dir content/posts \
-  --dry-run
-```
+Dry-run prints the plan only. It does not create branches, commits, pushes, or Pull Requests, and it does not need `GITHUB_TOKEN`.
 
 Example output:
 
@@ -69,12 +133,12 @@ Dry run only: no remote writes were performed.
 | ------------------- | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
 | `Repository`        | Target GitHub repository                        | Use a real repository, such as `didilili/blog-content`, not the sample `owner/content`.                      |
 | `Title`             | Article title extracted by MagicMD              | If this is still the URL, the sample URL may be invalid, blocked, or not parsed correctly.                   |
-| `Platform`          | Detected platform                               | WeChat articles usually show `wechat`; generic web pages may show `generic`.                                 |
+| `Platform`          | Detected platform                               | WeChat articles usually show `wechat`; generic pages may show `generic`.                                     |
 | `Package directory` | Local package directory                         | Open it and inspect `article.md` and `extraction-report.json`.                                               |
-| `Branch`            | Branch that real publishing will push           | Confirm it will not conflict with a branch you are already using.                                            |
-| `Target directory`  | Path inside the target repo                     | This is a fixed directory, such as `content/posts`. It does not support template variables today.            |
-| `Commit message`    | Commit message for real publishing              | Configure it or override it with `--commit-message`.                                                         |
-| `Create PR`         | Whether MagicMD will create a Pull Request      | This becomes `True` when you pass `--pr`.                                                                    |
+| `Branch`            | Branch that real publishing will push           | Confirm it will not conflict with a branch you already use.                                                  |
+| `Target directory`  | Path inside the target repo                     | This is a fixed directory, such as `content/posts`. It does not support templates today.                     |
+| `Commit message`    | Commit message for real publishing              | It should be readable and clearly match the article.                                                         |
+| `Create PR`         | Whether MagicMD will create a Pull Request      | This becomes `True` when you pass `--pr` or set `create_pr = true`.                                          |
 | `Overwrite`         | Whether planned target files may be overwritten | Defaults to `False` to avoid accidental overwrites.                                                          |
 | `Files`             | Files that would be written to the target repo  | A healthy package usually includes `article.md`, `metadata.json`, `extraction-report.json`, and media files. |
 
@@ -101,55 +165,6 @@ Those are warning signs:
 
 This is the main value of dry-run: you can catch a bad conversion before it reaches GitHub.
 
-## Step 2: Use a config file
-
-If you publish to the same content repository repeatedly, put the publishing settings in `.magicmd.toml`:
-
-```toml
-[publish.github]
-repo = "owner/content"
-target_dir = "content/posts"
-branch = "magicmd/{slug}"
-commit_message = "Add article: {title}"
-create_pr = false
-overwrite = false
-```
-
-Then the command can be shorter:
-
-```bash
-magicmd publish github "https://mp.weixin.qq.com/s/example" --dry-run
-```
-
-CLI options override config values. For example:
-
-```bash
-magicmd publish github "https://mp.weixin.qq.com/s/example" \
-  --repo owner/another-content \
-  --dry-run
-```
-
-## Config fields
-
-| Field            | Meaning                                                                                                              |
-| ---------------- | -------------------------------------------------------------------------------------------------------------------- |
-| `repo`           | Target repository in `owner/name` format.                                                                            |
-| `target_dir`     | Fixed directory inside the target repository, such as `content/posts`. It does not support template variables today. |
-| `branch`         | Publish branch template. Defaults to `magicmd/{slug}`.                                                               |
-| `commit_message` | Commit message template. Defaults to `Add article: {title}`.                                                         |
-| `create_pr`      | Whether to create a Pull Request after pushing. Override with `--pr` or `--no-pr`.                                   |
-| `overwrite`      | Whether planned target files may be overwritten. Override with `--overwrite` or `--no-overwrite`.                    |
-
-`branch` and `commit_message` support these common template variables:
-
-| Variable       | Meaning                                                         |
-| -------------- | --------------------------------------------------------------- |
-| `{title}`      | Article title                                                   |
-| `{slug}`       | URL-friendly title slug                                         |
-| `{date}`       | Article publish date, or `undated` when missing                 |
-| `{platform}`   | Platform name, such as `wechat`, `juejin`, `csdn`, or `generic` |
-| `{short_hash}` | First 6 characters of the content hash                          |
-
 ## Step 3: Publish for real
 
 After dry-run looks right, set `GITHUB_TOKEN` and remove `--dry-run`:
@@ -157,10 +172,7 @@ After dry-run looks right, set `GITHUB_TOKEN` and remove `--dry-run`:
 ```bash
 export GITHUB_TOKEN=ghp_xxx
 
-magicmd publish github "https://mp.weixin.qq.com/s/example" \
-  --repo owner/content \
-  --target-dir content/posts \
-  --branch magicmd/{slug}
+magicmd publish github "https://mp.weixin.qq.com/s/example"
 ```
 
 Real publishing does this:
@@ -178,19 +190,37 @@ Real publishing does this:
 
 ## Create a Pull Request
 
-Pass `--pr` to create a Pull Request after pushing:
+Pass `--pr` when you want MagicMD to create a Pull Request after pushing:
 
 ```bash
 export GITHUB_TOKEN=ghp_xxx
 
-magicmd publish github "https://mp.weixin.qq.com/s/example" \
-  --repo owner/content \
-  --target-dir content/posts \
-  --branch magicmd/{slug} \
-  --pr
+magicmd publish github "https://mp.weixin.qq.com/s/example" --pr
 ```
 
 On success, MagicMD prints the branch, commit, and Pull Request URL. The PR targets the repository default branch.
+
+## Temporarily override config
+
+Most users should rely on `.magicmd.toml`. Use CLI options only when you temporarily need a different repository, directory, or branch.
+
+For example, publish to another repository for one run:
+
+```bash
+magicmd publish github "https://mp.weixin.qq.com/s/example" \
+  --repo owner/another-content \
+  --dry-run
+```
+
+Or use a different branch template for one run:
+
+```bash
+magicmd publish github "https://mp.weixin.qq.com/s/example" \
+  --branch magicmd/{date}-{slug} \
+  --dry-run
+```
+
+CLI options override `.magicmd.toml`.
 
 ## Token permissions
 
@@ -206,19 +236,19 @@ If you use a fine-grained token, authorize only the target repository and grant 
 
 ### Missing repo or target_dir
 
-If you do not pass `--repo` and `[publish.github].repo` is missing:
+If `[publish.github].repo` is missing from `.magicmd.toml` and you do not pass `--repo`:
 
 ```text
 --repo is required unless [publish.github].repo is set
 ```
 
-If you do not pass `--target-dir` and `[publish.github].target_dir` is missing:
+If `[publish.github].target_dir` is missing from `.magicmd.toml` and you do not pass `--target-dir`:
 
 ```text
 --target-dir is required unless [publish.github].target_dir is set
 ```
 
-Add the CLI option or put the value in `.magicmd.toml`.
+Use the Config Builder to complete the config, or pass the CLI option temporarily.
 
 ### Missing GITHUB_TOKEN
 
@@ -241,10 +271,7 @@ By default, `overwrite = false`. Publishing stops when the target directory alre
 Only use overwrite when you are sure:
 
 ```bash
-magicmd publish github "https://mp.weixin.qq.com/s/example" \
-  --repo owner/content \
-  --target-dir content/posts \
-  --overwrite
+magicmd publish github "https://mp.weixin.qq.com/s/example" --overwrite
 ```
 
 ### What to check before publishing
@@ -261,11 +288,13 @@ Before real publishing, check:
 ## Recommended workflow
 
 ```text
-1. Copy a real public article URL
-2. Run magicmd publish github URL --dry-run
-3. Check title, directory, branch, and file list
-4. Open local article.md and review the body
-5. Set GITHUB_TOKEN
-6. Remove --dry-run and pass --pr
-7. Review and merge the Pull Request on GitHub
+1. Generate .magicmd.toml with the Config Builder
+2. Confirm [publish.github] points to the real content repository
+3. Copy a real public article URL
+4. Run magicmd publish github URL --dry-run
+5. Check title, directory, branch, and file list
+6. Open local article.md and review the body
+7. Set GITHUB_TOKEN
+8. Run magicmd publish github URL --pr
+9. Review and merge the Pull Request on GitHub
 ```

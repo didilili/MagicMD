@@ -101,26 +101,19 @@ magicmd "https://mp.weixin.qq.com/s/example" --config .magicmd.toml
 
 ## 6. 发布到 GitHub 内容仓库
 
-这一功能适合把转换结果提交到 Hugo、Docusaurus、博客或知识库的 GitHub 内容仓库。完整流程见 [发布到 GitHub 内容仓库](/publish-github)。
+这一功能适合把转换结果提交到 Hugo、Docusaurus、博客或知识库的 GitHub 内容仓库。推荐先用 [配置生成器](/config-builder) 生成 `.magicmd.toml`，勾选“生成 GitHub 发布配置”，把目标仓库和目录固定下来。完整流程见 [发布到 GitHub 内容仓库](/publish-github)。
 
-先用 dry-run 查看 MagicMD 会写入哪些文件：
+配置好之后，先用 dry-run 查看 MagicMD 会写入哪些文件：
 
 ```bash
-magicmd publish github "https://mp.weixin.qq.com/s/example" \
-  --repo owner/content \
-  --target-dir content/posts \
-  --dry-run
+magicmd publish github "https://mp.weixin.qq.com/s/example" --dry-run
 ```
 
 确认目标仓库、分支、目录和文件列表后，再执行实际发布：
 
 ```bash
 export GITHUB_TOKEN=ghp_xxx
-magicmd publish github "https://mp.weixin.qq.com/s/example" \
-  --repo owner/content \
-  --target-dir content/posts \
-  --branch magicmd/{slug} \
-  --pr
+magicmd publish github "https://mp.weixin.qq.com/s/example" --pr
 ```
 
 真实发布需要 `GITHUB_TOKEN`。dry-run 不需要 token，也不会创建分支、提交、push 或 Pull Request。如果 dry-run 里标题还是 URL、目录出现 `undated`，或者文件列表包含 `debug.html`，先查看 [GitHub 发布教程的排查说明](/publish-github#识别异常计划)，不要急着真实发布。
