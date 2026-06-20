@@ -38,6 +38,7 @@ from magicmd.publish.github import publish_to_github, require_github_token
 from magicmd.publish.models import GithubPublishOptions
 from magicmd.publish.planner import build_github_publish_plan
 from magicmd.sdk import convert_article, download_configured_media
+from magicmd.studio.server import run_studio_server
 
 app = typer.Typer(help="Convert public article links into Markdown packages.", no_args_is_help=True)
 publish_app = typer.Typer(help="Publish converted article packages.")
@@ -344,6 +345,20 @@ def _publish_quality_issues(plan, quality: dict[str, Any]) -> list[str]:
 
 def _render_publish_quality_issues(issues: list[str]) -> str:
     return "\n".join(["Publish quality check failed:", *[f"- {issue}" for issue in issues]])
+
+
+@app.command()
+def studio(
+    host: str = typer.Option("127.0.0.1", "--host", help="Host for the local Studio server."),
+    port: int = typer.Option(8765, "--port", help="Port for the local Studio server."),
+    no_open: bool = typer.Option(False, "--no-open", help="Do not open the browser automatically."),
+):
+    def announce(url: str) -> None:
+        typer.echo("MagicMD Studio")
+        typer.echo(f"Local URL: {url}")
+        typer.echo("Press Ctrl+C to stop.")
+
+    run_studio_server(host=host, port=port, open_browser=not no_open, announce=announce)
 
 
 @app.command()

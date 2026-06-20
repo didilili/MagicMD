@@ -1,0 +1,1 @@
+"""Local MagicMD Studio console."""
