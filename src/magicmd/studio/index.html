@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MagicMD Studio</title>
+    <link rel="stylesheet" href="/studio.css" />
+  </head>
+  <body>
+    <main class="studio-shell">
+      <section class="workspace" aria-labelledby="studio-title">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Local console</p>
+            <h1 id="studio-title">MagicMD Studio</h1>
+          </div>
+          <div class="status-strip" id="status-strip">
+            <span>正在连接本地服务…</span>
+          </div>
+        </header>
+
+        <section class="flow-grid">
+          <form class="run-panel" id="studio-form">
+            <div class="section-heading">
+              <span class="step-pill">1</span>
+              <div>
+                <h2>转换工作台</h2>
+                <p>单篇、批量、导出和发布预览都从这里开始。</p>
+              </div>
+            </div>
+
+            <div class="mode-tabs" role="tablist" aria-label="转换模式">
+              <button class="mode-tab is-active" id="single-mode-button" type="button">单篇</button>
+              <button class="mode-tab" id="batch-mode-button" type="button">批量</button>
+            </div>
+
+            <label class="field field-wide" id="single-url-field" for="article-url">
+              <span>文章链接</span>
+              <input
+                id="article-url"
+                name="url"
+                type="url"
+                placeholder="https://mp.weixin.qq.com/s/…"
+                autocomplete="off"
+              />
+            </label>
+
+            <label class="field field-wide is-hidden" id="batch-url-field" for="batch-urls">
+              <span>批量链接</span>
+              <textarea
+                id="batch-urls"
+                name="batchUrls"
+                rows="7"
+                placeholder="每行一个公开文章链接，也可以用 # 写备注"
+                autocomplete="off"
+              ></textarea>
+            </label>
+
+            <div class="field-row">
+              <label class="field" for="output-dir">
+                <span>输出目录</span>
+                <input
+                  id="output-dir"
+                  name="output"
+                  type="text"
+                  value="output"
+                  autocomplete="off"
+                />
+              </label>
+              <label class="field" for="config-path">
+                <span>配置文件</span>
+                <input
+                  id="config-path"
+                  name="config"
+                  type="text"
+                  value=".magicmd.toml"
+                  autocomplete="off"
+                />
+              </label>
+            </div>
+
+            <div class="toggle-grid" aria-label="常用选项">
+              <label class="toggle-line">
+                <input id="download-images" name="downloadImages" type="checkbox" checked />
+                <span>下载图片和媒体</span>
+              </label>
+              <label class="toggle-line">
+                <input id="docx" name="docx" type="checkbox" />
+                <span>同时生成 Word</span>
+              </label>
+              <label class="toggle-line">
+                <input id="open-folder-toggle" name="openFolder" type="checkbox" checked />
+                <span>成功后打开输出文件夹</span>
+              </label>
+            </div>
+
+            <details class="config-panel" id="config-panel" open>
+              <summary>生成 .magicmd.toml</summary>
+              <div class="config-grid">
+                <label class="field" for="config-preset">
+                  <span>发布目标</span>
+                  <select id="config-preset">
+                    <option value="default">通用 Markdown</option>
+                    <option value="plain">纯净 Markdown</option>
+                    <option value="hugo">Hugo 网站内容包</option>
+                    <option value="docusaurus">Docusaurus 文档站</option>
+                  </select>
+                </label>
+                <label class="field" for="config-language">
+                  <span>终端语言</span>
+                  <select id="config-language">
+                    <option value="zh-CN">中文</option>
+                    <option value="en-US">English</option>
+                  </select>
+                </label>
+                <label class="field" for="config-package">
+                  <span>内容包目录</span>
+                  <input id="config-package" type="text" value="{date}-{slug}" autocomplete="off" />
+                </label>
+                <label class="field" for="config-markdown">
+                  <span>Markdown 文件名</span>
+                  <input id="config-markdown" type="text" value="article.md" autocomplete="off" />
+                </label>
+                <label class="field" for="config-metadata">
+                  <span>metadata 文件名</span>
+                  <input
+                    id="config-metadata"
+                    type="text"
+                    value="metadata.json"
+                    autocomplete="off"
+                  />
+                </label>
+                <label class="field" for="config-report">
+                  <span>报告文件名</span>
+                  <input
+                    id="config-report"
+                    type="text"
+                    value="extraction-report.json"
+                    autocomplete="off"
+                  />
+                </label>
+                <label class="field" for="config-front-matter">
+                  <span>Front matter</span>
+                  <select id="config-front-matter">
+                    <option value="yaml">生成 YAML</option>
+                    <option value="none">不生成</option>
+                  </select>
+                </label>
+                <label class="field" for="config-heading-offset">
+                  <span>标题层级偏移</span>
+                  <input id="config-heading-offset" type="number" value="0" min="-2" max="6" />
+                </label>
+                <label class="field" for="config-image-path">
+                  <span>图片 Markdown 路径</span>
+                  <input
+                    id="config-image-path"
+                    type="text"
+                    value="{directory}/{filename}"
+                    autocomplete="off"
+                  />
+                </label>
+                <label class="field" for="config-video-path">
+                  <span>视频 Markdown 路径</span>
+                  <input
+                    id="config-video-path"
+                    type="text"
+                    value="{directory}/{filename}"
+                    autocomplete="off"
+                  />
+                </label>
+              </div>
+
+              <div class="toggle-grid compact-toggle" aria-label="Markdown 配置">
+                <label class="toggle-line">
+                  <input id="config-source-block" type="checkbox" checked />
+                  <span>保留来源信息块</span>
+                </label>
+                <label class="toggle-line">
+                  <input id="config-cover-image" type="checkbox" checked />
+                  <span>保留封面图</span>
+                </label>
+                <label class="toggle-line">
+                  <input id="config-download-videos" type="checkbox" checked />
+                  <span>下载视频</span>
+                </label>
+              </div>
+
+              <div class="publish-config">
+                <label class="toggle-line publish-toggle">
+                  <input id="publish-enabled" type="checkbox" />
+                  <span>生成 GitHub 发布配置</span>
+                </label>
+                <div class="config-grid publish-fields">
+                  <label class="field" for="publish-repo">
+                    <span>GitHub 仓库</span>
+                    <input id="publish-repo" type="text" value="owner/content" autocomplete="off" />
+                  </label>
+                  <label class="field" for="publish-target-dir">
+                    <span>写入目录</span>
+                    <input
+                      id="publish-target-dir"
+                      type="text"
+                      value="content/posts"
+                      autocomplete="off"
+                    />
+                  </label>
+                  <label class="field" for="publish-branch">
+                    <span>发布分支</span>
+                    <input
+                      id="publish-branch"
+                      type="text"
+                      value="magicmd/{slug}"
+                      autocomplete="off"
+                    />
+                  </label>
+                  <label class="field" for="publish-commit-message">
+                    <span>commit message</span>
+                    <input
+                      id="publish-commit-message"
+                      type="text"
+                      value="Add article: {title}"
+                      autocomplete="off"
+                    />
+                  </label>
+                </div>
+                <div class="toggle-grid compact-toggle">
+                  <label class="toggle-line">
+                    <input id="publish-create-pr" type="checkbox" />
+                    <span>发布后创建 PR</span>
+                  </label>
+                  <label class="toggle-line">
+                    <input id="publish-overwrite" type="checkbox" />
+                    <span>允许覆盖目标文件</span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="config-actions">
+                <button class="secondary-action" id="save-config-button" type="button">
+                  保存配置文件
+                </button>
+                <span class="config-note">转换会直接使用当前界面配置。</span>
+              </div>
+            </details>
+
+            <div class="action-row">
+              <button class="primary-action" id="convert-button" type="submit">
+                转换 Markdown
+              </button>
+              <button class="secondary-action" id="publish-plan-button" type="button">
+                预览发布计划
+              </button>
+            </div>
+          </form>
+
+          <aside class="result-panel" id="result-panel" aria-live="polite">
+            <div class="section-heading compact">
+              <span class="step-pill muted">2</span>
+              <div>
+                <h2>结果与风险提示</h2>
+                <p>这里会显示任务状态、生成目录、文件列表和发布前检查。</p>
+              </div>
+            </div>
+            <div class="loading-state" id="loading-state" hidden>
+              <div class="loading-ring" aria-hidden="true"></div>
+              <div>
+                <h3 id="loading-title">正在转换</h3>
+                <p id="loading-detail">正在抓取文章、清理正文并写入内容包。</p>
+              </div>
+            </div>
+            <div class="empty-state" id="empty-state">
+              <div class="empty-glyph" aria-hidden="true">MD</div>
+              <p>输入真实文章链接后，先转换或预览发布计划。</p>
+            </div>
+            <div class="result-output" id="result-output" hidden></div>
+          </aside>
+        </section>
+      </section>
+    </main>
+    <script>
+      window.MAGICMD_STUDIO_TOKEN = '__MAGICMD_STUDIO_TOKEN__';
+    </script>
+    <script src="/studio.js"></script>
+  </body>
+</html>

@@ -137,3 +137,27 @@ def test_publish_workflow_documented_on_website():
     assert 'target_dir = "content/posts/{date}-{slug}"' in english_publish_doc
     assert "GITHUB_TOKEN=ghp_xxx" in english_publish_doc
     assert ".env" in english_publish_doc
+
+
+def test_studio_console_documented_on_website():
+    quick_start = Path("website/quick-start.md").read_text(encoding="utf-8")
+    studio_doc = Path("website/studio.md").read_text(encoding="utf-8")
+    english_quick_start = Path("website/en/quick-start.md").read_text(encoding="utf-8")
+    english_studio_doc = Path("website/en/studio.md").read_text(encoding="utf-8")
+    vitepress_config = Path("website/.vitepress/config.ts").read_text(encoding="utf-8")
+    metadata = tomllib.loads(Path("pyproject.toml").read_text(encoding="utf-8"))
+    wheel_assets = metadata["tool"]["hatch"]["build"]["targets"]["wheel"]["force-include"]
+
+    assert "magicmd studio" in quick_start
+    assert "[MagicMD Studio](/studio)" in quick_start
+    assert "预览发布计划" in studio_doc
+    assert "http://127.0.0.1:8765" in studio_doc
+    assert "magicmd studio" in english_quick_start
+    assert "[MagicMD Studio](/en/studio)" in english_quick_start
+    assert "Preview publish plan" in english_studio_doc
+    assert "http://127.0.0.1:8765" in english_studio_doc
+    assert "{ text: 'Studio', link: '/studio' }" in vitepress_config
+    assert "{ text: 'Studio', link: '/en/studio' }" in vitepress_config
+    assert wheel_assets["src/magicmd/studio/index.html"] == "magicmd/studio/index.html"
+    assert wheel_assets["src/magicmd/studio/studio.css"] == "magicmd/studio/studio.css"
+    assert wheel_assets["src/magicmd/studio/studio.js"] == "magicmd/studio/studio.js"

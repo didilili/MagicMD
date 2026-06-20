@@ -5,7 +5,7 @@ description: Install MagicMD and convert your first public article into a Markdo
 
 # Quick Start
 
-Run the shortest path first: install the CLI, quickly convert one public article, then open `output/` and inspect the optimized Markdown package. After that, move on to batch conversion and custom output rules.
+Run the shortest path first: install MagicMD, open the local Studio console, paste one public article URL, then inspect the generated Markdown package in the interface. After that, move on to batch conversion, custom output rules, and GitHub publishing.
 
 ## 1. Install MagicMD
 
@@ -36,7 +36,23 @@ magicmd doctor
 
 :::
 
-## 2. Convert One Article
+## 2. Open Local Studio
+
+For new users, start with the local web console:
+
+```bash
+magicmd studio
+```
+
+Your browser opens:
+
+```text
+http://127.0.0.1:8765
+```
+
+Paste an article URL into Studio, click “Convert Markdown”, and review the generated directory, file list, and warnings on the right. See [MagicMD Studio](/en/studio) for details.
+
+## 3. Convert One Article From The CLI
 
 Copy a public article URL and pass it to MagicMD. It extracts the body, cleans code blocks, handles media, and keeps source metadata:
 
@@ -50,7 +66,7 @@ You can also choose an output directory explicitly:
 magicmd convert "https://juejin.cn/post/example" -o output/
 ```
 
-## 3. Open The Output
+## 4. Open The Output
 
 MagicMD creates one package directory per article:
 
@@ -66,7 +82,7 @@ output/article-title/
 
 `article.md` contains the cleaned article body, `metadata.json` contains article metadata, and `extraction-report.json` records warnings, media download results, and items worth reviewing.
 
-## 4. Batch Convert
+## 5. Batch Convert
 
 Put article links into `urls.txt` and generate packages in bulk:
 
@@ -88,7 +104,7 @@ Resume a batch run by skipping packages that already exist:
 magicmd batch urls.txt -o output/ --skip-existing
 ```
 
-## 5. Use A Config File
+## 6. Use A Config File
 
 If you publish to Hugo, Docusaurus, or a custom knowledge base, start with a config file so you can customize folders, filenames, metadata, and media paths:
 
@@ -99,7 +115,7 @@ magicmd "https://mp.weixin.qq.com/s/example" --config .magicmd.toml
 
 You can also use the [Config Builder](/en/config-builder) to choose the publishing target, filenames, and media paths, then save the generated `.magicmd.toml` at your project root.
 
-## 6. Publish to a GitHub content repository
+## 7. Publish to a GitHub content repository
 
 Use this when you want to commit converted packages to a Hugo, Docusaurus, blog, or knowledge-base content repository. Start with the [Config Builder](/en/config-builder), enable “Generate GitHub publishing config”, and save the target repository settings in `.magicmd.toml`. See [Publish to GitHub](/en/publish-github) for the full workflow.
 
@@ -121,6 +137,6 @@ magicmd publish github "https://mp.weixin.qq.com/s/example" --pr
 
 Real publishing requires `GITHUB_TOKEN`. Put it in `.env` at the project root and MagicMD reads it automatically. Dry-run mode does not need a token and does not create branches, commits, pushes, or Pull Requests. If dry-run shows the URL as the title, uses an `undated` directory, or includes `debug.html`, read the [troubleshooting notes in the publishing guide](/en/publish-github#spot-a-bad-publish-plan) before publishing for real.
 
-## 7. Call MagicMD from Python
+## 8. Call MagicMD from Python
 
 If you are integrating MagicMD into a Python backend, CMS, HaoGit-style project, or scheduled job, do not parse CLI output. Use [SDK Integration](/en/sdk) and call `from magicmd import convert_article` to receive structured Markdown, metadata, images, and extraction reports.

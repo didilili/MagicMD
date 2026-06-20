@@ -54,6 +54,7 @@ export default defineConfig({
       themeConfig: {
         nav: [
           { text: 'Quick Start', link: '/en/quick-start' },
+          { text: 'Studio', link: '/en/studio' },
           { text: 'SDK', link: '/en/sdk' },
           { text: 'Agent Skill', link: '/en/agent-skill' },
           { text: 'GitHub Publishing', link: '/en/publish-github' },
@@ -73,6 +74,7 @@ export default defineConfig({
             text: 'Get Started',
             items: [
               { text: 'Quick Start', link: '/en/quick-start' },
+              { text: 'MagicMD Studio', link: '/en/studio' },
               { text: 'SDK Integration', link: '/en/sdk' },
               { text: 'Agent Skill', link: '/en/agent-skill' },
               { text: 'GitHub Publishing', link: '/en/publish-github' },
@@ -120,6 +122,7 @@ export default defineConfig({
     siteTitle: 'MagicMD',
     nav: [
       { text: '快速开始', link: '/quick-start' },
+      { text: 'Studio', link: '/studio' },
       { text: 'SDK 接入', link: '/sdk' },
       { text: 'Agent Skill', link: '/agent-skill' },
       { text: 'GitHub 发布', link: '/publish-github' },
@@ -139,6 +142,7 @@ export default defineConfig({
         text: '开始使用',
         items: [
           { text: '快速开始', link: '/quick-start' },
+          { text: 'MagicMD Studio', link: '/studio' },
           { text: 'SDK 接入', link: '/sdk' },
           { text: 'Agent Skill', link: '/agent-skill' },
           { text: 'GitHub 发布', link: '/publish-github' },
