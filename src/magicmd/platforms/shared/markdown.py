@@ -5,6 +5,13 @@ import re
 import markdownify
 
 
+_FENCED_CODE_BLOCK_RE = re.compile(r"(?ms)^(`{3,}|~{3,})[^\n]*\n.*?^\1[ \t]*$")
+_STRONG_BOUNDARY_PUNCTUATION = r":："
+_STRONG_FOLLOWING_TEXT = r"A-Za-z0-9_\u4e00-\u9fff"
+_STRONG_PRECEDING_TEXT = r"\w\u4e00-\u9fff"
+_STRONG_OPEN = rf"(?<![{_STRONG_PRECEDING_TEXT}])\*\*(?![ \t*])"
+
+
 def _separate_markdown_images(md: str) -> str:
     image = r"!\[[^\]]*\]\([^)\n]+\)"
     md = re.sub(r"!\[\]\(\)", "", md)
@@ -32,10 +39,36 @@ def _normalize_markdown_emphasis(md: str) -> str:
         previous = md
         md = re.sub(r"\*\*([^*\n]+)\*{4,}([^*\n]+)\*\*", r"**\1\2**", md)
 
+    md = _normalize_strong_boundaries(md)
+
     numbered_link = re.compile(
         r"(?m)^\**(?P<number>\d+\.)\s*\**(?P<link>\[[^\]\n]+\]\([^\n]+\))\**$"
     )
     return numbered_link.sub(r"\g<number> \g<link>", md)
+
+
+def _normalize_strong_boundaries(md: str) -> str:
+    def normalize_segment(segment: str) -> str:
+        segment = re.sub(
+            rf"{_STRONG_OPEN}(?P<text>[^*\n]*?\S)[ \t]+\*\*",
+            r"**\g<text>**",
+            segment,
+        )
+        return re.sub(
+            rf"(?P<strong>{_STRONG_OPEN}[^*\n]*[{_STRONG_BOUNDARY_PUNCTUATION}]\*\*)"
+            rf"(?P<next>[{_STRONG_FOLLOWING_TEXT}])",
+            r"\g<strong> \g<next>",
+            segment,
+        )
+
+    parts: list[str] = []
+    cursor = 0
+    for match in _FENCED_CODE_BLOCK_RE.finditer(md):
+        parts.append(normalize_segment(md[cursor : match.start()]))
+        parts.append(match.group(0))
+        cursor = match.end()
+    parts.append(normalize_segment(md[cursor:]))
+    return "".join(parts)
 
 
 def _remove_code_widget_noise(md: str) -> str:

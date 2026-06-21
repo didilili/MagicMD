@@ -23,6 +23,13 @@ def scan_markdown_quality(markdown: str) -> list[str]:
         "broken_numbered_link_emphasis": bool(
             re.search(r"\*{3,}\d+[.．]\*{3,}\s*\[", prose_markdown)
         ),
+        "broken_strong_boundary": bool(
+            re.search(
+                r"(?<![\w\u4e00-\u9fff])\*\*(?![ \t*])[^*\n]*\S[ \t]+\*\*[\w\u4e00-\u9fff]"
+                r"|(?<![\w\u4e00-\u9fff])\*\*(?![ \t*])[^*\n]*[:：]\*\*[\w\u4e00-\u9fff]",
+                prose_markdown,
+            )
+        ),
         "broken_linked_image": "[\n\n![Image]" in prose_markdown or "\n\n](" in prose_markdown,
     }
     return [name for name, matched in checks.items() if matched]

@@ -142,6 +142,44 @@ def test_parse_wechat_html_normalizes_rich_sections_styles_and_images():
     )
 
 
+def test_parse_wechat_html_separates_bold_label_from_following_text():
+    html = """
+    <html><body>
+      <h1 id="activity-name">加粗标签文章</h1>
+      <div id="js_content">
+        <p><strong>① headroom:</strong>压缩 LLM 输入，比如工具输出、日志、RAG chunks。</p>
+        <p><strong>② addyosmani/agent-skills: </strong>Google 工程师整理的 AI 编码 Skills 合集。</p>
+      </div>
+    </body></html>
+    """
+
+    article = parse_wechat_html(html, "https://mp.weixin.qq.com/s/bold-label")
+
+    assert "**① headroom:**压缩" not in article.content_markdown
+    assert "**② addyosmani/agent-skills: **Google" not in article.content_markdown
+    assert "**① headroom:** 压缩 LLM 输入" in article.content_markdown
+    assert "**② addyosmani/agent-skills:** Google 工程师" in article.content_markdown
+
+
+def test_parse_wechat_html_keeps_adjacent_bold_terms_unchanged():
+    html = """
+    <html><body>
+      <h1 id="activity-name">相邻加粗文章</h1>
+      <div id="js_content">
+        <p>可以省去类型检查，通过添加 <strong>!</strong> <strong>断言</strong>，<strong>不推荐</strong>。</p>
+        <p>例如 <strong>clientX</strong>、<strong>clientY</strong> 都是鼠标事件属性。</p>
+        <p><strong>AI</strong>时代需要稳定输出。</p>
+      </div>
+    </body></html>
+    """
+
+    article = parse_wechat_html(html, "https://mp.weixin.qq.com/s/adjacent-bold")
+
+    assert "**!** **断言**，**不推荐**" in article.content_markdown
+    assert "**clientX**、**clientY**" in article.content_markdown
+    assert "**AI**时代" in article.content_markdown
+
+
 def test_parse_wechat_html_does_not_promote_ordinary_bold_paragraphs_to_headings():
     html = """
     <html><body>
