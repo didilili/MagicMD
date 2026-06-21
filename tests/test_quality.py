@@ -18,6 +18,10 @@ def test_scan_markdown_quality_flags_known_wechat_regressions():
 第**九十一****号**
 
 ***3.*****[Linux 学习指南](https://example.com)
+
+**① headroom: **压缩 LLM 输入
+
+**② addyosmani/agent-skills:**Google 工程师整理的 Skills 合集。
 """
 
     issues = scan_markdown_quality(markdown)
@@ -27,6 +31,7 @@ def test_scan_markdown_quality_flags_known_wechat_regressions():
     assert "fragmented_recommendation_text" in issues
     assert "fragmented_bold_text" in issues
     assert "broken_numbered_link_emphasis" in issues
+    assert "broken_strong_boundary" in issues
 
 
 def test_scan_markdown_quality_does_not_flag_adjacent_non_empty_code_fences():
@@ -63,11 +68,14 @@ def test_scan_markdown_quality_allows_adjacent_inline_bold_terms():
     markdown = """
 可以省去类型检查，通过添加 **!** **断言**，**不推荐**。
 例如 **clientX**、**clientY** 都是鼠标事件属性。
+**AI**时代需要稳定输出。
+**① headroom:** 压缩 LLM 输入。
 """
 
     issues = scan_markdown_quality(markdown)
 
     assert "fragmented_bold_text" not in issues
+    assert "broken_strong_boundary" not in issues
 
 
 def test_build_package_quality_reads_metadata_and_article(tmp_path: Path):
