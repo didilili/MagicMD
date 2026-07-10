@@ -1,3 +1,5 @@
+import os
+
 import pytest
 
 from magicmd.fetchers import browser as browser_fetcher
@@ -79,3 +81,16 @@ async def test_fetch_browser_async_raises_last_error_after_retries(monkeypatch):
         await browser_fetcher.fetch_browser_async("https://example.com/article", attempts=3)
 
     assert attempts == 3
+
+
+@pytest.mark.e2e
+@pytest.mark.asyncio
+@pytest.mark.skipif(
+    os.environ.get("MAGICMD_RUN_BROWSER_SMOKE") != "1",
+    reason="set MAGICMD_RUN_BROWSER_SMOKE=1 to run the real browser smoke test",
+)
+async def test_camoufox_can_create_page():
+    async with browser_fetcher.AsyncCamoufox(headless=True) as browser:
+        page = await browser.new_page()
+
+    assert page is not None

@@ -49,6 +49,11 @@ def test_project_metadata_uses_magicmd_name_and_cli():
     assert metadata["tool"]["hatch"]["build"]["targets"]["wheel"]["packages"] == ["src/magicmd"]
 
 
+def test_project_metadata_constrains_playwright_for_camoufox():
+    metadata = tomllib.loads(Path("pyproject.toml").read_text(encoding="utf-8"))
+    assert "playwright>=1.60,<1.61" in metadata["project"]["dependencies"]
+
+
 def test_npm_wrapper_metadata_matches_python_package():
     python_metadata = tomllib.loads(Path("pyproject.toml").read_text(encoding="utf-8"))
     npm_package = json.loads(Path("npm/magicmd/package.json").read_text(encoding="utf-8"))
