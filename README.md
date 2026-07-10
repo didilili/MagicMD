@@ -113,7 +113,7 @@ npx magicmd --version
 npm wrapper 位于 [npm/magicmd](./npm/magicmd)。它不会重新实现转换逻辑，只会把命令转发给：
 
 ```bash
-uvx --from magicmd magicmd
+uvx --from "magicmd==0.7.1" magicmd
 ```
 
 ### Agent Skill

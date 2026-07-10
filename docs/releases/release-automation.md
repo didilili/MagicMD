@@ -79,7 +79,8 @@ No `PYPI_TOKEN`, username, or password should be needed.
 - It uploads the built Python distributions as a workflow artifact.
 - It publishes to PyPI only when `publish_pypi` is explicitly checked.
 - It publishes to npm only when `publish_npm` is explicitly checked.
-- When both publish flags are checked, npm waits for the PyPI publish job because the npm wrapper runs the Python CLI through `uvx`.
+- In the `publish-npm` job, before its npm dry run or publish, the workflow installs `uv` and verifies that `magicmd==<version>` is available from PyPI, retrying for bounded package-index propagation time.
+- When both publish flags are checked, npm waits for the PyPI publish job and then verifies the exact Python version is live. An npm-only run is allowed only as recovery after that matching PyPI version has already been published.
 - It uses the `pypi` and `npm` GitHub environments and `id-token: write` only for publish jobs.
 
 To perform a dry verification run for v0.5.0:
@@ -137,11 +138,11 @@ publish_pypi: false
 publish_npm: false
 ```
 
-Only check `publish_npm` during an actual release version that has not already been published to npm.
+Only check `publish_npm` during an actual release version that has not already been published to npm. An npm-only run is a recovery path, not a way to publish npm first: the matching `magicmd==<version>` must already be available from PyPI or the npm job fails before `npm pack` and `npm publish`.
 
 ## Proposed Workflow Shape
 
-The final workflow can become tag-triggered only after PyPI and npm trusted publishers are configured and at least one manual release succeeds.
+The final workflow can become tag-triggered only after PyPI and npm trusted publishers are configured and at least one manual release succeeds. The illustrative npm guard below supports both `workflow_dispatch` inputs and tag-triggered runs by falling back from `inputs.version` to `GITHUB_REF_NAME`.
 
 ```yaml
 name: Publish Release
@@ -222,6 +223,28 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Verify matching Python package is available on PyPI
+        run: |
+          version="${{ inputs.version }}"
+          if [ -z "$version" ]; then
+            version="${GITHUB_REF_NAME#v}"
+          fi
+          for attempt in $(seq 1 12); do
+            if uvx --refresh-package magicmd --from "magicmd==${version}" magicmd --version; then
+              exit 0
+            fi
+            if [ "$attempt" -lt 12 ]; then
+              sleep 10
+            fi
+          done
+          echo "::error::matching PyPI version must be published before npm: magicmd==${version}"
+          exit 1
+
       - name: Set up Node
         uses: actions/setup-node@v6
         with:
@@ -238,12 +261,13 @@ jobs:
         run: npm publish --registry=https://registry.npmjs.org --provenance
 ```
 
-## Open Decisions Before Implementation
+## Remaining Open Decisions
 
 - Whether to create GitHub Release in the same workflow or keep it manual. Current recommendation: keep GitHub Release manual until PyPI/npm automation succeeds once.
 - Whether npm should use `npm publish` or `npm stage publish`. Current recommendation: start with `npm publish`; consider staged publishing after the process is stable.
 - Whether to allow tag-triggered publishing. Current recommendation: keep `workflow_dispatch` until both PyPI and npm have shipped one clean automated release.
-- Whether to publish npm if PyPI fails. Current workflow publishes npm after `verify` when PyPI publishing is not requested, but waits for PyPI when both publish flags are checked.
+
+The npm/PyPI ordering is decided: npm publishing must never proceed unless the exact Python package version is already visible on PyPI. The workflow enforces this in both combined releases and npm-only recovery runs with the same bounded retry guard.
 
 ## Safer Manual Flow Until Automation Lands
 
@@ -264,6 +288,17 @@ git push origin main
 git push origin "$TAG"
 
 uv publish --username __token__ --password "$PYPI_TOKEN"
+
+for attempt in $(seq 1 12); do
+  if uvx --refresh-package magicmd --from "magicmd==${VERSION}" magicmd --version; then
+    break
+  fi
+  if [ "$attempt" -eq 12 ]; then
+    echo "matching PyPI version must be published before npm: magicmd==${VERSION}" >&2
+    exit 1
+  fi
+  sleep 10
+done
 
 cd npm/magicmd
 npm publish --registry=https://registry.npmjs.org --provenance

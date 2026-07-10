@@ -130,6 +130,27 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Verify matching Python package is available on PyPI
+        env:
+          MAGICMD_VERSION: ${{ inputs.version }}
+        run: |
+          for attempt in $(seq 1 12); do
+            if uvx --refresh-package magicmd --from "magicmd==${MAGICMD_VERSION}" magicmd --version; then
+              exit 0
+            fi
+            if [ "$attempt" -lt 12 ]; then
+              echo "magicmd==${MAGICMD_VERSION} is not available on PyPI yet; retrying in 10 seconds (${attempt}/12)."
+              sleep 10
+            fi
+          done
+          echo "::error::matching PyPI version must be published before npm: magicmd==${MAGICMD_VERSION}"
+          exit 1
+
       - name: Set up Node
         uses: actions/setup-node@v6
         with:

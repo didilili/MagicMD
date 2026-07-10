@@ -76,9 +76,9 @@ magicmd batch urls.txt -o output/
 如果没有全局安装，Skill 会引导 Agent 使用 PyPI 包：
 
 ```bash
-uvx --from magicmd magicmd doctor
-uvx --from magicmd magicmd "https://mp.weixin.qq.com/s/example" -o output/
-uvx --from magicmd magicmd batch urls.txt -o output/
+uvx --from "magicmd==0.7.1" magicmd doctor
+uvx --from "magicmd==0.7.1" magicmd "https://mp.weixin.qq.com/s/example" -o output/
+uvx --from "magicmd==0.7.1" magicmd batch urls.txt -o output/
 ```
 
 ## Agent 会怎么做

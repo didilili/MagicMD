@@ -84,9 +84,9 @@ magicmd batch urls.txt -o output/
 If the CLI is not installed globally, the Skill guides the agent to use the PyPI package:
 
 ```bash
-uvx --from magicmd magicmd doctor
-uvx --from magicmd magicmd "https://mp.weixin.qq.com/s/example" -o output/
-uvx --from magicmd magicmd batch urls.txt -o output/
+uvx --from "magicmd==0.7.1" magicmd doctor
+uvx --from "magicmd==0.7.1" magicmd "https://mp.weixin.qq.com/s/example" -o output/
+uvx --from "magicmd==0.7.1" magicmd batch urls.txt -o output/
 ```
 
 ## What The Agent Does
