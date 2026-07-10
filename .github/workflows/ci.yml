@@ -30,3 +30,41 @@ jobs:
 
       - name: Build package
         run: uv build
+
+  npm-wrapper-windows:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          package-manager-cache: false
+
+      - name: Use published npm wrapper version for Windows smoke
+        shell: pwsh
+        run: |
+          $packagePath = "npm/magicmd/package.json"
+          $package = Get-Content $packagePath -Raw | ConvertFrom-Json
+          $package.version = "0.7.0"
+          $package | ConvertTo-Json -Depth 10 | Set-Content $packagePath -Encoding utf8
+
+      - name: Smoke test npm wrapper on Windows
+        shell: pwsh
+        run: |
+          $output = node npm/magicmd/bin/magicmd.js --version
+          if ($LASTEXITCODE -ne 0) {
+            throw "npm wrapper exited with code $LASTEXITCODE"
+          }
+          $outputText = ($output | Out-String).Trim()
+          Write-Output $outputText
+          if ($outputText -ne "MagicMD 0.7.0") {
+            throw "Expected 'MagicMD 0.7.0', got '$outputText'"
+          }

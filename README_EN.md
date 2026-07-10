@@ -113,7 +113,7 @@ npx magicmd --version
 The npm wrapper lives in [npm/magicmd](./npm/magicmd). It does not reimplement conversion logic; it forwards commands to:
 
 ```bash
-uvx --from magicmd magicmd
+uvx --from "magicmd==0.7.1" magicmd
 ```
 
 ### Agent Skill

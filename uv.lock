@@ -782,7 +782,7 @@ wheels = [
 
 [[package]]
 name = "magicmd"
-version = "0.7.0"
+version = "0.7.1"
 source = { editable = "." }
 dependencies = [
     { name = "beautifulsoup4" },
@@ -790,6 +790,7 @@ dependencies = [
     { name = "chardet" },
     { name = "httpx" },
     { name = "markdownify" },
+    { name = "playwright" },
     { name = "pydantic" },
     { name = "rich" },
     { name = "typer" },
@@ -809,6 +810,7 @@ requires-dist = [
     { name = "chardet", specifier = ">=5.2" },
     { name = "httpx", specifier = ">=0.27" },
     { name = "markdownify", specifier = ">=0.13" },
+    { name = "playwright", specifier = ">=1.60,<1.61" },
     { name = "pydantic", specifier = ">=2.8" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.2" },
     { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=0.23" },

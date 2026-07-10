@@ -24,9 +24,9 @@ magicmd batch urls.txt -o output/
 If the CLI is not installed, use:
 
 ```bash
-uvx --from magicmd magicmd doctor
-uvx --from magicmd magicmd "<url>" -o output/
-uvx --from magicmd magicmd batch urls.txt -o output/
+uvx --from "magicmd==0.7.1" magicmd doctor
+uvx --from "magicmd==0.7.1" magicmd "<url>" -o output/
+uvx --from "magicmd==0.7.1" magicmd batch urls.txt -o output/
 ```
 
 Verify `article.md`, `metadata.json`, `extraction-report.json`, media directories, and batch reports before reporting success.

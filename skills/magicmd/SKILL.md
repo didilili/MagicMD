@@ -51,9 +51,9 @@ magicmd batch urls.txt -o output/
 If `magicmd` is not installed, use the PyPI package through `uvx`:
 
 ```bash
-uvx --from magicmd magicmd doctor
-uvx --from magicmd magicmd "<url>" -o output/
-uvx --from magicmd magicmd batch urls.txt -o output/
+uvx --from "magicmd==0.7.1" magicmd doctor
+uvx --from "magicmd==0.7.1" magicmd "<url>" -o output/
+uvx --from "magicmd==0.7.1" magicmd batch urls.txt -o output/
 ```
 
 For repeated batch runs:

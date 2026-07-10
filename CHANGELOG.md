@@ -4,11 +4,13 @@
 
 ### 中文
 
-- 暂无。
+- 修复 npm wrapper 和 `uvx --from magicmd` 可能解析到不兼容 Playwright 版本的问题；npm wrapper 现在固定请求同版本 Python 包，并在 Windows 上正确调用 `uvx.exe`，发布元数据将 Playwright 约束在与当前 Camoufox 0.4.11 已验证兼容的 1.60 版本线。
+- 新增真实 Camoufox `Browser.new_page()` 冒烟测试入口，用于发布前验证浏览器协议兼容性。
 
 ### English
 
-- Nothing yet.
+- Fixed npm wrapper and `uvx --from magicmd` installs resolving an incompatible Playwright version; the npm wrapper now requests the same-version Python package and correctly invokes `uvx.exe` on Windows, while published metadata constrains Playwright to the 1.60 line verified with current Camoufox 0.4.11.
+- Added an opt-in real Camoufox `Browser.new_page()` smoke test for pre-release browser-protocol verification.
 
 ## v0.5.0 - 2026-06-19
 

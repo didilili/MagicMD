@@ -39,7 +39,7 @@ uv run magicmd doctor
 npm 包只是一个轻量入口，真正运行的是 PyPI 版 MagicMD CLI：
 
 ```bash
-uvx --from magicmd magicmd
+uvx --from "magicmd==0.7.1" magicmd
 ```
 
 所以只安装 Node.js 还不够，本机还需要 `uvx`。
@@ -224,7 +224,7 @@ uv run magicmd doctor
 The npm package is a thin entrypoint. It runs the PyPI CLI through:
 
 ```bash
-uvx --from magicmd magicmd
+uvx --from "magicmd==0.7.1" magicmd
 ```
 
 That means Node.js alone is not enough. `uvx` must also be available.
