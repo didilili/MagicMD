@@ -28,10 +28,12 @@ def infer_image_extension(url: str, content_type: str = "") -> str:
 
 def _separate_markdown_images(markdown: str) -> str:
     image = r"!\[[^\]]*\]\([^)\n]+\)"
-    markdown = re.sub(r"!\[\]\(\)", "", markdown)
+    markdown, empty_image_count = re.subn(r"!\[[^\]]*\]\(\s*\)", "", markdown)
     markdown = re.sub(rf"([^\[\n])({image})", r"\1\n\n\2", markdown)
     markdown = re.sub(rf"({image})([^\]\n])", r"\1\n\n\2", markdown)
     markdown = re.sub(rf"({image})\s*({image})", r"\1\n\n\2", markdown)
+    if empty_image_count:
+        markdown = re.sub(r"\n{3,}", "\n\n", markdown)
     return re.sub(r"\n{4,}", "\n\n\n", markdown).strip()
 
 
@@ -40,8 +42,17 @@ def rewrite_markdown_image_links(markdown: str, images: list[ImageAsset]) -> str
     for image in images:
         if not image.local_path:
             continue
-        pattern = re.compile(r"!\[([^\]]*)\]\(" + re.escape(image.source_url) + r"\)")
-        result = pattern.sub(lambda match: f"![{match.group(1)}]({image.local_path})", result)
+        pattern = re.compile(
+            r"!\[([^\]]*)\]\("
+            + re.escape(image.source_url)
+            + r"""(?P<title>\s+(?:"[^"\n]*"|'[^'\n]*'|\([^)\n]*\)))?\)"""
+        )
+        result = pattern.sub(
+            lambda match: (
+                f"![{match.group(1)}]({image.local_path}{match.group('title') or ''})"
+            ),
+            result,
+        )
     return _separate_markdown_images(result)
 
 

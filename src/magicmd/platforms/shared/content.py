@@ -326,6 +326,14 @@ def _normalize_wechat_rich_text(content_el: Tag) -> None:
             tag.name = "p"
 
 
+def _flatten_nested_emphasis(content_el: Tag) -> None:
+    for outer in content_el.find_all(["strong", "em"]):
+        if outer.find_parent(["strong", "em"]):
+            continue
+        for nested in list(outer.find_all(["strong", "em"])):
+            nested.unwrap()
+
+
 def _looks_like_direct_url(value: str) -> bool:
     return bool(re.match(r"^(?:https?://|mailto:|[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/)", value.strip()))
 
@@ -420,33 +428,34 @@ def _normalize_body_heading_depth(content_el: Tag) -> None:
         tag.name = f"h{max(2, min(6, 2 + max(0, level - base_level)))}"
 
 
-def _code_text(code_tag: Tag) -> str:
-    def normalize_code_text(text: str) -> str:
-        text = text.replace("\u00a0", " ")
-        text = text.replace("\r\n", "\n").replace("\r", "\n")
-        starters = (
-            "conda",
-            "pip3",
-            "pip",
-            "docker",
-            "kubectl",
-            "npm",
-            "yarn",
-            "pnpm",
-            "sudo",
-            "print",
-            "import",
-        )
-        return re.sub(rf"(?<=[^\s])(?=(?:{'|'.join(starters)})\b)", "\n", text)
+def _normalize_code_text(text: str) -> str:
+    text = text.replace("\u00a0", " ")
+    text = text.replace("\r\n", "\n").replace("\r", "\n")
+    starters = (
+        "conda",
+        "pip3",
+        "pip",
+        "docker",
+        "kubectl",
+        "npm",
+        "yarn",
+        "pnpm",
+        "sudo",
+        "print",
+        "import",
+    )
+    return re.sub(rf"(?<=[^\s])(?=(?:{'|'.join(starters)})\b)", "\n", text)
 
+
+def _code_text(code_tag: Tag) -> str:
     highlighted_lines = code_tag.select(".hljs-ln-code .hljs-ln-line")
     if highlighted_lines:
         lines = [
-            normalize_code_text(line.get_text("", strip=False)).rstrip()
+            _normalize_code_text(line.get_text("", strip=False)).rstrip()
             for line in highlighted_lines
         ]
         return textwrap.dedent("\n".join(lines)).strip("\n")
-    return normalize_code_text(code_tag.get_text())
+    return _normalize_code_text(code_tag.get_text())
 
 
 def clean_content_element(content_el: Tag) -> tuple[str, list[ImageAsset], list[dict[str, str]]]:
@@ -475,6 +484,7 @@ def clean_content_element(content_el: Tag) -> tuple[str, list[ImageAsset], list[
             img["alt"] = "Image"
 
     _normalize_wechat_rich_text(content_el)
+    _flatten_nested_emphasis(content_el)
     _normalize_body_heading_depth(content_el)
 
     for img in content_el.find_all("img"):
@@ -500,7 +510,7 @@ def clean_content_element(content_el: Tag) -> tuple[str, list[ImageAsset], list[
             text = code_tag.get_text()
             if re.match(r"^[ce]?ounter\(line", text):
                 continue
-            lines.append(text)
+            lines.append(_normalize_code_text(text))
         code = "\n".join(lines) or el.get_text()
         placeholder = _block_placeholder("code", len(code_blocks))
         code_blocks.append({"placeholder": placeholder, "lang": lang, "code": code})

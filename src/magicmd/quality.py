@@ -227,3 +227,11 @@ def _format_elapsed_ms(value: Any) -> str:
     if isinstance(value, int | float):
         return f"{int(value)} ms"
     return ""
+
+
+def repair_markdown_quality(markdown: str) -> str:
+    from magicmd.platforms.shared.markdown import (
+        repair_markdown_quality as repair,
+    )
+
+    return repair(markdown)

@@ -161,6 +161,137 @@ def test_parse_wechat_html_separates_bold_label_from_following_text():
     assert "**② addyosmani/agent-skills:** Google 工程师" in article.content_markdown
 
 
+def test_parse_wechat_html_normalizes_nbsp_and_fused_command_in_code_snippet():
+    html = """
+    <html><body>
+      <h1 id="activity-name">代码空格文章</h1>
+      <div id="js_content">
+        <div class="code-snippet__fix">
+          <pre data-lang="shell"><code># 安装到全局npm&nbsp;install -g demo</code></pre>
+        </div>
+      </div>
+    </body></html>
+    """
+
+    article = parse_wechat_html(html, "https://mp.weixin.qq.com/s/code-whitespace")
+
+    assert article.content_markdown == (
+        "```shell\n"
+        "# 安装到全局\n"
+        "npm install -g demo\n"
+        "```"
+    )
+
+
+def test_parse_wechat_html_normalizes_punctuation_at_bold_boundaries():
+    html = """
+    <html><body>
+      <h1 id="activity-name">加粗标点边界文章</h1>
+      <div id="js_content">
+        <p>Text Extractor <strong>内置 OCR 一键截图取文字，</strong>ColorPicker 取色。</p>
+        <p>Chatwoot 是一个<strong>客服系统的开源项目，</strong>目前累计 3.2 万 Star。</p>
+        <p><strong>第一步，偷偷查你是谁。</strong>它会读取系统时区。</p>
+        <p><strong>【新智元导读】</strong>全球第一。</p>
+        <p>必须打开<strong>思考模式（Thinking）</strong>才能发挥性能。</p>
+        <p>灵活性太差<strong>，源文件类型、数量都被卡死。</strong></p>
+        <p>核心思路很直接<strong>：把终端重新做一遍。</strong></p>
+      </div>
+    </body></html>
+    """
+
+    article = parse_wechat_html(html, "https://mp.weixin.qq.com/s/bold-punctuation")
+
+    assert "**内置 OCR 一键截图取文字**，ColorPicker 取色。" in article.content_markdown
+    assert "一个**客服系统的开源项目**，目前累计" in article.content_markdown
+    assert "**第一步，偷偷查你是谁**。它会读取系统时区。" in article.content_markdown
+    assert "【**新智元导读**】全球第一。" in article.content_markdown
+    assert "**思考模式**（**Thinking**）才能发挥性能。" in article.content_markdown
+    assert "灵活性太差，**源文件类型、数量都被卡死。**" in article.content_markdown
+    assert "核心思路很直接：**把终端重新做一遍。**" in article.content_markdown
+
+
+def test_parse_wechat_html_removes_bold_markers_around_images():
+    html = """
+    <html><body>
+      <h1 id="activity-name">加粗图片文章</h1>
+      <div id="js_content">
+        <p><strong><img data-src="https://example.com/bold-image.png" /></strong></p>
+      </div>
+    </body></html>
+    """
+
+    article = parse_wechat_html(html, "https://mp.weixin.qq.com/s/bold-image")
+
+    assert article.content_markdown == "![Image](https://example.com/bold-image.png)"
+
+
+def test_parse_wechat_html_collapses_nested_bold_markers():
+    html = """
+    <html><body>
+      <h1 id="activity-name">嵌套加粗文章</h1>
+      <div id="js_content">
+        <p><strong><strong>摄像头气泡</strong></strong></p>
+      </div>
+    </body></html>
+    """
+
+    article = parse_wechat_html(html, "https://mp.weixin.qq.com/s/nested-bold")
+
+    assert article.content_markdown == "**摄像头气泡**"
+
+
+def test_parse_wechat_html_flattens_mixed_nested_emphasis():
+    html = """
+    <html><body>
+      <h1 id="activity-name">混合强调文章</h1>
+      <div id="js_content">
+        <p>
+          今年搞了<strong>小林训练营（<em>想要报名，+vx：<strong>xiaolincoding</strong></em>）。</strong>
+        </p>
+      </div>
+    </body></html>
+    """
+
+    article = parse_wechat_html(html, "https://mp.weixin.qq.com/s/mixed-emphasis")
+
+    assert article.content_markdown == (
+        "今年搞了**小林训练营（想要报名，+vx：xiaolincoding）。**"
+    )
+
+
+def test_parse_wechat_html_separates_bare_urls_from_chinese_prose():
+    html = """
+    <html><body>
+      <h1 id="activity-name">裸链接边界文章</h1>
+      <div id="js_content">
+        <p>打开 http://localhost:3000，顶部工具栏<strong>会自动显示内容。</strong></p>
+      </div>
+    </body></html>
+    """
+
+    article = parse_wechat_html(html, "https://mp.weixin.qq.com/s/bare-url")
+
+    assert (
+        "打开 <http://localhost:3000>，顶部工具栏**会自动显示内容。**"
+        in article.content_markdown
+    )
+
+
+def test_parse_wechat_html_removes_bold_markers_from_standalone_symbols():
+    html = """
+    <html><body>
+      <h1 id="activity-name">符号加粗文章</h1>
+      <div id="js_content">
+        <p><strong>一起</strong>“点赞”三连<strong>↓</strong></p>
+      </div>
+    </body></html>
+    """
+
+    article = parse_wechat_html(html, "https://mp.weixin.qq.com/s/bold-symbol")
+
+    assert article.content_markdown == "**一起**“点赞”三连↓"
+
+
 def test_parse_wechat_html_keeps_adjacent_bold_terms_unchanged():
     html = """
     <html><body>
@@ -409,7 +540,7 @@ def test_parse_wechat_html_treats_intro_card_heading_as_plain_text():
     article = parse_wechat_html(html, "https://mp.weixin.qq.com/s/intro-card")
 
     assert "##### 【新智元导读】" not in article.content_markdown
-    assert "**【新智元导读】**这是一段导读文字，不应该成为五级标题。" in article.content_markdown
+    assert "【**新智元导读**】这是一段导读文字，不应该成为五级标题。" in article.content_markdown
 
 
 def test_parse_wechat_html_replaces_video_player_with_link_or_placeholder():
