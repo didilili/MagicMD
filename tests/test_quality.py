@@ -545,6 +545,31 @@ def test_scan_markdown_quality_resolves_escaped_reference_labels(markdown):
     assert "external_media_not_rewritten" in issues
 
 
+@pytest.mark.parametrize(
+    ("markdown", "expected_external_media"),
+    [
+        (
+            "![图][img]\n\n> \t[img]: //mmbiz.qpic.cn/valid-tab.png",
+            True,
+        ),
+        (
+            "![图][img]\n\n\t[img]: //mmbiz.qpic.cn/top-tab.png",
+            False,
+        ),
+        (
+            "![图][img]\n\n> > \t[img]: //mmbiz.qpic.cn/nested-tab.png",
+            False,
+        ),
+    ],
+)
+def test_scan_markdown_quality_uses_absolute_column_for_definition_tabs(
+    markdown, expected_external_media
+):
+    issues = scan_markdown_quality(markdown)
+
+    assert ("external_media_not_rewritten" in issues) is expected_external_media
+
+
 def test_build_package_quality_reads_metadata_and_article(tmp_path: Path):
     package = tmp_path / "article-package"
     package.mkdir()

@@ -91,6 +91,7 @@ class _ReferenceLine:
     text: str
     content_start: int
     content_end: int
+    content_column: int
     blockquote_depth: int
 
 
@@ -614,7 +615,10 @@ def _parse_reference_definitions(
 def _parse_reference_definition_label(
     line: _ReferenceLine,
 ) -> tuple[str, int, int] | None:
-    position, indentation = _markdown_indentation(line.text)
+    position, indentation = _markdown_indentation(
+        line.text,
+        initial_column=line.content_column,
+    )
     if indentation > 3 or position >= len(line.text):
         return None
     if line.text[position] != "[":
@@ -645,16 +649,27 @@ def _parse_reference_definition_label(
     )
 
 
-def _markdown_indentation(value: str) -> tuple[int, int]:
+def _markdown_indentation(
+    value: str,
+    *,
+    initial_column: int = 0,
+) -> tuple[int, int]:
     position = 0
-    columns = 0
+    columns = initial_column
     while position < len(value) and value[position] in " \t":
         if value[position] == "\t":
             columns += 4 - (columns % 4)
         else:
             columns += 1
         position += 1
-    return position, columns
+    return position, columns - initial_column
+
+
+def _markdown_column(value: str) -> int:
+    column = 0
+    for character in value:
+        column += 4 - (column % 4) if character == "\t" else 1
+    return column
 
 
 def _build_reference_lines(markdown: str) -> list[_ReferenceLine]:
@@ -672,6 +687,7 @@ def _build_reference_lines(markdown: str) -> list[_ReferenceLine]:
                 text=line_text[content_position:],
                 content_start=offset + content_position,
                 content_end=offset + len(line_text),
+                content_column=_markdown_column(line_text[:content_position]),
                 blockquote_depth=blockquote_depth,
             )
         )
