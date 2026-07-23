@@ -158,13 +158,38 @@ def test_separate_markdown_images_preserves_parentheses_in_url_and_title():
     )
 
 
-def test_repair_markdown_quality_unwraps_single_line_address_fence():
-    markdown = "```javascript\n开源地址：https://github.com/example/demo\n```"
+@pytest.mark.parametrize("fence", ["```", "~~~"])
+def test_repair_markdown_quality_unwraps_single_line_address_fence(fence):
+    markdown = f"{fence}javascript\n开源地址：https://github.com/example/demo\n{fence}"
 
     assert (
         quality.repair_markdown_quality(markdown)
         == "开源地址：<https://github.com/example/demo>"
     )
+
+
+@pytest.mark.parametrize(
+    "markdown",
+    [
+        (
+            "````markdown\n"
+            "```text\n"
+            "官网：https://example.com/项目。\n"
+            "```\n"
+            "````"
+        ),
+        (
+            "~~~~markdown\n"
+            "~~~text\n"
+            "官网：https://example.com/项目。\n"
+            "~~~\n"
+            "~~~~"
+        ),
+    ],
+    ids=["backtick", "tilde"],
+)
+def test_repair_markdown_quality_keeps_address_fence_inside_longer_fence(markdown):
+    assert quality.repair_markdown_quality(markdown) == markdown
 
 
 def test_repair_markdown_quality_repairs_paired_escaped_strong_in_prose():

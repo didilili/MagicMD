@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import re
 import textwrap
+from collections.abc import Callable
 from collections import Counter
 from urllib.parse import parse_qs, unquote, urlparse
 
@@ -426,6 +427,45 @@ def _normalize_body_heading_depth(content_el: Tag) -> None:
         tag.name = f"h{max(2, min(6, 2 + max(0, level - base_level)))}"
 
 
+def _transform_unquoted_text(text: str, transform: Callable[[str], str]) -> str:
+    parts: list[str] = []
+    segment_start = 0
+    quote_start = 0
+    quote = ""
+    escaped = False
+
+    for index, character in enumerate(text):
+        if quote:
+            if escaped:
+                escaped = False
+            elif character == "\\":
+                escaped = True
+            elif character == quote:
+                parts.append(text[quote_start : index + 1])
+                segment_start = index + 1
+                quote = ""
+            continue
+
+        if character not in {'"', "'", "`"}:
+            continue
+        preceding_backslashes = 0
+        cursor = index - 1
+        while cursor >= 0 and text[cursor] == "\\":
+            preceding_backslashes += 1
+            cursor -= 1
+        if preceding_backslashes % 2:
+            continue
+        parts.append(transform(text[segment_start:index]))
+        quote_start = index
+        quote = character
+
+    if quote:
+        parts.append(text[quote_start:])
+    else:
+        parts.append(transform(text[segment_start:]))
+    return "".join(parts)
+
+
 def _normalize_code_text(text: str) -> str:
     text = text.replace("\u00a0", " ")
     text = text.replace("\r\n", "\n").replace("\r", "\n")
@@ -442,14 +482,18 @@ def _normalize_code_text(text: str) -> str:
         "print",
         "import",
     )
-    safe_prose_boundary = r"\u3400-\u9fff，。！？；：、,;:!?"
-    text = re.sub(
-        rf"(?<=[{safe_prose_boundary}])(?=(?:{'|'.join(starters)})[ \t])",
-        "\n",
-        text,
-    )
-    text = re.sub(r"(?<=\d)(?=conda[ \t])", "\n", text)
-    return re.sub(r"(?<=\))(?=print\()", "\n", text)
+
+    def normalize_unquoted(segment: str) -> str:
+        safe_prose_boundary = r"\u3400-\u9fff，。！？；：、,;:!?"
+        segment = re.sub(
+            rf"(?<=[{safe_prose_boundary}])(?=(?:{'|'.join(starters)})[ \t])",
+            "\n",
+            segment,
+        )
+        segment = re.sub(r"(?<=\d)(?=conda[ \t])", "\n", segment)
+        return re.sub(r"(?<=\))(?=print\()", "\n", segment)
+
+    return _transform_unquoted_text(text, normalize_unquoted)
 
 
 def _code_text(code_tag: Tag) -> str:

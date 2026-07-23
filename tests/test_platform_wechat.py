@@ -206,6 +206,33 @@ def test_normalize_code_text_splits_command_after_cjk_or_punctuation_prose():
     assert _normalize_code_text("说明：pip install demo") == "说明：\npip install demo"
 
 
+@pytest.mark.parametrize("quote", ['"', "'", "`"])
+@pytest.mark.parametrize(
+    "literal",
+    [
+        "安装说明：npm install demo",
+        "python=3.11conda activate env",
+        "print(x)print(y)",
+    ],
+)
+def test_normalize_code_text_keeps_fusion_patterns_inside_strings(quote, literal):
+    code = f"msg = {quote}{literal}{quote}"
+
+    assert _normalize_code_text(code) == code
+
+
+@pytest.mark.parametrize(
+    "code",
+    [
+        'msg = "他说：\\"安装说明npm install demo\\""',
+        "msg = 'value=\\'python=3.11conda activate env\\''",
+        "msg = `value=\\`print(x)print(y)\\``",
+    ],
+)
+def test_normalize_code_text_keeps_escaped_quotes_inside_strings(code):
+    assert _normalize_code_text(code) == code
+
+
 def test_parse_wechat_html_normalizes_punctuation_at_bold_boundaries():
     html = """
     <html><body>

@@ -18,10 +18,10 @@ _FENCE_LINE_RE = re.compile(
     r"(?P<fence>`{3,}|~{3,})(?P<tail>.*)$"
 )
 _ADDRESS_ONLY_FENCE_RE = re.compile(
-    r"(?m)^(?P<fence>`{3,}|~{3,})[^\n]*\n"
+    r"^(?P<fence>`{3,}|~{3,})[^\n]*\r?\n"
     r"(?P<label>[ \t]*(?:开源地址|项目地址|官网)[ \t]*[：:][ \t]*)"
-    r"(?P<url>https?://[^\s<>\n]+?)(?P<terminal>[，。！？；：、]?)[ \t]*\n"
-    r"(?P=fence)[ \t]*$"
+    r"(?P<url>https?://[^\s<>\n]+?)(?P<terminal>[，。！？；：、]?)[ \t]*\r?\n"
+    r"(?P=fence)[ \t]*(?P<ending>\r?\n)?$"
 )
 _PAIRED_ESCAPED_STRONG_RE = re.compile(
     r"\\\*\\\*(?P<text>[^\\*\n](?:.*?[^\\*\n])?)\\\*\\\*"
@@ -320,10 +320,20 @@ def _repair_paired_escaped_strong(md: str) -> str:
 
 
 def _repair_address_only_fences(md: str) -> str:
-    return _ADDRESS_ONLY_FENCE_RE.sub(
-        r"\g<label><\g<url>>\g<terminal>",
-        md,
-    )
+    parts: list[str] = []
+    for is_code, segment in _split_fenced_segments(md):
+        if not is_code:
+            parts.append(segment)
+            continue
+        match = _ADDRESS_ONLY_FENCE_RE.fullmatch(segment)
+        if not match:
+            parts.append(segment)
+            continue
+        parts.append(
+            f"{match.group('label')}<{match.group('url')}>"
+            f"{match.group('terminal')}{match.group('ending') or ''}"
+        )
+    return "".join(parts)
 
 
 def repair_markdown_quality(md: str) -> str:
