@@ -294,6 +294,58 @@ def test_download_videos_reuses_one_asset_for_duplicate_source(monkeypatch, tmp_
     ]
 
 
+def test_download_videos_retry_preserves_existing_asset_and_uses_next_path(
+    monkeypatch, tmp_path
+):
+    first_url = "https://mpvideo.qpic.cn/first.mp4"
+    second_url = "https://mpvideo.qpic.cn/second.mp4"
+    existing_path = tmp_path / "videos" / "video_001.mp4"
+    existing_path.parent.mkdir()
+    existing_path.write_bytes(b"first-video")
+    article = Article(
+        title="视频重试文章",
+        platform="wechat",
+        source_url="https://mp.weixin.qq.com/s/demo",
+        content_markdown=f"[视频]({first_url})\n\n[视频]({second_url})",
+        videos=[
+            VideoAsset(
+                source_url=first_url,
+                local_path="videos/video_001.mp4",
+                extension=".mp4",
+            )
+        ],
+        extraction=ExtractionInfo(platform="wechat", parser="wechat"),
+    )
+    requested_urls = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        requested_urls.append(str(request.url))
+        return httpx.Response(200, headers={"content-type": "video/mp4"}, content=b"second-video")
+
+    monkeypatch.setattr("magicmd.assets._video_transport", lambda: httpx.MockTransport(handler))
+
+    next_article = download_videos(article, tmp_path)
+
+    assert requested_urls == [second_url]
+    assert existing_path.read_bytes() == b"first-video"
+    assert (tmp_path / "videos" / "video_002.mp4").read_bytes() == b"second-video"
+    assert next_article.content_markdown == (
+        "[视频](videos/video_001.mp4)\n\n[视频](videos/video_002.mp4)"
+    )
+    assert next_article.videos == [
+        VideoAsset(
+            source_url=first_url,
+            local_path="videos/video_001.mp4",
+            extension=".mp4",
+        ),
+        VideoAsset(
+            source_url=second_url,
+            local_path="videos/video_002.mp4",
+            extension=".mp4",
+        ),
+    ]
+
+
 def test_download_videos_honors_media_path_templates(monkeypatch, tmp_path):
     article = Article(
         title="视频路径文章",

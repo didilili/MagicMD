@@ -350,15 +350,16 @@ def _resolve_media_local_path(
     if not markdown_path or package_dir is None:
         return ""
 
-    direct_path = package_dir / markdown_path
-    if direct_path.exists():
-        return str(direct_path)
-
+    package_root = package_dir.resolve()
     filename = Path(markdown_path).name
     if filename:
-        configured_path = package_dir / directory / filename
-        if configured_path.exists():
+        configured_path = (package_root / directory / filename).resolve()
+        if configured_path.is_relative_to(package_root) and configured_path.is_file():
             return str(configured_path)
+
+    direct_path = (package_root / markdown_path).resolve()
+    if direct_path.is_relative_to(package_root) and direct_path.is_file():
+        return str(direct_path)
 
     return ""
 

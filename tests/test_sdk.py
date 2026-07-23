@@ -13,6 +13,7 @@ from magicmd import (
 )
 from magicmd.cli import app
 from magicmd.models import Article, ExtractionInfo, ImageAsset
+from magicmd.sdk import _resolve_media_local_path
 
 
 runner = CliRunner()
@@ -270,6 +271,41 @@ def test_convert_article_returns_downloaded_video_paths(monkeypatch, tmp_path: P
     assert result.videos[0].markdown_path == "videos/video_001.mp4"
     assert result.videos[0].local_path == str(result_package / "videos/video_001.mp4")
     assert result.videos[0].extension == ".mp4"
+
+
+def test_resolve_media_local_path_prefers_configured_file_over_absolute_markdown_path(
+    tmp_path: Path,
+):
+    package_dir = tmp_path / "package"
+    configured_path = package_dir / "assets" / "videos" / "clip.mp4"
+    configured_path.parent.mkdir(parents=True)
+    configured_path.write_bytes(b"package-video")
+    public_path = tmp_path / "public" / "clip.mp4"
+    public_path.parent.mkdir()
+    public_path.write_bytes(b"outside-video")
+
+    resolved = _resolve_media_local_path(
+        str(public_path),
+        package_dir,
+        "assets/videos",
+    )
+
+    assert resolved == str(configured_path)
+
+
+def test_resolve_media_local_path_rejects_parent_traversal(tmp_path: Path):
+    package_dir = tmp_path / "package"
+    package_dir.mkdir()
+    outside_path = tmp_path / "outside.mp4"
+    outside_path.write_bytes(b"outside-video")
+
+    resolved = _resolve_media_local_path(
+        "../outside.mp4",
+        package_dir,
+        "videos",
+    )
+
+    assert resolved == ""
 
 
 def test_convert_article_does_not_force_media_download_without_output_dir(monkeypatch):

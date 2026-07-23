@@ -84,7 +84,14 @@ def download_videos(
     markdown = article.content_markdown
     warnings = list(article.extraction.warnings)
     videos = list(article.videos)
-    seen: dict[str, str] = {}
+    seen = {
+        _unescape_markdown_url(video.source_url): video.local_path
+        for video in videos
+        if video.source_url and video.local_path
+    }
+    used_local_paths = {video.local_path for video in videos if video.local_path}
+    existing_file_count = sum(1 for path in video_dir.iterdir() if path.is_file())
+    next_index = max(len(videos), existing_file_count) + 1
     transport = _video_transport()
     client_kwargs = {"timeout": 30.0, "follow_redirects": True}
     if transport is not None:
@@ -106,16 +113,22 @@ def download_videos(
                     )
                     response.raise_for_status()
                     ext = _infer_video_extension(url, response.headers.get("content-type", ""))
-                    filename = filename_pattern.format(index=len(seen) + 1, ext=ext)
-                    saved_path = video_dir / filename
-                    local_path = markdown_path_pattern.format(
-                        directory=video_dir_name,
-                        filename=filename,
-                        index=len(seen) + 1,
-                        ext=ext,
-                    )
+                    while True:
+                        asset_index = next_index
+                        next_index += 1
+                        filename = filename_pattern.format(index=asset_index, ext=ext)
+                        saved_path = video_dir / filename
+                        local_path = markdown_path_pattern.format(
+                            directory=video_dir_name,
+                            filename=filename,
+                            index=asset_index,
+                            ext=ext,
+                        )
+                        if local_path not in used_local_paths and not saved_path.exists():
+                            break
                     saved_path.write_bytes(response.content)
                     seen[url] = local_path
+                    used_local_paths.add(local_path)
                     videos.append(
                         VideoAsset(
                             source_url=url,
