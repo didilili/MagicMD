@@ -328,9 +328,7 @@ def _normalize_wechat_rich_text(content_el: Tag) -> None:
 
 def _flatten_nested_emphasis(content_el: Tag) -> None:
     for outer in content_el.find_all(["strong", "em"]):
-        if outer.find_parent(["strong", "em"]):
-            continue
-        for nested in list(outer.find_all(["strong", "em"])):
+        for nested in list(outer.find_all(outer.name)):
             nested.unwrap()
 
 
@@ -444,7 +442,14 @@ def _normalize_code_text(text: str) -> str:
         "print",
         "import",
     )
-    return re.sub(rf"(?<=[^\s])(?=(?:{'|'.join(starters)})\b)", "\n", text)
+    safe_prose_boundary = r"\u3400-\u9fff，。！？；：、,;:!?"
+    text = re.sub(
+        rf"(?<=[{safe_prose_boundary}])(?=(?:{'|'.join(starters)})[ \t])",
+        "\n",
+        text,
+    )
+    text = re.sub(r"(?<=\d)(?=conda[ \t])", "\n", text)
+    return re.sub(r"(?<=\))(?=print\()", "\n", text)
 
 
 def _code_text(code_tag: Tag) -> str:

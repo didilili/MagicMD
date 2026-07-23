@@ -9,10 +9,18 @@ import markdownify
 
 _FENCED_CODE_BLOCK_RE = re.compile(r"(?ms)^(`{3,}|~{3,})[^\n]*\n.*?^\1[ \t]*$")
 _INLINE_CODE_RE = re.compile(r"(`+)([^\n]*?)\1")
+_FENCE_LINE_RE = re.compile(
+    r"^(?P<container>"
+    r"(?:(?:[ \t]{0,3}>[ \t]?)+)?"
+    r"(?:[ \t]{0,3}(?:[-+*]|\d+[.)])[ \t]+)?"
+    r"[ \t]{0,3}"
+    r")"
+    r"(?P<fence>`{3,}|~{3,})(?P<tail>.*)$"
+)
 _ADDRESS_ONLY_FENCE_RE = re.compile(
     r"(?m)^(?P<fence>`{3,}|~{3,})[^\n]*\n"
     r"(?P<label>[ \t]*(?:开源地址|项目地址|官网)[ \t]*[：:][ \t]*)"
-    r"(?P<url>https?://[^\s<>\n]+)[ \t]*\n"
+    r"(?P<url>https?://[^\s<>\n]+?)(?P<terminal>[，。！？；：、]?)[ \t]*\n"
     r"(?P=fence)[ \t]*$"
 )
 _PAIRED_ESCAPED_STRONG_RE = re.compile(
@@ -22,17 +30,18 @@ _BARE_URL_RE = re.compile(
     r"(?<![<(])(?P<url>https?://[A-Za-z0-9._~:/?#\[\]@!$&'()*+,;=%-]+)"
     r"(?=[，。！？；：、\u4e00-\u9fff])"
 )
+_MARKDOWN_IMAGE_PATTERN = r"!\[[^\]\n]*\]\((?:[^()\n]|\([^()\n]*\))*\)"
 _ORPHAN_IMAGE_EMPHASIS_RE = re.compile(
     r"(?m)^[ \t]*\*\*[ \t]*\r?\n"
     r"(?:[ \t]*\r?\n)*"
-    r"(?P<image>!\[[^\]]*\]\([^)\n]*\))[ \t]*\r?\n"
+    rf"(?P<image>{_MARKDOWN_IMAGE_PATTERN})[ \t]*\r?\n"
     r"(?:[ \t]*\r?\n)*"
     r"[ \t]*\*\*[ \t]*$"
 )
 _ORPHAN_IMAGE_PREFIX_RE = re.compile(
     r"(?m)^[ \t]*\*\*[ \t]*\r?\n"
     r"(?:[ \t]*\r?\n)*"
-    r"(?P<image>!\[[^\]]*\]\([^)\n]*\))[ \t]*$"
+    rf"(?P<image>{_MARKDOWN_IMAGE_PATTERN})[ \t]*$"
 )
 _STRONG_BOUNDARY_PUNCTUATION = r":："
 _STRONG_PRECEDING_TEXT = r"\w\u4e00-\u9fff"
@@ -66,9 +75,8 @@ def _is_text_character(value: str) -> bool:
 
 
 def _strip_image_emphasis(md: str) -> str:
-    image = r"!\[[^\]]*\]\([^)\n]*\)"
     return re.sub(
-        rf"(?<!\*)\*{{1,3}}(?P<image>{image})\*{{1,3}}(?!\*)",
+        rf"(?<!\*)\*{{1,3}}(?P<image>{_MARKDOWN_IMAGE_PATTERN})\*{{1,3}}(?!\*)",
         r"\g<image>",
         md,
     )
@@ -89,11 +97,14 @@ def _normalize_bare_urls(md: str) -> str:
 
 
 def _separate_markdown_images(md: str) -> str:
-    image = r"!\[[^\]\n]*\]\((?:[^()\n]|\([^()\n]*\))*\)"
     md, empty_image_count = re.subn(r"!\[[^\]]*\]\(\s*\)", "", md)
-    md = re.sub(rf"([^\[\n])({image})", r"\1\n\n\2", md)
-    md = re.sub(rf"({image})([^\]\n])", r"\1\n\n\2", md)
-    md = re.sub(rf"({image})\s*({image})", r"\1\n\n\2", md)
+    md = re.sub(rf"([^\[\n])({_MARKDOWN_IMAGE_PATTERN})", r"\1\n\n\2", md)
+    md = re.sub(rf"({_MARKDOWN_IMAGE_PATTERN})([^\]\n])", r"\1\n\n\2", md)
+    md = re.sub(
+        rf"({_MARKDOWN_IMAGE_PATTERN})\s*({_MARKDOWN_IMAGE_PATTERN})",
+        r"\1\n\n\2",
+        md,
+    )
     if empty_image_count:
         md = re.sub(r"\n{3,}", "\n\n", md)
     return md
@@ -173,9 +184,13 @@ def _normalize_strong_boundaries(md: str) -> str:
                 opening_index = text.rfind(opening)
                 if opening_index <= 0 or opening_index >= len(text) - 2:
                     continue
-                prefix = text[:opening_index]
+                prefix_with_spacing = text[:opening_index]
+                prefix = prefix_with_spacing.rstrip()
+                if not prefix:
+                    continue
+                spacing = prefix_with_spacing[len(prefix) :]
                 nested = text[opening_index + 1 : -1]
-                return f"**{prefix}**{opening}**{nested}**{closing}"
+                return f"**{prefix}**{spacing}{opening}**{nested}**{closing}"
 
         if has_text_before and _is_punctuation(text[0]):
             prefix_length = 0
@@ -234,6 +249,49 @@ def _normalize_strong_boundaries(md: str) -> str:
     return "".join(parts)
 
 
+def _split_fenced_segments(md: str) -> list[tuple[bool, str]]:
+    segments: list[tuple[bool, str]] = []
+    current_lines: list[str] = []
+    in_fence = False
+    fence_character = ""
+    fence_length = 0
+
+    def flush(is_code: bool) -> None:
+        if current_lines:
+            segments.append((is_code, "".join(current_lines)))
+            current_lines.clear()
+
+    for line in md.splitlines(keepends=True):
+        line_text = line.rstrip("\r\n")
+        match = _FENCE_LINE_RE.match(line_text)
+        if not in_fence:
+            if match:
+                flush(False)
+                in_fence = True
+                fence = match.group("fence")
+                fence_character = fence[0]
+                fence_length = len(fence)
+            current_lines.append(line)
+            continue
+
+        current_lines.append(line)
+        if not match:
+            continue
+        fence = match.group("fence")
+        if (
+            fence[0] == fence_character
+            and len(fence) >= fence_length
+            and not match.group("tail").strip()
+        ):
+            flush(True)
+            in_fence = False
+            fence_character = ""
+            fence_length = 0
+
+    flush(in_fence)
+    return segments
+
+
 def _transform_prose(md: str, transform: Callable[[str], str]) -> str:
     def transform_inline_aware(segment: str) -> str:
         parts: list[str] = []
@@ -245,14 +303,10 @@ def _transform_prose(md: str, transform: Callable[[str], str]) -> str:
         parts.append(transform(segment[cursor:]))
         return "".join(parts)
 
-    parts: list[str] = []
-    cursor = 0
-    for match in _FENCED_CODE_BLOCK_RE.finditer(md):
-        parts.append(transform_inline_aware(md[cursor : match.start()]))
-        parts.append(match.group(0))
-        cursor = match.end()
-    parts.append(transform_inline_aware(md[cursor:]))
-    return "".join(parts)
+    return "".join(
+        segment if is_code else transform_inline_aware(segment)
+        for is_code, segment in _split_fenced_segments(md)
+    )
 
 
 def _repair_paired_escaped_strong(md: str) -> str:
@@ -266,16 +320,23 @@ def _repair_paired_escaped_strong(md: str) -> str:
 
 
 def _repair_address_only_fences(md: str) -> str:
-    return _ADDRESS_ONLY_FENCE_RE.sub(r"\g<label><\g<url>>", md)
+    return _ADDRESS_ONLY_FENCE_RE.sub(
+        r"\g<label><\g<url>>\g<terminal>",
+        md,
+    )
 
 
 def repair_markdown_quality(md: str) -> str:
     md = _repair_address_only_fences(md)
     md = md.replace("\u00a0", " ")
     md = _repair_paired_escaped_strong(md)
+    md = _transform_prose(md, _strip_image_emphasis)
     md = _transform_prose(md, _normalize_markdown_emphasis)
-    md = _separate_markdown_images(md)
-    md = re.sub(r"\n{4,}", "\n\n\n", md)
+    md = _transform_prose(md, _separate_markdown_images)
+    md = _transform_prose(
+        md,
+        lambda segment: re.sub(r"\n{4,}", "\n\n\n", segment),
+    )
     return md
 
 
@@ -321,8 +382,8 @@ def html_to_markdown(content_html: str, code_blocks: list[dict[str, str]] | None
         ],
     )
     md = md.replace("\u00a0", " ")
-    md = _strip_image_emphasis(md)
-    md = _normalize_bare_urls(md)
+    md = _transform_prose(md, _strip_image_emphasis)
+    md = _transform_prose(md, _normalize_bare_urls)
     for block in code_blocks or []:
         if "raw_html" in block:
             md = md.replace(block["placeholder"], f"\n{block['raw_html']}\n")
@@ -330,9 +391,15 @@ def html_to_markdown(content_html: str, code_blocks: list[dict[str, str]] | None
         fence = f"\n```{block['lang']}\n{block['code']}\n```\n"
         md = md.replace(block["placeholder"], fence)
     md = _remove_code_widget_noise(md)
-    md = _separate_markdown_images(md)
-    md = _promote_numbered_markdown_headings(md)
-    md = _normalize_markdown_emphasis(md)
-    md = re.sub(r"\n{4,}", "\n\n\n", md)
-    md = re.sub(r"[ \t]+$", "", md, flags=re.MULTILINE)
+    md = _transform_prose(md, _separate_markdown_images)
+    md = _transform_prose(md, _promote_numbered_markdown_headings)
+    md = _transform_prose(md, _normalize_markdown_emphasis)
+    md = _transform_prose(
+        md,
+        lambda segment: re.sub(r"\n{4,}", "\n\n\n", segment),
+    )
+    md = _transform_prose(
+        md,
+        lambda segment: re.sub(r"[ \t]+$", "", segment, flags=re.MULTILINE),
+    )
     return md.strip()

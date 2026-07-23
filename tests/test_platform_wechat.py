@@ -1,5 +1,8 @@
 from pathlib import Path
 
+import pytest
+
+from magicmd.platforms.shared.content import _normalize_code_text
 from magicmd.platforms.wechat import parse_wechat_html
 
 
@@ -183,6 +186,26 @@ def test_parse_wechat_html_normalizes_nbsp_and_fused_command_in_code_snippet():
     )
 
 
+@pytest.mark.parametrize(
+    "code",
+    [
+        "sprint value",
+        "blueprint value",
+        "console.print value",
+        "myimport value",
+        "pnpm install",
+        "mypnpm install",
+    ],
+)
+def test_normalize_code_text_keeps_identifiers_and_standalone_commands(code):
+    assert _normalize_code_text(code) == code
+
+
+def test_normalize_code_text_splits_command_after_cjk_or_punctuation_prose():
+    assert _normalize_code_text("安装说明npm install demo") == "安装说明\nnpm install demo"
+    assert _normalize_code_text("说明：pip install demo") == "说明：\npip install demo"
+
+
 def test_parse_wechat_html_normalizes_punctuation_at_bold_boundaries():
     html = """
     <html><body>
@@ -255,8 +278,38 @@ def test_parse_wechat_html_flattens_mixed_nested_emphasis():
     article = parse_wechat_html(html, "https://mp.weixin.qq.com/s/mixed-emphasis")
 
     assert article.content_markdown == (
-        "今年搞了**小林训练营（想要报名，+vx：xiaolincoding）。**"
+        "今年搞了**小林训练营（*想要报名，+vx：xiaolincoding*）。**"
     )
+
+
+def test_parse_wechat_html_preserves_strong_inside_emphasis():
+    html = """
+    <html><body>
+      <h1 id="activity-name">斜体嵌套粗体文章</h1>
+      <div id="js_content">
+        <p><em><strong>重点术语</strong></em></p>
+      </div>
+    </body></html>
+    """
+
+    article = parse_wechat_html(html, "https://mp.weixin.qq.com/s/em-strong")
+
+    assert article.content_markdown == "***重点术语***"
+
+
+def test_parse_wechat_html_preserves_emphasis_inside_strong():
+    html = """
+    <html><body>
+      <h1 id="activity-name">粗体嵌套斜体文章</h1>
+      <div id="js_content">
+        <p><strong><em>重点术语</em></strong></p>
+      </div>
+    </body></html>
+    """
+
+    article = parse_wechat_html(html, "https://mp.weixin.qq.com/s/strong-em")
+
+    assert article.content_markdown == "***重点术语***"
 
 
 def test_parse_wechat_html_separates_bare_urls_from_chinese_prose():
