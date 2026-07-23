@@ -200,6 +200,137 @@ def test_scan_markdown_quality_treats_unclosed_fence_as_code():
     assert "code_contains_nbsp" in issues
 
 
+@pytest.mark.parametrize(
+    "markdown",
+    [
+        "**跨行\n加粗**",
+        "**粗体 *斜体\n跨行* 文本**",
+        "[链接](https://example.com/**path**)",
+        "![图](images/**asset**.png)",
+    ],
+)
+def test_scan_markdown_quality_allows_balanced_multiline_and_destination_emphasis(
+    markdown,
+):
+    issues = scan_markdown_quality(markdown)
+
+    assert "unbalanced_emphasis_marker" not in issues
+
+
+@pytest.mark.parametrize(
+    "markdown",
+    [
+        "**未闭合\n正文",
+        "**未闭合\n\n正文**",
+        "[**未闭合](https://example.com/ok)",
+    ],
+)
+def test_scan_markdown_quality_still_flags_unbalanced_prose_emphasis(markdown):
+    issues = scan_markdown_quality(markdown)
+
+    assert "unbalanced_emphasis_marker" in issues
+
+
+def test_scan_markdown_quality_separates_removed_inline_code_from_url_neighbors():
+    markdown = "打开 http://localhost:3000`/demo`，顶部工具栏会显示内容。"
+
+    issues = scan_markdown_quality(markdown)
+
+    assert "broken_bare_url_boundary" not in issues
+
+
+@pytest.mark.parametrize(
+    ("markdown", "expected_issue"),
+    [
+        ("> > ```\n> > \n> > ```", "empty_code_fence"),
+        (
+            "> > ```javascript\n> > 开源地址：https://github.com/a/b\n> > ```",
+            "address_only_code_fence",
+        ),
+        (
+            "> > - ```javascript\n> >   npm install demo\n> >   ```",
+            "suspicious_code_language",
+        ),
+        (
+            "- ```javascript\n  npm install demo\n  ```",
+            "suspicious_code_language",
+        ),
+    ],
+)
+def test_scan_markdown_quality_normalizes_fence_container_prefixes(markdown, expected_issue):
+    issues = scan_markdown_quality(markdown)
+
+    assert expected_issue in issues
+
+
+@pytest.mark.parametrize(
+    ("markdown", "expected_issue"),
+    [
+        ('![图](<> "占位")', "empty_image_target"),
+        ('[视频](/Videos/DEMO.MP4?download=1 "演示")', "relative_local_video"),
+        ("[视频](../videos/demo.webm)", "relative_local_video"),
+        ("[视频](./VIDEOS/demo.mp4)", "relative_local_video"),
+        (
+            '![图](//mmbiz.qpic.cn/demo.png "结构图")',
+            "external_media_not_rewritten",
+        ),
+        (
+            "[任意标签](//mpvideo.qpic.cn/demo.mp4?auth=1)",
+            "external_media_not_rewritten",
+        ),
+        (
+            "[演示](https://mpvideo.qpic.cn/demo.mp4)",
+            "external_media_not_rewritten",
+        ),
+    ],
+)
+def test_scan_markdown_quality_parses_media_destinations(markdown, expected_issue):
+    issues = scan_markdown_quality(markdown)
+
+    assert expected_issue in issues
+
+
+@pytest.mark.parametrize(
+    ("markdown", "unexpected_issue"),
+    [
+        ("[文档](/videos/readme)", "relative_local_video"),
+        ("[文档](../videos/demo.txt)", "relative_local_video"),
+        (
+            "[普通链接](//mmbiz.qpic.cn/document)",
+            "external_media_not_rewritten",
+        ),
+        (
+            "![普通图片](//example.com/demo.png)",
+            "external_media_not_rewritten",
+        ),
+        ("![未闭合](<", "empty_image_target"),
+    ],
+)
+def test_scan_markdown_quality_ignores_valid_or_malformed_non_media_destinations(
+    markdown, unexpected_issue
+):
+    issues = scan_markdown_quality(markdown)
+
+    assert unexpected_issue not in issues
+
+
+@pytest.mark.parametrize(
+    "markdown",
+    [
+        "```shell-session\nnpm install demo\n```",
+        "```sh-session\nnpm install demo\n```",
+        "```makefile\ninstall:\n\tnpm install\n```",
+        "```yaml\nscript: |\n  npm install\n```",
+    ],
+)
+def test_scan_markdown_quality_allows_shell_sessions_and_command_container_languages(
+    markdown,
+):
+    issues = scan_markdown_quality(markdown)
+
+    assert "suspicious_code_language" not in issues
+
+
 def test_build_package_quality_reads_metadata_and_article(tmp_path: Path):
     package = tmp_path / "article-package"
     package.mkdir()

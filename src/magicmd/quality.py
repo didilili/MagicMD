@@ -2,9 +2,13 @@ from __future__ import annotations
 
 import json
 import re
+import unicodedata
+from collections.abc import Iterator
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlsplit
 
 from magicmd.platforms.shared.markdown import (
     _FENCE_LINE_RE,
@@ -13,11 +17,6 @@ from magicmd.platforms.shared.markdown import (
     _split_fenced_segments,
 )
 
-_EMPTY_IMAGE_TARGET_RE = re.compile(r"!\[[^\]\n]*\]\([ \t]*\)")
-_RELATIVE_LOCAL_VIDEO_RE = re.compile(
-    r"(?<!!)\[[^\]\n]*\]\([ \t]*<?(?:\./)?videos/[^)\s>]+>?",
-    re.IGNORECASE,
-)
 _ESCAPED_STRONG_MARKER_RE = re.compile(r"\\\*\\\*(?:[^\\*\n](?:.*?[^\\*\n])?)\\\*\\\*")
 _SHELL_FENCE_LANGUAGES = {
     "",
@@ -30,10 +29,13 @@ _SHELL_FENCE_LANGUAGES = {
     "powershell",
     "pwsh",
     "sh",
+    "sh-session",
     "shell",
+    "shell-session",
     "terminal",
     "zsh",
 }
+_COMMAND_CONTAINER_LANGUAGES = {"make", "makefile", "yaml", "yml"}
 _SHELL_COMMAND_RE = re.compile(
     r"^[ \t]*(?:(?:\$|>)[ \t]+)?(?:"
     r"(?:npm|pnpm|yarn|bun)[ \t]+"
@@ -54,18 +56,26 @@ _ADDRESS_ONLY_CODE_RE = re.compile(
     r"https?://[^\s<>\n]+?[，。！？；：、]?[ \t]*$"
 )
 _HEADING_RE = re.compile(r"(?m)^[ \t]{0,3}(#{1,6})(?:[ \t]+|$)")
-_EXTERNAL_WECHAT_MEDIA_RE = re.compile(
-    r"!\[[^\]\n]*\]\([ \t]*<?https?://"
-    r"(?:mmbiz\.qpic\.cn|mmbiz\.qlogo\.cn|mpvideo\.qpic\.cn)(?=[/:])"
-    r"|(?<!!)\[(?:视频|Video)\]\([ \t]*<?https?://mpvideo\.qpic\.cn(?=[/:])",
-    re.IGNORECASE,
-)
+_VIDEO_EXTENSIONS = {".avi", ".m4v", ".mkv", ".mov", ".mp4", ".mpeg", ".mpg", ".webm"}
+_WECHAT_IMAGE_HOSTS = {"mmbiz.qlogo.cn", "mmbiz.qpic.cn", "mpvideo.qpic.cn"}
+_BLOCKQUOTE_PREFIX_RE = re.compile(r"[ \t]{0,3}>[ \t]?")
+_LIST_CONTAINER_RE = re.compile(r"[ \t]{0,3}(?:[-+*]|\d+[.)])[ \t]+$")
+
+
+@dataclass(frozen=True)
+class _MarkdownDestination:
+    is_image: bool
+    destination: str
+    payload_start: int
+    payload_end: int
 
 
 def scan_markdown_quality(markdown: str) -> list[str]:
     fenced_segments = _split_fenced_segments(markdown)
     code_fences = _parse_code_fences(fenced_segments)
     prose_markdown = _without_inline_code(_without_fenced_code(markdown, segments=fenced_segments))
+    destinations = list(_iter_markdown_destinations(prose_markdown))
+    masked_destination_markdown = _mask_markdown_destination_payloads(prose_markdown, destinations)
     checks = {
         "empty_code_fence": _has_empty_code_fence(code_fences),
         "image_used_as_heading": bool(
@@ -80,22 +90,34 @@ def scan_markdown_quality(markdown: str) -> list[str]:
         "broken_numbered_link_emphasis": bool(
             re.search(r"\*{3,}\d+[.．]\*{3,}\s*\[", prose_markdown)
         ),
-        "broken_strong_boundary": _normalize_strong_boundaries(prose_markdown) != prose_markdown,
-        "orphan_emphasis_marker": bool(re.search(r"(?m)^[ \t]*\*\*[ \t]*$", prose_markdown)),
-        "redundant_emphasis_marker": bool(re.search(r"\*{4,}", prose_markdown)),
-        "unbalanced_emphasis_marker": _has_unbalanced_emphasis_marker(prose_markdown),
-        "broken_bare_url_boundary": _normalize_bare_urls(prose_markdown) != prose_markdown,
+        "broken_strong_boundary": (
+            _normalize_strong_boundaries(masked_destination_markdown) != masked_destination_markdown
+        ),
+        "orphan_emphasis_marker": bool(
+            re.search(r"(?m)^[ \t]*\*\*[ \t]*$", masked_destination_markdown)
+        ),
+        "redundant_emphasis_marker": bool(re.search(r"\*{4,}", masked_destination_markdown)),
+        "unbalanced_emphasis_marker": _has_unbalanced_emphasis_marker(masked_destination_markdown),
+        "broken_bare_url_boundary": (
+            _normalize_bare_urls(masked_destination_markdown) != masked_destination_markdown
+        ),
         "broken_linked_image": "[\n\n![Image]" in prose_markdown or "\n\n](" in prose_markdown,
-        "empty_image_target": bool(_EMPTY_IMAGE_TARGET_RE.search(prose_markdown)),
-        "relative_local_video": bool(_RELATIVE_LOCAL_VIDEO_RE.search(prose_markdown)),
-        "escaped_strong_marker": bool(_ESCAPED_STRONG_MARKER_RE.search(prose_markdown)),
+        "empty_image_target": any(item.is_image and not item.destination for item in destinations),
+        "relative_local_video": any(
+            _is_relative_local_video(item.destination) for item in destinations
+        ),
+        "escaped_strong_marker": bool(
+            _ESCAPED_STRONG_MARKER_RE.search(masked_destination_markdown)
+        ),
         "code_contains_nbsp": any("\u00a0" in content for _, content in code_fences),
         "suspicious_code_language": _has_suspicious_code_language(code_fences),
         "address_only_code_fence": any(
             _ADDRESS_ONLY_CODE_RE.fullmatch(content) for _, content in code_fences
         ),
         "heading_level_jump": _has_heading_level_jump(prose_markdown),
-        "external_media_not_rewritten": bool(_EXTERNAL_WECHAT_MEDIA_RE.search(prose_markdown)),
+        "external_media_not_rewritten": any(
+            _is_external_wechat_media(item) for item in destinations
+        ),
     }
     return [name for name, matched in checks.items() if matched]
 
@@ -273,6 +295,13 @@ def _parse_code_fences(
         info_string = opening.group("tail").strip()
         language = info_string.split(maxsplit=1)[0].lower() if info_string else ""
         language = language.removeprefix("{.").removesuffix("}")
+        container = opening.group("container")
+        blockquote_depth = container.count(">")
+        after_blockquotes = container.rsplit(">", maxsplit=1)[-1]
+        if blockquote_depth:
+            after_blockquotes = after_blockquotes.lstrip(" \t")
+        list_match = _LIST_CONTAINER_RE.search(after_blockquotes)
+        list_indent = len(list_match.group(0)) if list_match else 0
 
         content_lines = lines[1:]
         if content_lines:
@@ -284,13 +313,42 @@ def _parse_code_fences(
                 and not closing.group("tail").strip()
             ):
                 content_lines.pop()
+        content_lines = [
+            _strip_fence_container_prefix(line, blockquote_depth, list_indent)
+            for line in content_lines
+        ]
         code_fences.append((language, "\n".join(content_lines)))
     return code_fences
 
 
+def _strip_fence_container_prefix(
+    line: str,
+    blockquote_depth: int,
+    list_indent: int,
+) -> str:
+    position = 0
+    for _ in range(blockquote_depth):
+        match = _BLOCKQUOTE_PREFIX_RE.match(line, position)
+        if not match:
+            return line
+        position = match.end()
+
+    if not list_indent:
+        return line[position:]
+
+    indentation_end = position
+    while indentation_end < len(line) and line[indentation_end] in " \t":
+        indentation_end += 1
+    if indentation_end - position < list_indent:
+        return line[position:]
+    return line[position + list_indent :]
+
+
 def _has_suspicious_code_language(code_fences: list[tuple[str, str]]) -> bool:
     return any(
-        language not in _SHELL_FENCE_LANGUAGES and _SHELL_COMMAND_RE.search(content)
+        language not in _SHELL_FENCE_LANGUAGES
+        and language not in _COMMAND_CONTAINER_LANGUAGES
+        and _SHELL_COMMAND_RE.search(content)
         for language, content in code_fences
     )
 
@@ -306,23 +364,255 @@ def _has_heading_level_jump(markdown: str) -> bool:
 
 
 def _without_inline_code(markdown: str) -> str:
-    return re.sub(r"(`+)([^\n]*?)\1", "", markdown)
+    return re.sub(r"(`+)([^\n]*?)\1", " ", markdown)
 
 
 def _has_unbalanced_emphasis_marker(markdown: str) -> bool:
-    stray_bold_inside_italic = re.compile(r"(?<!\*)\*(?!\*)[^*\n]*\*\*(?!\*)[^*\n]*\*(?!\*)")
-    valid_nested_bold_italic = re.compile(r"\*\*[^*\n]*\*[^*\n]+\*{3}")
-    exact_strong_marker = re.compile(r"(?<!\*)\*\*(?!\*)")
+    return any(
+        _has_unbalanced_emphasis_block(block) for block in re.split(r"\r?\n[ \t]*\r?\n", markdown)
+    )
 
-    for line in markdown.splitlines():
-        if stray_bold_inside_italic.search(line):
-            return True
-        if len(exact_strong_marker.findall(line)) % 2 == 0:
+
+def _has_unbalanced_emphasis_block(markdown: str) -> bool:
+    open_strong_markers = 0
+    position = 0
+    while position < len(markdown):
+        if markdown[position] != "*":
+            position += 1
             continue
-        if valid_nested_bold_italic.fullmatch(line.strip()):
+        run_end = position + 1
+        while run_end < len(markdown) and markdown[run_end] == "*":
+            run_end += 1
+        if _is_escaped_character(markdown, position):
+            position = run_end
             continue
-        return True
-    return False
+
+        strong_marker_count = (run_end - position) // 2
+        if not strong_marker_count:
+            position = run_end
+            continue
+        before = markdown[position - 1] if position else ""
+        after = markdown[run_end] if run_end < len(markdown) else ""
+        before_is_whitespace = not before or before.isspace()
+        after_is_whitespace = not after or after.isspace()
+        before_is_punctuation = _is_punctuation(before)
+        after_is_punctuation = _is_punctuation(after)
+        can_open = not after_is_whitespace and (
+            not after_is_punctuation or before_is_whitespace or before_is_punctuation
+        )
+        can_close = not before_is_whitespace and (
+            not before_is_punctuation or after_is_whitespace or after_is_punctuation
+        )
+
+        for _ in range(strong_marker_count):
+            if can_close and open_strong_markers:
+                open_strong_markers -= 1
+            elif can_open:
+                open_strong_markers += 1
+            elif can_close:
+                return True
+        position = run_end
+    return bool(open_strong_markers)
+
+
+def _is_escaped_character(value: str, position: int) -> bool:
+    backslash_count = 0
+    position -= 1
+    while position >= 0 and value[position] == "\\":
+        backslash_count += 1
+        position -= 1
+    return backslash_count % 2 == 1
+
+
+def _is_punctuation(value: str) -> bool:
+    return bool(value) and unicodedata.category(value).startswith("P")
+
+
+def _iter_markdown_destinations(markdown: str) -> Iterator[_MarkdownDestination]:
+    label_ends = _build_markdown_label_ends(markdown)
+    position = 0
+    while position < len(markdown):
+        if markdown.startswith("![", position):
+            is_image = True
+            label_start = position + 1
+        elif markdown[position] == "[" and (position == 0 or markdown[position - 1] != "!"):
+            is_image = False
+            label_start = position
+        else:
+            position += 1
+            continue
+
+        label_end = label_ends.get(label_start)
+        if label_end is None or label_end + 1 >= len(markdown) or markdown[label_end + 1] != "(":
+            position = label_start + 1
+            continue
+        payload_start = label_end + 2
+        payload = _parse_markdown_destination_payload(markdown, payload_start)
+        if payload is None:
+            next_line = markdown.find("\n", payload_start)
+            position = len(markdown) if next_line < 0 else next_line + 1
+            continue
+        destination, payload_end = payload
+        yield _MarkdownDestination(
+            is_image=is_image,
+            destination=destination,
+            payload_start=payload_start,
+            payload_end=payload_end,
+        )
+        position = payload_end + 1
+
+
+def _build_markdown_label_ends(markdown: str) -> dict[int, int]:
+    opening_brackets: list[int] = []
+    label_ends: dict[int, int] = {}
+    position = 0
+    while position < len(markdown):
+        if markdown[position] == "\\":
+            position += 2
+            continue
+        if markdown[position] == "[":
+            opening_brackets.append(position)
+        elif markdown[position] == "]" and opening_brackets:
+            label_ends[opening_brackets.pop()] = position
+        position += 1
+    return label_ends
+
+
+def _parse_markdown_destination_payload(
+    markdown: str,
+    payload_start: int,
+) -> tuple[str, int] | None:
+    position = _skip_markdown_whitespace(markdown, payload_start)
+    has_leading_whitespace = position > payload_start
+    if position >= len(markdown):
+        return None
+    if markdown[position] == ")":
+        return "", position
+    if has_leading_whitespace and markdown[position] in "\"'(":
+        title_end = _parse_markdown_title(markdown, position)
+        return _finish_markdown_destination(markdown, "", title_end)
+
+    if markdown[position] == "<":
+        destination_start = position + 1
+        position = destination_start
+        while position < len(markdown):
+            if markdown[position] in "\r\n":
+                return None
+            if markdown[position] == "\\":
+                position += 2
+                continue
+            if markdown[position] == ">":
+                destination = markdown[destination_start:position]
+                return _finish_markdown_destination(markdown, destination, position + 1)
+            position += 1
+        return None
+
+    destination_start = position
+    parenthesis_depth = 0
+    while position < len(markdown):
+        character = markdown[position]
+        if character == "\\":
+            position += 2
+            continue
+        if character == "(":
+            parenthesis_depth += 1
+        elif character == ")":
+            if not parenthesis_depth:
+                return markdown[destination_start:position], position
+            parenthesis_depth -= 1
+        elif character.isspace() and not parenthesis_depth:
+            destination = markdown[destination_start:position]
+            return _finish_markdown_destination(markdown, destination, position)
+        position += 1
+    return None
+
+
+def _finish_markdown_destination(
+    markdown: str,
+    destination: str,
+    position: int | None,
+) -> tuple[str, int] | None:
+    if position is None:
+        return None
+    whitespace_end = _skip_markdown_whitespace(markdown, position)
+    if whitespace_end >= len(markdown):
+        return None
+    if markdown[whitespace_end] == ")":
+        return destination, whitespace_end
+    if whitespace_end == position or markdown[whitespace_end] not in "\"'(":
+        return None
+    title_end = _parse_markdown_title(markdown, whitespace_end)
+    if title_end is None:
+        return None
+    closing_position = _skip_markdown_whitespace(markdown, title_end)
+    if closing_position >= len(markdown) or markdown[closing_position] != ")":
+        return None
+    return destination, closing_position
+
+
+def _parse_markdown_title(markdown: str, position: int) -> int | None:
+    opener = markdown[position]
+    closer = ")" if opener == "(" else opener
+    depth = 1
+    position += 1
+    while position < len(markdown):
+        if markdown[position] == "\\":
+            position += 2
+            continue
+        if opener == "(" and markdown[position] == "(":
+            depth += 1
+        elif markdown[position] == closer:
+            depth -= 1
+            if not depth:
+                return position + 1
+        position += 1
+    return None
+
+
+def _skip_markdown_whitespace(markdown: str, position: int) -> int:
+    while position < len(markdown) and markdown[position].isspace():
+        position += 1
+    return position
+
+
+def _mask_markdown_destination_payloads(
+    markdown: str,
+    destinations: list[_MarkdownDestination],
+) -> str:
+    characters = list(markdown)
+    for item in destinations:
+        for position in range(item.payload_start, item.payload_end):
+            if characters[position] not in "\r\n":
+                characters[position] = " "
+    return "".join(characters)
+
+
+def _is_relative_local_video(destination: str) -> bool:
+    if not destination or destination.startswith("//"):
+        return False
+    parsed = urlsplit(destination)
+    if parsed.scheme or parsed.netloc:
+        return False
+    path = re.split(r"[?#]", destination, maxsplit=1)[0].lower()
+    while path.startswith(("/", "./", "../")):
+        if path.startswith("../"):
+            path = path[3:]
+        elif path.startswith("./"):
+            path = path[2:]
+        else:
+            path = path[1:]
+    if not path.startswith("videos/"):
+        return False
+    return any(path.endswith(extension) for extension in _VIDEO_EXTENSIONS)
+
+
+def _is_external_wechat_media(item: _MarkdownDestination) -> bool:
+    destination = item.destination
+    if destination.startswith("//"):
+        destination = f"https:{destination}"
+    parsed = urlsplit(destination)
+    hostname = (parsed.hostname or "").lower()
+    return hostname == "mpvideo.qpic.cn" or (item.is_image and hostname in _WECHAT_IMAGE_HOSTS)
 
 
 def _read_json(path: Path) -> dict[str, Any]:
