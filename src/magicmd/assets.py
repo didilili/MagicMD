@@ -113,6 +113,8 @@ def download_videos(
                     )
                     response.raise_for_status()
                     ext = _infer_video_extension(url, response.headers.get("content-type", ""))
+                    blocked_saved_paths: set[Path] = set()
+                    blocked_local_paths: set[str] = set()
                     while True:
                         asset_index = next_index
                         next_index += 1
@@ -124,8 +126,23 @@ def download_videos(
                             index=asset_index,
                             ext=ext,
                         )
-                        if local_path not in used_local_paths and not saved_path.exists():
+                        saved_path_blocked = saved_path.exists()
+                        local_path_blocked = local_path in used_local_paths
+                        if not saved_path_blocked and not local_path_blocked:
                             break
+                        if (
+                            saved_path_blocked and saved_path in blocked_saved_paths
+                        ) or (
+                            local_path_blocked and local_path in blocked_local_paths
+                        ):
+                            raise ValueError(
+                                "video_path_allocation_failed:"
+                                f"repeated_candidate:{local_path}"
+                            )
+                        if saved_path_blocked:
+                            blocked_saved_paths.add(saved_path)
+                        if local_path_blocked:
+                            blocked_local_paths.add(local_path)
                     saved_path.write_bytes(response.content)
                     seen[url] = local_path
                     used_local_paths.add(local_path)

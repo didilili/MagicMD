@@ -1,6 +1,8 @@
-import httpx
 import struct
 import zlib
+
+import httpx
+import pytest
 
 from magicmd.assets import (
     download_images,
@@ -343,6 +345,73 @@ def test_download_videos_retry_preserves_existing_asset_and_uses_next_path(
             local_path="videos/video_002.mp4",
             extension=".mp4",
         ),
+    ]
+
+
+@pytest.mark.parametrize("constant_template", ["filename", "markdown_path"])
+def test_download_videos_stops_when_collision_template_cannot_advance(
+    constant_template, monkeypatch, tmp_path
+):
+    first_url = "https://mpvideo.qpic.cn/first.mp4"
+    second_url = "https://mpvideo.qpic.cn/second.mp4"
+    format_calls = []
+
+    class GuardedPattern(str):
+        def format(self, *args, **kwargs):
+            format_calls.append((args, kwargs))
+            if len(format_calls) > 2:
+                raise RuntimeError("allocation_loop_guard_triggered")
+            return super().format(*args, **kwargs)
+
+    if constant_template == "filename":
+        filename_pattern = GuardedPattern("video.{ext}")
+        markdown_path_pattern = "{directory}/{filename}"
+        existing_path = tmp_path / "videos" / "video.mp4"
+    else:
+        filename_pattern = "video_{index:03d}.{ext}"
+        markdown_path_pattern = GuardedPattern("videos/video.mp4")
+        existing_path = tmp_path / "videos" / "video_001.mp4"
+
+    existing_path.parent.mkdir()
+    existing_path.write_bytes(b"first-video")
+    article = Article(
+        title="固定视频路径文章",
+        platform="wechat",
+        source_url="https://mp.weixin.qq.com/s/demo",
+        content_markdown=f"[视频](videos/video.mp4)\n\n[视频]({second_url})",
+        videos=[
+            VideoAsset(
+                source_url=first_url,
+                local_path="videos/video.mp4",
+                extension=".mp4",
+            )
+        ],
+        extraction=ExtractionInfo(platform="wechat", parser="wechat"),
+    )
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, headers={"content-type": "video/mp4"}, content=b"second-video")
+
+    monkeypatch.setattr("magicmd.assets._video_transport", lambda: httpx.MockTransport(handler))
+
+    next_article = download_videos(
+        article,
+        tmp_path,
+        filename_pattern=filename_pattern,
+        markdown_path_pattern=markdown_path_pattern,
+    )
+
+    assert len(format_calls) == 2
+    assert existing_path.read_bytes() == b"first-video"
+    assert next_article.content_markdown == (
+        f"[视频](videos/video.mp4)\n\n[视频]({second_url})"
+    )
+    assert next_article.videos == article.videos
+    assert next_article.extraction.warnings == [
+        (
+            f"video_download_failed:{second_url}:"
+            "video_path_allocation_failed:repeated_candidate:videos/video.mp4"
+        )
     ]
 
 
