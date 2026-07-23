@@ -89,7 +89,7 @@ def _normalize_bare_urls(md: str) -> str:
 
 
 def _separate_markdown_images(md: str) -> str:
-    image = r"!\[[^\]]*\]\([^)\n]+\)"
+    image = r"!\[[^\]\n]*\]\((?:[^()\n]|\([^()\n]*\))*\)"
     md, empty_image_count = re.subn(r"!\[[^\]]*\]\(\s*\)", "", md)
     md = re.sub(rf"([^\[\n])({image})", r"\1\n\n\2", md)
     md = re.sub(rf"({image})([^\]\n])", r"\1\n\n\2", md)

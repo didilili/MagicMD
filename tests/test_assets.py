@@ -53,11 +53,12 @@ def test_rewrite_markdown_image_links_handles_parentheses():
     assert rewrite_markdown_image_links(markdown, images) == "![alt](images/img_001.png)"
 
 
-def test_rewrite_markdown_image_links_preserves_optional_title():
-    markdown = '![结构图](https://example.com/a.png "结构图")'
+@pytest.mark.parametrize("title", ['"结构图"', "'结构图'", "(结构图)"])
+def test_rewrite_markdown_image_links_preserves_optional_title(title):
+    markdown = f"![结构图](https://example.com/a_(1).png {title})"
     images = [
         ImageAsset(
-            source_url="https://example.com/a.png",
+            source_url="https://example.com/a_(1).png",
             local_path="images/a.png",
             alt="结构图",
         )
@@ -65,7 +66,7 @@ def test_rewrite_markdown_image_links_preserves_optional_title():
 
     assert (
         rewrite_markdown_image_links(markdown, images)
-        == '![结构图](images/a.png "结构图")'
+        == f"![结构图](images/a.png {title})"
     )
 
 

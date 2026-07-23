@@ -1,8 +1,11 @@
 from magicmd.config import MarkdownConfig
 from magicmd.models import Article, ExtractionInfo, ImageAsset
 from magicmd import quality
-from magicmd.platforms.shared.markdown import html_to_markdown
-from magicmd.platforms.shared.markdown import _normalize_markdown_emphasis
+from magicmd.platforms.shared.markdown import (
+    _normalize_markdown_emphasis,
+    _separate_markdown_images,
+    html_to_markdown,
+)
 from magicmd.renderers.markdown import render_markdown
 
 
@@ -121,6 +124,16 @@ def test_render_markdown_uses_remote_cover_when_local_path_is_missing():
 
 def test_html_to_markdown_removes_empty_image_with_nonempty_alt():
     assert html_to_markdown('<p>前文</p><img alt="Image"><p>后文</p>') == "前文\n\n后文"
+
+
+def test_separate_markdown_images_preserves_parentheses_in_url_and_title():
+    markdown = "正文![x](https://example.com/a_(1).png (paren))后文"
+
+    assert _separate_markdown_images(markdown) == (
+        "正文\n\n"
+        "![x](https://example.com/a_(1).png (paren))"
+        "\n\n后文"
+    )
 
 
 def test_repair_markdown_quality_unwraps_single_line_address_fence():

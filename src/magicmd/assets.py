@@ -27,7 +27,7 @@ def infer_image_extension(url: str, content_type: str = "") -> str:
 
 
 def _separate_markdown_images(markdown: str) -> str:
-    image = r"!\[[^\]]*\]\([^)\n]+\)"
+    image = r"!\[[^\]\n]*\]\((?:[^()\n]|\([^()\n]*\))*\)"
     markdown, empty_image_count = re.subn(r"!\[[^\]]*\]\(\s*\)", "", markdown)
     markdown = re.sub(rf"([^\[\n])({image})", r"\1\n\n\2", markdown)
     markdown = re.sub(rf"({image})([^\]\n])", r"\1\n\n\2", markdown)
