@@ -9,6 +9,12 @@ class ImageAsset(BaseModel):
     alt: str = ""
 
 
+class VideoAsset(BaseModel):
+    source_url: str
+    local_path: str = ""
+    extension: str = ""
+
+
 class ExtractionInfo(BaseModel):
     status: str = "success"
     platform: str
@@ -39,6 +45,7 @@ class Article(BaseModel):
     cover_image: ImageAsset | None = None
     share_cover_image: ImageAsset | None = None
     images: list[ImageAsset] = Field(default_factory=list)
+    videos: list[VideoAsset] = Field(default_factory=list)
     extraction: ExtractionInfo
 
     def to_metadata(self) -> dict:
@@ -57,5 +64,6 @@ class Article(BaseModel):
                 self.share_cover_image.model_dump() if self.share_cover_image else None
             ),
             "images": [image.model_dump() for image in self.images],
+            "videos": [video.model_dump() for video in self.videos],
             "extraction": self.extraction.model_dump(),
         }

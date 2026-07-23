@@ -6,7 +6,7 @@ from pathlib import Path
 
 import httpx
 
-from magicmd.models import Article, ImageAsset
+from magicmd.models import Article, ImageAsset, VideoAsset
 
 
 def infer_image_extension(url: str, content_type: str = "") -> str:
@@ -83,6 +83,7 @@ def download_videos(
     video_dir.mkdir(parents=True, exist_ok=True)
     markdown = article.content_markdown
     warnings = list(article.extraction.warnings)
+    videos = list(article.videos)
     seen: dict[str, str] = {}
     transport = _video_transport()
     client_kwargs = {"timeout": 30.0, "follow_redirects": True}
@@ -115,12 +116,21 @@ def download_videos(
                     )
                     saved_path.write_bytes(response.content)
                     seen[url] = local_path
+                    videos.append(
+                        VideoAsset(
+                            source_url=url,
+                            local_path=local_path,
+                            extension=f".{ext}",
+                        )
+                    )
                 except Exception as exc:
                     warnings.append(f"video_download_failed:{url}:{exc}")
                     seen[url] = url
             markdown = markdown.replace(f"[视频]({markdown_url})", f"[视频]({seen[url]})")
 
-    next_article = article.model_copy(update={"content_markdown": markdown})
+    next_article = article.model_copy(
+        update={"content_markdown": markdown, "videos": videos}
+    )
     next_article.extraction.warnings = warnings
     return next_article
 

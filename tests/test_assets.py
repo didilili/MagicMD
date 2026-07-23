@@ -8,7 +8,7 @@ from magicmd.assets import (
     infer_image_extension,
     rewrite_markdown_image_links,
 )
-from magicmd.models import Article, ExtractionInfo, ImageAsset
+from magicmd.models import Article, ExtractionInfo, ImageAsset, VideoAsset
 
 
 def _png_chunk(kind: bytes, payload: bytes) -> bytes:
@@ -246,6 +246,52 @@ def test_download_videos_saves_local_file_and_rewrites_markdown(monkeypatch, tmp
 
     assert next_article.content_markdown == "[视频](videos/video_001.mp4)"
     assert (tmp_path / "videos" / "video_001.mp4").read_bytes() == b"mp4-data"
+    assert next_article.videos == [
+        VideoAsset(
+            source_url="https://mpvideo.qpic.cn/demo.f10002.mp4?auth_key=abc",
+            local_path="videos/video_001.mp4",
+            extension=".mp4",
+        )
+    ]
+    assert next_article.to_metadata()["videos"] == [
+        {
+            "source_url": "https://mpvideo.qpic.cn/demo.f10002.mp4?auth_key=abc",
+            "local_path": "videos/video_001.mp4",
+            "extension": ".mp4",
+        }
+    ]
+
+
+def test_download_videos_reuses_one_asset_for_duplicate_source(monkeypatch, tmp_path):
+    video_url = "https://mpvideo.qpic.cn/demo.mp4"
+    article = Article(
+        title="重复视频文章",
+        platform="wechat",
+        source_url="https://mp.weixin.qq.com/s/demo",
+        content_markdown=f"[视频]({video_url})\n\n[视频]({video_url})",
+        extraction=ExtractionInfo(platform="wechat", parser="wechat"),
+    )
+    requests = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        requests.append(request)
+        return httpx.Response(200, headers={"content-type": "video/mp4"}, content=b"mp4-data")
+
+    monkeypatch.setattr("magicmd.assets._video_transport", lambda: httpx.MockTransport(handler))
+
+    next_article = download_videos(article, tmp_path)
+
+    assert len(requests) == 1
+    assert next_article.content_markdown == (
+        "[视频](videos/video_001.mp4)\n\n[视频](videos/video_001.mp4)"
+    )
+    assert next_article.videos == [
+        VideoAsset(
+            source_url=video_url,
+            local_path="videos/video_001.mp4",
+            extension=".mp4",
+        )
+    ]
 
 
 def test_download_videos_honors_media_path_templates(monkeypatch, tmp_path):

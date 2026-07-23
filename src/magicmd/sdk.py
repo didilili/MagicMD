@@ -39,6 +39,13 @@ class ConvertedImage(BaseModel):
     alt: str = ""
 
 
+class ConvertedVideo(BaseModel):
+    source_url: str
+    local_path: str = ""
+    markdown_path: str = ""
+    extension: str = ""
+
+
 class ArticleConversionResult(BaseModel):
     title: str
     author: str = ""
@@ -50,6 +57,7 @@ class ArticleConversionResult(BaseModel):
     markdown: str
     content_hash: str
     images: list[ConvertedImage] = Field(default_factory=list)
+    videos: list[ConvertedVideo] = Field(default_factory=list)
     warnings: list[str] = Field(default_factory=list)
     report: dict[str, Any] = Field(default_factory=dict)
     metadata: dict[str, Any] = Field(default_factory=dict)
@@ -303,11 +311,28 @@ def _build_result(
         images=[
             ConvertedImage(
                 source_url=image.source_url,
-                local_path=_resolve_image_local_path(image.local_path, package_dir, config),
+                local_path=_resolve_media_local_path(
+                    image.local_path,
+                    package_dir,
+                    config.images.directory,
+                ),
                 markdown_path=image.local_path,
                 alt=image.alt,
             )
             for image in article.images
+        ],
+        videos=[
+            ConvertedVideo(
+                source_url=video.source_url,
+                local_path=_resolve_media_local_path(
+                    video.local_path,
+                    package_dir,
+                    config.videos.directory,
+                ),
+                markdown_path=video.local_path,
+                extension=video.extension,
+            )
+            for video in article.videos
         ],
         warnings=list(article.extraction.warnings),
         report=report,
@@ -317,10 +342,10 @@ def _build_result(
     )
 
 
-def _resolve_image_local_path(
+def _resolve_media_local_path(
     markdown_path: str,
     package_dir: Path | None,
-    config: MagicMDConfig,
+    directory: str,
 ) -> str:
     if not markdown_path or package_dir is None:
         return ""
@@ -331,7 +356,7 @@ def _resolve_image_local_path(
 
     filename = Path(markdown_path).name
     if filename:
-        configured_path = package_dir / config.images.directory / filename
+        configured_path = package_dir / directory / filename
         if configured_path.exists():
             return str(configured_path)
 

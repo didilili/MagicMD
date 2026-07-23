@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 
+import httpx
 import pytest
 from typer.testing import CliRunner
 
@@ -217,6 +218,58 @@ def test_convert_article_separates_image_local_path_from_markdown_path(monkeypat
     package_dir = Path(result.package_dir or "")
     assert result.images[0].markdown_path == "/static/assets/images/cover_01.png"
     assert result.images[0].local_path == str(package_dir / "assets/images/cover_01.png")
+
+
+def test_convert_article_returns_downloaded_video_paths(monkeypatch, tmp_path: Path):
+    video_url = "https://mpvideo.qpic.cn/demo.mp4"
+
+    def fake_fetch(url, platform, config_path):
+        return "<html>ok</html>"
+
+    def fake_parse(platform, html, url):
+        return Article(
+            title="SDK 视频文章",
+            platform="generic",
+            source_url=url,
+            content_markdown=f"[视频]({video_url})",
+            extraction=ExtractionInfo(platform="generic", parser="generic"),
+        )
+
+    config_path = tmp_path / ".magicmd.toml"
+    config_path.write_text(
+        """
+        [images]
+        download = false
+
+        [videos]
+        download = true
+        """,
+        encoding="utf-8",
+    )
+
+    def handler(request):
+        return httpx.Response(
+            200,
+            headers={"content-type": "video/mp4"},
+            content=b"mp4-data",
+        )
+
+    monkeypatch.setattr("magicmd.assets._video_transport", lambda: httpx.MockTransport(handler))
+
+    result = convert_article(
+        "https://example.com/post",
+        platform="generic",
+        output_dir=tmp_path,
+        config_path=config_path,
+        _fetch_for_platform=fake_fetch,
+        _parse_article=fake_parse,
+    )
+
+    result_package = Path(result.package_dir or "")
+    assert result.videos[0].source_url == video_url
+    assert result.videos[0].markdown_path == "videos/video_001.mp4"
+    assert result.videos[0].local_path == str(result_package / "videos/video_001.mp4")
+    assert result.videos[0].extension == ".mp4"
 
 
 def test_convert_article_does_not_force_media_download_without_output_dir(monkeypatch):
