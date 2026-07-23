@@ -6,11 +6,68 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from magicmd.platforms.shared.markdown import (
+    _FENCE_LINE_RE,
+    _normalize_bare_urls,
+    _normalize_strong_boundaries,
+    _split_fenced_segments,
+)
+
+_EMPTY_IMAGE_TARGET_RE = re.compile(r"!\[[^\]\n]*\]\([ \t]*\)")
+_RELATIVE_LOCAL_VIDEO_RE = re.compile(
+    r"(?<!!)\[[^\]\n]*\]\([ \t]*<?(?:\./)?videos/[^)\s>]+>?",
+    re.IGNORECASE,
+)
+_ESCAPED_STRONG_MARKER_RE = re.compile(r"\\\*\\\*(?:[^\\*\n](?:.*?[^\\*\n])?)\\\*\\\*")
+_SHELL_FENCE_LANGUAGES = {
+    "",
+    "bash",
+    "bat",
+    "batch",
+    "cmd",
+    "console",
+    "fish",
+    "powershell",
+    "pwsh",
+    "sh",
+    "shell",
+    "terminal",
+    "zsh",
+}
+_SHELL_COMMAND_RE = re.compile(
+    r"^[ \t]*(?:(?:\$|>)[ \t]+)?(?:"
+    r"(?:npm|pnpm|yarn|bun)[ \t]+"
+    r"(?:add|ci|create|exec|install|remove|run|uninstall|update)(?:[ \t]|$)|"
+    r"npx[ \t]+\S|pip3?[ \t]+install(?:[ \t]|$)|"
+    r"python3?[ \t]+-m[ \t]+pip(?:[ \t]|$)|"
+    r"git[ \t]+(?:clone|fetch|pull|push|submodule)(?:[ \t]|$)|"
+    r"(?:curl|wget)[ \t]+\S|brew[ \t]+install(?:[ \t]|$)|"
+    r"apt(?:-get)?[ \t]+install(?:[ \t]|$)|sudo[ \t]+\S|"
+    r"docker[ \t]+(?:build|compose|pull|run)(?:[ \t]|$)|"
+    r"kubectl[ \t]+(?:apply|create|get|run)(?:[ \t]|$)|"
+    r"cargo[ \t]+install(?:[ \t]|$)"
+    r")",
+    re.MULTILINE,
+)
+_ADDRESS_ONLY_CODE_RE = re.compile(
+    r"^[ \t]*(?:开源地址|项目地址|官网)[ \t]*[：:][ \t]*"
+    r"https?://[^\s<>\n]+?[，。！？；：、]?[ \t]*$"
+)
+_HEADING_RE = re.compile(r"(?m)^[ \t]{0,3}(#{1,6})(?:[ \t]+|$)")
+_EXTERNAL_WECHAT_MEDIA_RE = re.compile(
+    r"!\[[^\]\n]*\]\([ \t]*<?https?://"
+    r"(?:mmbiz\.qpic\.cn|mmbiz\.qlogo\.cn|mpvideo\.qpic\.cn)(?=[/:])"
+    r"|(?<!!)\[(?:视频|Video)\]\([ \t]*<?https?://mpvideo\.qpic\.cn(?=[/:])",
+    re.IGNORECASE,
+)
+
 
 def scan_markdown_quality(markdown: str) -> list[str]:
-    prose_markdown = _without_fenced_code(markdown)
+    fenced_segments = _split_fenced_segments(markdown)
+    code_fences = _parse_code_fences(fenced_segments)
+    prose_markdown = _without_inline_code(_without_fenced_code(markdown, segments=fenced_segments))
     checks = {
-        "empty_code_fence": _has_empty_code_fence(markdown),
+        "empty_code_fence": _has_empty_code_fence(code_fences),
         "image_used_as_heading": bool(
             re.search(r"^#{1,6}\s+(Image|!\[)", prose_markdown, re.MULTILINE)
         ),
@@ -23,14 +80,22 @@ def scan_markdown_quality(markdown: str) -> list[str]:
         "broken_numbered_link_emphasis": bool(
             re.search(r"\*{3,}\d+[.．]\*{3,}\s*\[", prose_markdown)
         ),
-        "broken_strong_boundary": bool(
-            re.search(
-                r"(?<![\w\u4e00-\u9fff])\*\*(?![ \t*])[^*\n]*\S[ \t]+\*\*[\w\u4e00-\u9fff]"
-                r"|(?<![\w\u4e00-\u9fff])\*\*(?![ \t*])[^*\n]*[:：]\*\*[\w\u4e00-\u9fff]",
-                prose_markdown,
-            )
-        ),
+        "broken_strong_boundary": _normalize_strong_boundaries(prose_markdown) != prose_markdown,
+        "orphan_emphasis_marker": bool(re.search(r"(?m)^[ \t]*\*\*[ \t]*$", prose_markdown)),
+        "redundant_emphasis_marker": bool(re.search(r"\*{4,}", prose_markdown)),
+        "unbalanced_emphasis_marker": _has_unbalanced_emphasis_marker(prose_markdown),
+        "broken_bare_url_boundary": _normalize_bare_urls(prose_markdown) != prose_markdown,
         "broken_linked_image": "[\n\n![Image]" in prose_markdown or "\n\n](" in prose_markdown,
+        "empty_image_target": bool(_EMPTY_IMAGE_TARGET_RE.search(prose_markdown)),
+        "relative_local_video": bool(_RELATIVE_LOCAL_VIDEO_RE.search(prose_markdown)),
+        "escaped_strong_marker": bool(_ESCAPED_STRONG_MARKER_RE.search(prose_markdown)),
+        "code_contains_nbsp": any("\u00a0" in content for _, content in code_fences),
+        "suspicious_code_language": _has_suspicious_code_language(code_fences),
+        "address_only_code_fence": any(
+            _ADDRESS_ONLY_CODE_RE.fullmatch(content) for _, content in code_fences
+        ),
+        "heading_level_jump": _has_heading_level_jump(prose_markdown),
+        "external_media_not_rewritten": bool(_EXTERNAL_WECHAT_MEDIA_RE.search(prose_markdown)),
     }
     return [name for name, matched in checks.items() if matched]
 
@@ -178,35 +243,86 @@ def _render_markdown_report(payload: dict[str, Any]) -> str:
     return "\n".join(lines) + "\n"
 
 
-def _has_empty_code_fence(markdown: str) -> bool:
-    in_fence = False
-    has_content = False
-    for line in markdown.splitlines():
-        if re.match(r"^`{3,}[a-zA-Z0-9_-]*\s*$", line):
-            if in_fence:
-                if not has_content:
-                    return True
-                in_fence = False
-                has_content = False
-            else:
-                in_fence = True
-                has_content = False
+def _has_empty_code_fence(code_fences: list[tuple[str, str]]) -> bool:
+    return any(not content.strip() for _, content in code_fences)
+
+
+def _without_fenced_code(
+    markdown: str,
+    *,
+    segments: list[tuple[bool, str]] | None = None,
+) -> str:
+    parsed_segments = segments if segments is not None else _split_fenced_segments(markdown)
+    return "".join(segment for is_code, segment in parsed_segments if not is_code)
+
+
+def _parse_code_fences(
+    segments: list[tuple[bool, str]],
+) -> list[tuple[str, str]]:
+    code_fences: list[tuple[str, str]] = []
+    for is_code, segment in segments:
+        if not is_code:
             continue
-        if in_fence and line.strip():
-            has_content = True
+        lines = segment.splitlines()
+        if not lines:
+            continue
+        opening = _FENCE_LINE_RE.match(lines[0])
+        if not opening:
+            continue
+        opening_fence = opening.group("fence")
+        info_string = opening.group("tail").strip()
+        language = info_string.split(maxsplit=1)[0].lower() if info_string else ""
+        language = language.removeprefix("{.").removesuffix("}")
+
+        content_lines = lines[1:]
+        if content_lines:
+            closing = _FENCE_LINE_RE.match(content_lines[-1])
+            if (
+                closing
+                and closing.group("fence")[0] == opening_fence[0]
+                and len(closing.group("fence")) >= len(opening_fence)
+                and not closing.group("tail").strip()
+            ):
+                content_lines.pop()
+        code_fences.append((language, "\n".join(content_lines)))
+    return code_fences
+
+
+def _has_suspicious_code_language(code_fences: list[tuple[str, str]]) -> bool:
+    return any(
+        language not in _SHELL_FENCE_LANGUAGES and _SHELL_COMMAND_RE.search(content)
+        for language, content in code_fences
+    )
+
+
+def _has_heading_level_jump(markdown: str) -> bool:
+    previous_level: int | None = None
+    for match in _HEADING_RE.finditer(markdown):
+        level = len(match.group(1))
+        if previous_level is not None and level > previous_level + 1:
+            return True
+        previous_level = level
     return False
 
 
-def _without_fenced_code(markdown: str) -> str:
-    lines: list[str] = []
-    in_fence = False
+def _without_inline_code(markdown: str) -> str:
+    return re.sub(r"(`+)([^\n]*?)\1", "", markdown)
+
+
+def _has_unbalanced_emphasis_marker(markdown: str) -> bool:
+    stray_bold_inside_italic = re.compile(r"(?<!\*)\*(?!\*)[^*\n]*\*\*(?!\*)[^*\n]*\*(?!\*)")
+    valid_nested_bold_italic = re.compile(r"\*\*[^*\n]*\*[^*\n]+\*{3}")
+    exact_strong_marker = re.compile(r"(?<!\*)\*\*(?!\*)")
+
     for line in markdown.splitlines():
-        if re.match(r"^`{3,}[a-zA-Z0-9_-]*\s*$", line):
-            in_fence = not in_fence
+        if stray_bold_inside_italic.search(line):
+            return True
+        if len(exact_strong_marker.findall(line)) % 2 == 0:
             continue
-        if not in_fence:
-            lines.append(line)
-    return "\n".join(lines)
+        if valid_nested_bold_italic.fullmatch(line.strip()):
+            continue
+        return True
+    return False
 
 
 def _read_json(path: Path) -> dict[str, Any]:

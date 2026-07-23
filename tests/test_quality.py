@@ -1,6 +1,8 @@
 import json
 from pathlib import Path
 
+import pytest
+
 from magicmd.quality import build_package_quality, scan_markdown_quality, write_batch_report
 
 
@@ -76,6 +78,126 @@ def test_scan_markdown_quality_allows_adjacent_inline_bold_terms():
 
     assert "fragmented_bold_text" not in issues
     assert "broken_strong_boundary" not in issues
+
+
+def test_scan_markdown_quality_flags_punctuation_boundaries_and_orphan_markers():
+    markdown = """
+Text Extractor **内置 OCR 一键截图取文字，**ColorPicker 取色。
+
+Chatwoot 是一个**客服系统的开源项目，**目前累计 3.2 万 Star。
+
+**第一步，偷偷查你是谁。**它会读取系统时区。
+
+**
+
+![Image](images/example.png)
+
+**
+
+****嵌套加粗****
+
+提示词：*正文中出现了未闭合的**加粗标记*
+
+打开 http://localhost:3000，顶部工具栏会显示内容。
+"""
+
+    issues = scan_markdown_quality(markdown)
+
+    assert "broken_strong_boundary" in issues
+    assert "orphan_emphasis_marker" in issues
+    assert "redundant_emphasis_marker" in issues
+    assert "unbalanced_emphasis_marker" in issues
+    assert "broken_bare_url_boundary" in issues
+
+
+def test_scan_markdown_quality_ignores_valid_inline_and_code_emphasis():
+    markdown = """
+它是一个真正的**代码记忆**机制。
+**AI**时代需要稳定输出。
+它给自己的定位是 **100 倍速**替代品。
+
+`content = "**标签，**正文"`
+
+**发送指令：*使用浏览器获取三篇文章***
+
+```python
+content = "**标签，**正文"
+```
+"""
+
+    issues = scan_markdown_quality(markdown)
+
+    assert "broken_strong_boundary" not in issues
+    assert "orphan_emphasis_marker" not in issues
+    assert "unbalanced_emphasis_marker" not in issues
+    assert "broken_bare_url_boundary" not in issues
+
+
+@pytest.mark.parametrize(
+    ("markdown", "expected_issue"),
+    [
+        ("![Image]()", "empty_image_target"),
+        ("[视频](videos/video_001.mp4)", "relative_local_video"),
+        (r"\*\*重点\*\*", "escaped_strong_marker"),
+        ("```bash\nnpm\u00a0install demo\n```", "code_contains_nbsp"),
+        ("```javascript\nnpm install demo\n```", "suspicious_code_language"),
+        (
+            "```javascript\n开源地址：https://github.com/a/b\n```",
+            "address_only_code_fence",
+        ),
+        ("## 二级\n\n#### 四级", "heading_level_jump"),
+        (
+            "![图](https://mmbiz.qpic.cn/demo.png)",
+            "external_media_not_rewritten",
+        ),
+    ],
+)
+def test_scan_markdown_quality_flags_new_quality_codes(markdown, expected_issue):
+    issues = scan_markdown_quality(markdown)
+
+    assert expected_issue in issues
+
+
+@pytest.mark.parametrize(
+    ("markdown", "unexpected_issue"),
+    [
+        ("![Image](images/image_001.png)", "empty_image_target"),
+        ("![Image]((image_001.png))", "empty_image_target"),
+        ("[视频](https://example.com/video.mp4)", "relative_local_video"),
+        (r"正文 \*\*未闭合", "escaped_strong_marker"),
+        (r"`\*\*重点\*\*`", "escaped_strong_marker"),
+        ("```\n![Image]()\n\\*\\*重点\\*\\*\n```", "empty_image_target"),
+        ("```\n![Image]()\n\\*\\*重点\\*\\*\n```", "escaped_strong_marker"),
+        ("正文含有不间断空格：npm\u00a0install", "code_contains_nbsp"),
+        ("```bash\nnpm install demo\n```", "suspicious_code_language"),
+        ("```javascript\nexport default config\n```", "suspicious_code_language"),
+        ("```go\ngo func() {}\n```", "suspicious_code_language"),
+        ("开源地址：https://github.com/a/b", "address_only_code_fence"),
+        ("## 二级\n\n### 三级\n\n## 二级", "heading_level_jump"),
+        (
+            "![图](https://example.com/demo.png)",
+            "external_media_not_rewritten",
+        ),
+        (
+            "[微信文档](https://mmbiz.qpic.cn/demo.png)",
+            "external_media_not_rewritten",
+        ),
+    ],
+)
+def test_scan_markdown_quality_avoids_new_code_false_positives(markdown, unexpected_issue):
+    issues = scan_markdown_quality(markdown)
+
+    assert unexpected_issue not in issues
+
+
+def test_scan_markdown_quality_treats_unclosed_fence_as_code():
+    markdown = "```javascript\n![Image]()\n\\*\\*重点\\*\\*\nnpm\u00a0install demo\n"
+
+    issues = scan_markdown_quality(markdown)
+
+    assert "empty_image_target" not in issues
+    assert "escaped_strong_marker" not in issues
+    assert "code_contains_nbsp" in issues
 
 
 def test_build_package_quality_reads_metadata_and_article(tmp_path: Path):
