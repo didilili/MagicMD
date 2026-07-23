@@ -178,12 +178,7 @@ def test_parse_wechat_html_normalizes_nbsp_and_fused_command_in_code_snippet():
 
     article = parse_wechat_html(html, "https://mp.weixin.qq.com/s/code-whitespace")
 
-    assert article.content_markdown == (
-        "```shell\n"
-        "# 安装到全局\n"
-        "npm install -g demo\n"
-        "```"
-    )
+    assert article.content_markdown == ("```shell\n# 安装到全局\nnpm install -g demo\n```")
 
 
 @pytest.mark.parametrize(
@@ -352,8 +347,7 @@ def test_parse_wechat_html_separates_bare_urls_from_chinese_prose():
     article = parse_wechat_html(html, "https://mp.weixin.qq.com/s/bare-url")
 
     assert (
-        "打开 <http://localhost:3000>，顶部工具栏**会自动显示内容。**"
-        in article.content_markdown
+        "打开 <http://localhost:3000>，顶部工具栏**会自动显示内容。**" in article.content_markdown
     )
 
 

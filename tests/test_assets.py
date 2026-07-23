@@ -64,10 +64,7 @@ def test_rewrite_markdown_image_links_preserves_optional_title(title):
         )
     ]
 
-    assert (
-        rewrite_markdown_image_links(markdown, images)
-        == f"![结构图](images/a.png {title})"
-    )
+    assert rewrite_markdown_image_links(markdown, images) == f"![结构图](images/a.png {title})"
 
 
 def test_rewrite_markdown_image_links_keeps_images_block_separated():
@@ -313,9 +310,7 @@ def test_download_videos_reuses_one_asset_for_duplicate_source(monkeypatch, tmp_
     ]
 
 
-def test_download_videos_retry_preserves_existing_asset_and_uses_next_path(
-    monkeypatch, tmp_path
-):
+def test_download_videos_retry_preserves_existing_asset_and_uses_next_path(monkeypatch, tmp_path):
     first_url = "https://mpvideo.qpic.cn/first.mp4"
     second_url = "https://mpvideo.qpic.cn/second.mp4"
     existing_path = tmp_path / "videos" / "video_001.mp4"
@@ -420,9 +415,7 @@ def test_download_videos_stops_when_collision_template_cannot_advance(
 
     assert len(format_calls) == 2
     assert existing_path.read_bytes() == b"first-video"
-    assert next_article.content_markdown == (
-        f"[视频](videos/video.mp4)\n\n[视频]({second_url})"
-    )
+    assert next_article.content_markdown == (f"[视频](videos/video.mp4)\n\n[视频]({second_url})")
     assert next_article.videos == article.videos
     assert next_article.extraction.warnings == [
         (

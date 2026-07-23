@@ -23,9 +23,7 @@ _ADDRESS_ONLY_FENCE_RE = re.compile(
     r"(?P<url>https?://[^\s<>\n]+?)(?P<terminal>[，。！？；：、]?)[ \t]*\r?\n"
     r"(?P=fence)[ \t]*(?P<ending>\r?\n)?$"
 )
-_PAIRED_ESCAPED_STRONG_RE = re.compile(
-    r"\\\*\\\*(?P<text>[^\\*\n](?:.*?[^\\*\n])?)\\\*\\\*"
-)
+_PAIRED_ESCAPED_STRONG_RE = re.compile(r"\\\*\\\*(?P<text>[^\\*\n](?:.*?[^\\*\n])?)\\\*\\\*")
 _BARE_URL_RE = re.compile(
     r"(?<![<(])(?P<url>https?://[A-Za-z0-9._~:/?#\[\]@!$&'()*+,;=%-]+)"
     r"(?=[，。！？；：、\u4e00-\u9fff])"
@@ -162,9 +160,8 @@ def _normalize_strong_boundaries(md: str) -> str:
         has_text_before = _is_text_character(before)
         has_text_after = _is_text_character(after)
 
-        if (
-            not any(_is_text_character(character) for character in text)
-            and (has_text_before or has_text_after)
+        if not any(_is_text_character(character) for character in text) and (
+            has_text_before or has_text_after
         ):
             return text
 

@@ -48,9 +48,7 @@ def rewrite_markdown_image_links(markdown: str, images: list[ImageAsset]) -> str
             + r"""(?P<title>\s+(?:"[^"\n]*"|'[^'\n]*'|\([^)\n]*\)))?\)"""
         )
         result = pattern.sub(
-            lambda match: (
-                f"![{match.group(1)}]({image.local_path}{match.group('title') or ''})"
-            ),
+            lambda match: f"![{match.group(1)}]({image.local_path}{match.group('title') or ''})",
             result,
         )
     return _separate_markdown_images(result)
@@ -141,14 +139,11 @@ def download_videos(
                         local_path_blocked = local_path in used_local_paths
                         if not saved_path_blocked and not local_path_blocked:
                             break
-                        if (
-                            saved_path_blocked and saved_path in blocked_saved_paths
-                        ) or (
+                        if (saved_path_blocked and saved_path in blocked_saved_paths) or (
                             local_path_blocked and local_path in blocked_local_paths
                         ):
                             raise ValueError(
-                                "video_path_allocation_failed:"
-                                f"repeated_candidate:{local_path}"
+                                f"video_path_allocation_failed:repeated_candidate:{local_path}"
                             )
                         if saved_path_blocked:
                             blocked_saved_paths.add(saved_path)
@@ -169,9 +164,7 @@ def download_videos(
                     seen[url] = url
             markdown = markdown.replace(f"[视频]({markdown_url})", f"[视频]({seen[url]})")
 
-    next_article = article.model_copy(
-        update={"content_markdown": markdown, "videos": videos}
-    )
+    next_article = article.model_copy(update={"content_markdown": markdown, "videos": videos})
     next_article.extraction.warnings = warnings
     return next_article
 

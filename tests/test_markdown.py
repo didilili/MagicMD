@@ -136,25 +136,26 @@ def test_html_to_markdown_keeps_image_syntax_inside_extracted_code_block():
         "保留代码空行"
     )
 
-    assert html_to_markdown(
-        "MAGICMDCODEBLOCK000000END",
-        [
-            {
-                "placeholder": "MAGICMDCODEBLOCK000000END",
-                "lang": "markdown",
-                "code": code,
-            }
-        ],
-    ) == f"```markdown\n{code}\n```"
+    assert (
+        html_to_markdown(
+            "MAGICMDCODEBLOCK000000END",
+            [
+                {
+                    "placeholder": "MAGICMDCODEBLOCK000000END",
+                    "lang": "markdown",
+                    "code": code,
+                }
+            ],
+        )
+        == f"```markdown\n{code}\n```"
+    )
 
 
 def test_separate_markdown_images_preserves_parentheses_in_url_and_title():
     markdown = "正文![x](https://example.com/a_(1).png (paren))后文"
 
     assert _separate_markdown_images(markdown) == (
-        "正文\n\n"
-        "![x](https://example.com/a_(1).png (paren))"
-        "\n\n后文"
+        "正文\n\n![x](https://example.com/a_(1).png (paren))\n\n后文"
     )
 
 
@@ -163,28 +164,15 @@ def test_repair_markdown_quality_unwraps_single_line_address_fence(fence):
     markdown = f"{fence}javascript\n开源地址：https://github.com/example/demo\n{fence}"
 
     assert (
-        quality.repair_markdown_quality(markdown)
-        == "开源地址：<https://github.com/example/demo>"
+        quality.repair_markdown_quality(markdown) == "开源地址：<https://github.com/example/demo>"
     )
 
 
 @pytest.mark.parametrize(
     "markdown",
     [
-        (
-            "````markdown\n"
-            "```text\n"
-            "官网：https://example.com/项目。\n"
-            "```\n"
-            "````"
-        ),
-        (
-            "~~~~markdown\n"
-            "~~~text\n"
-            "官网：https://example.com/项目。\n"
-            "~~~\n"
-            "~~~~"
-        ),
+        ("````markdown\n```text\n官网：https://example.com/项目。\n```\n````"),
+        ("~~~~markdown\n~~~text\n官网：https://example.com/项目。\n~~~\n~~~~"),
     ],
     ids=["backtick", "tilde"],
 )
@@ -193,19 +181,13 @@ def test_repair_markdown_quality_keeps_address_fence_inside_longer_fence(markdow
 
 
 def test_repair_markdown_quality_repairs_paired_escaped_strong_in_prose():
-    assert (
-        quality.repair_markdown_quality(r"正文 \*\*重点\*\* 结束")
-        == "正文 **重点** 结束"
-    )
+    assert quality.repair_markdown_quality(r"正文 \*\*重点\*\* 结束") == "正文 **重点** 结束"
     assert quality.repair_markdown_quality(r"正文 \*\*未闭合") == r"正文 \*\*未闭合"
 
 
 def test_repair_markdown_quality_keeps_escaped_strong_in_code():
     markdown = (
-        "正文 `value = r'\\*\\*重点\\*\\*'` 结束\n\n"
-        "```python\n"
-        "value = r'\\*\\*重点\\*\\*'\n"
-        "```"
+        "正文 `value = r'\\*\\*重点\\*\\*'` 结束\n\n```python\nvalue = r'\\*\\*重点\\*\\*'\n```"
     )
 
     assert quality.repair_markdown_quality(markdown) == markdown
@@ -216,21 +198,24 @@ def test_repair_markdown_quality_keeps_escaped_strong_in_code():
     [
         (
             "```md\n"
-            r"\*\*重点\*\*" "\n"
+            r"\*\*重点\*\*"
+            "\n"
             "正文**![x](https://example.com/a_(1).png (paren))**后文\n"
             "![空图]()\n"
             "```"
         ),
         (
             "   ```md\n"
-            r"   \*\*重点\*\*" "\n"
+            r"   \*\*重点\*\*"
+            "\n"
             "   正文**![x](https://example.com/a_(1).png (paren))**后文\n"
             "   ![空图]()\n"
             "   ```"
         ),
         (
             "> ```md\n"
-            r"> \*\*重点\*\*" "\n"
+            r"> \*\*重点\*\*"
+            "\n"
             "> 正文**![x](https://example.com/a_(1).png (paren))**后文\n"
             "> ![空图]()\n"
             "> ```"
@@ -238,7 +223,8 @@ def test_repair_markdown_quality_keeps_escaped_strong_in_code():
         (
             "- 列表项\n"
             "  ```md\n"
-            r"  \*\*重点\*\*" "\n"
+            r"  \*\*重点\*\*"
+            "\n"
             "  正文**![x](https://example.com/a_(1).png (paren))**后文\n"
             "  ![空图]()\n"
             "  ```"
@@ -253,9 +239,7 @@ def test_repair_markdown_quality_keeps_markdown_syntax_inside_fences(markdown):
 def test_repair_markdown_quality_only_normalizes_nbsp_inside_fences():
     markdown = "  ```shell\n  npm\u00a0install demo\n  ```"
 
-    assert quality.repair_markdown_quality(markdown) == (
-        "  ```shell\n  npm install demo\n  ```"
-    )
+    assert quality.repair_markdown_quality(markdown) == ("  ```shell\n  npm install demo\n  ```")
 
 
 def test_repair_markdown_quality_keeps_code_blank_lines_and_trailing_spaces():
@@ -274,9 +258,7 @@ def test_repair_markdown_quality_removes_emphasis_around_parenthesized_image():
     markdown = "正文**![x](https://example.com/a_(1).png (paren))**后文"
 
     assert quality.repair_markdown_quality(markdown) == (
-        "正文\n\n"
-        "![x](https://example.com/a_(1).png (paren))"
-        "\n\n后文"
+        "正文\n\n![x](https://example.com/a_(1).png (paren))\n\n后文"
     )
 
 
@@ -300,9 +282,7 @@ def test_repair_markdown_quality_is_idempotent(markdown):
 def test_repair_markdown_quality_keeps_terminal_cjk_punctuation_outside_url():
     markdown = "```text\n官网：https://example.com/项目。\n```"
 
-    assert quality.repair_markdown_quality(markdown) == (
-        "官网：<https://example.com/项目>。"
-    )
+    assert quality.repair_markdown_quality(markdown) == ("官网：<https://example.com/项目>。")
 
 
 def test_repair_markdown_quality_keeps_unrelated_outer_whitespace():
@@ -342,11 +322,7 @@ def test_normalize_markdown_emphasis_cleans_partial_image_and_redundant_markers(
 
     normalized = _normalize_markdown_emphasis(markdown)
 
-    assert normalized == (
-        "![Image](images/example.png)\n\n"
-        "**摄像头气泡**\n\n"
-        "**重要说明**正文。"
-    )
+    assert normalized == ("![Image](images/example.png)\n\n**摄像头气泡**\n\n**重要说明**正文。")
 
 
 def test_normalize_markdown_emphasis_removes_unmatched_bold_inside_italics():
