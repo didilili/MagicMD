@@ -6,6 +6,7 @@ import pytest
 from typer.testing import CliRunner
 
 from magicmd import (
+    ConvertedVideo,
     FetchError,
     ParseError,
     UnsupportedPlatformError,
@@ -13,10 +14,15 @@ from magicmd import (
 )
 from magicmd.cli import app
 from magicmd.models import Article, ExtractionInfo, ImageAsset
+from magicmd.sdk import ConvertedVideo as SDKConvertedVideo
 from magicmd.sdk import _resolve_media_local_path
 
 
 runner = CliRunner()
+
+
+def test_package_root_exports_converted_video():
+    assert ConvertedVideo is SDKConvertedVideo
 
 
 def _article(url: str = "https://example.com/post") -> Article:

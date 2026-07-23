@@ -1,4 +1,4 @@
-__version__ = "0.7.1"
+__version__ = "0.7.2"
 
 from magicmd.exceptions import (
     ConversionError,
@@ -8,11 +8,12 @@ from magicmd.exceptions import (
     ParseError,
     UnsupportedPlatformError,
 )
-from magicmd.sdk import ArticleConversionResult, ConvertedImage, convert_article
+from magicmd.sdk import ArticleConversionResult, ConvertedImage, ConvertedVideo, convert_article
 
 __all__ = [
     "ArticleConversionResult",
     "ConvertedImage",
+    "ConvertedVideo",
     "ConversionError",
     "FetchError",
     "MagicMDError",
