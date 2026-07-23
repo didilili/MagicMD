@@ -3,6 +3,7 @@ from pathlib import Path
 
 import pytest
 
+import magicmd.quality as quality_module
 from magicmd.quality import build_package_quality, scan_markdown_quality, write_batch_report
 
 
@@ -329,6 +330,117 @@ def test_scan_markdown_quality_allows_shell_sessions_and_command_container_langu
     issues = scan_markdown_quality(markdown)
 
     assert "suspicious_code_language" not in issues
+
+
+@pytest.mark.parametrize(
+    ("markdown", "expected_issue"),
+    [
+        (
+            "[![图](https://mmbiz.qpic.cn/demo.png)](/article)",
+            "external_media_not_rewritten",
+        ),
+        ("[![图]()](/article)", "empty_image_target"),
+    ],
+)
+def test_scan_markdown_quality_discovers_nested_destinations_once(markdown, expected_issue):
+    issues = scan_markdown_quality(markdown)
+
+    assert issues.count(expected_issue) == 1
+
+
+def test_scan_markdown_quality_does_not_infer_title_only_image_as_empty():
+    issues = scan_markdown_quality('![图]( "说明")')
+
+    assert "empty_image_target" not in issues
+
+
+@pytest.mark.parametrize(
+    "markdown",
+    [
+        "[ref]: https://example.com/**/b",
+        ("[ref]: https://example.com/first\n[REF]: https://example.com/**/duplicate"),
+        "<https://example.com/**/b>",
+    ],
+)
+def test_scan_markdown_quality_masks_reference_definitions_and_autolinks(markdown):
+    issues = scan_markdown_quality(markdown)
+
+    assert "unbalanced_emphasis_marker" not in issues
+
+
+@pytest.mark.parametrize(
+    ("markdown", "expected_issue"),
+    [
+        ('![图][img]\n\n[img]: <> "占位"', "empty_image_target"),
+        (
+            "![图][Diagram One]\n\n[ diagram   one ]: //mmbiz.qpic.cn/demo.png",
+            "external_media_not_rewritten",
+        ),
+        (
+            "[观看][vid]\n\n[VID]: ../VIDEOS/demo.MP4?download=1",
+            "relative_local_video",
+        ),
+        (
+            "[任意标签][vid]\n\n[vid]: //mpvideo.qpic.cn/demo.mp4",
+            "external_media_not_rewritten",
+        ),
+        (
+            "![图][]\n\n[图]: //mmbiz.qpic.cn/collapsed.png",
+            "external_media_not_rewritten",
+        ),
+        (
+            "![img]\n\n[IMG]: //mmbiz.qpic.cn/shortcut.png",
+            "external_media_not_rewritten",
+        ),
+    ],
+)
+def test_scan_markdown_quality_resolves_reference_style_media(markdown, expected_issue):
+    issues = scan_markdown_quality(markdown)
+
+    assert issues.count(expected_issue) == 1
+
+
+@pytest.mark.parametrize(
+    "markdown",
+    [
+        "[unused]: //mmbiz.qpic.cn/demo.png",
+        ("[duplicate]: //mpvideo.qpic.cn/demo.mp4\n[duplicate]: https://example.com/ignored"),
+    ],
+)
+def test_scan_markdown_quality_ignores_unused_external_media_definition(markdown):
+
+    issues = scan_markdown_quality(markdown)
+
+    assert "external_media_not_rewritten" not in issues
+
+
+def test_scan_markdown_quality_handles_large_parent_relative_video_path():
+    parent_prefix = "../" * 20_000
+    markdown = f"[观看]({parent_prefix}videos/demo.mp4)"
+
+    issues = scan_markdown_quality(markdown)
+
+    assert "relative_local_video" in issues
+
+
+def test_scan_markdown_quality_skips_each_malformed_link_payload_once(monkeypatch):
+    original_parser = quality_module._parse_markdown_destination_payload
+    parse_calls = 0
+
+    def counting_parser(markdown, payload_start):
+        nonlocal parse_calls
+        parse_calls += 1
+        return original_parser(markdown, payload_start)
+
+    monkeypatch.setattr(
+        quality_module,
+        "_parse_markdown_destination_payload",
+        counting_parser,
+    )
+
+    scan_markdown_quality("[x](" * 1_000)
+
+    assert parse_calls == 1
 
 
 def test_build_package_quality_reads_metadata_and_article(tmp_path: Path):

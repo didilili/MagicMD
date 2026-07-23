@@ -60,6 +60,14 @@ _VIDEO_EXTENSIONS = {".avi", ".m4v", ".mkv", ".mov", ".mp4", ".mpeg", ".mpg", ".
 _WECHAT_IMAGE_HOSTS = {"mmbiz.qlogo.cn", "mmbiz.qpic.cn", "mpvideo.qpic.cn"}
 _BLOCKQUOTE_PREFIX_RE = re.compile(r"[ \t]{0,3}>[ \t]?")
 _LIST_CONTAINER_RE = re.compile(r"[ \t]{0,3}(?:[-+*]|\d+[.)])[ \t]+$")
+_REFERENCE_DEFINITION_RE = re.compile(
+    r"(?m)^[ \t]{0,3}\[(?P<label>[^\]\r\n]+)\]:[ \t]*(?P<payload>[^\r\n]*)$"
+)
+_AUTOLINK_RE = re.compile(
+    r"<(?P<destination>(?:https?://|mailto:)[^<>\s]*)>",
+    re.IGNORECASE,
+)
+_RELATIVE_PATH_PREFIX_RE = re.compile(r"^(?:(?:\.\.?/)|/)+")
 
 
 @dataclass(frozen=True)
@@ -70,12 +78,26 @@ class _MarkdownDestination:
     payload_end: int
 
 
+@dataclass(frozen=True)
+class _ReferenceDefinition:
+    destination: str
+
+
 def scan_markdown_quality(markdown: str) -> list[str]:
     fenced_segments = _split_fenced_segments(markdown)
     code_fences = _parse_code_fences(fenced_segments)
     prose_markdown = _without_inline_code(_without_fenced_code(markdown, segments=fenced_segments))
-    destinations = list(_iter_markdown_destinations(prose_markdown))
-    masked_destination_markdown = _mask_markdown_destination_payloads(prose_markdown, destinations)
+    reference_definitions, reference_definition_spans = _parse_reference_definitions(prose_markdown)
+    destinations = list(_iter_markdown_destinations(prose_markdown, reference_definitions))
+    masked_destination_markdown = _mask_markdown_destination_payloads(
+        prose_markdown,
+        destinations,
+        extra_spans=reference_definition_spans
+        + [
+            (match.start("destination"), match.end("destination"))
+            for match in _AUTOLINK_RE.finditer(prose_markdown)
+        ],
+    )
     checks = {
         "empty_code_fence": _has_empty_code_fence(code_fences),
         "image_used_as_heading": bool(
@@ -428,38 +450,176 @@ def _is_punctuation(value: str) -> bool:
     return bool(value) and unicodedata.category(value).startswith("P")
 
 
-def _iter_markdown_destinations(markdown: str) -> Iterator[_MarkdownDestination]:
+def _iter_markdown_destinations(
+    markdown: str,
+    reference_definitions: dict[str, _ReferenceDefinition],
+) -> Iterator[_MarkdownDestination]:
     label_ends = _build_markdown_label_ends(markdown)
-    position = 0
-    while position < len(markdown):
-        if markdown.startswith("![", position):
-            is_image = True
-            label_start = position + 1
-        elif markdown[position] == "[" and (position == 0 or markdown[position - 1] != "!"):
-            is_image = False
-            label_start = position
-        else:
-            position += 1
-            continue
+    ranges = [(0, len(markdown))]
 
-        label_end = label_ends.get(label_start)
-        if label_end is None or label_end + 1 >= len(markdown) or markdown[label_end + 1] != "(":
-            position = label_start + 1
+    while ranges:
+        position, range_end = ranges.pop()
+        while position < range_end:
+            if markdown.startswith("![", position):
+                is_image = True
+                label_start = position + 1
+            elif markdown[position] == "[" and (position == 0 or markdown[position - 1] != "!"):
+                is_image = False
+                label_start = position
+            else:
+                position += 1
+                continue
+
+            label_end = label_ends.get(label_start)
+            if label_end is None or label_end >= range_end:
+                position = label_start + 1
+                continue
+            if _is_reference_definition_label(markdown, label_start, label_end):
+                position = label_end + 1
+                continue
+
+            destination: str | None = None
+            payload_start = 0
+            payload_end = 0
+            continuation_start = label_end + 1
+            if continuation_start < range_end and markdown[continuation_start] == "(":
+                payload_start = continuation_start + 1
+                payload = _parse_markdown_destination_payload(markdown, payload_start)
+                if payload is None:
+                    next_line = markdown.find("\n", payload_start, range_end)
+                    continuation_start = range_end if next_line < 0 else next_line + 1
+                    ranges.append((continuation_start, range_end))
+                    ranges.append((label_start + 1, label_end))
+                    break
+                destination, payload_end = payload
+                continuation_start = payload_end + 1
+            else:
+                reference = _resolve_reference_destination(
+                    markdown,
+                    label_start,
+                    label_end,
+                    range_end,
+                    label_ends,
+                    reference_definitions,
+                )
+                if reference is None:
+                    position = label_start + 1
+                    continue
+                definition, continuation_start = reference
+                destination = definition.destination
+
+            yield _MarkdownDestination(
+                is_image=is_image,
+                destination=destination,
+                payload_start=payload_start,
+                payload_end=payload_end,
+            )
+            ranges.append((continuation_start, range_end))
+            ranges.append((label_start + 1, label_end))
+            break
+
+
+def _resolve_reference_destination(
+    markdown: str,
+    label_start: int,
+    label_end: int,
+    range_end: int,
+    label_ends: dict[int, int],
+    reference_definitions: dict[str, _ReferenceDefinition],
+) -> tuple[_ReferenceDefinition, int] | None:
+    visible_label = markdown[label_start + 1 : label_end]
+    continuation_start = label_end + 1
+    reference_label = visible_label
+    if continuation_start < range_end and markdown[continuation_start] == "[":
+        reference_end = label_ends.get(continuation_start)
+        if reference_end is None or reference_end >= range_end:
+            return None
+        explicit_label = markdown[continuation_start + 1 : reference_end]
+        reference_label = explicit_label or visible_label
+        continuation_start = reference_end + 1
+    normalized_label = _normalize_reference_label(reference_label)
+    definition = reference_definitions.get(normalized_label)
+    if definition is None:
+        return None
+    return definition, continuation_start
+
+
+def _is_reference_definition_label(
+    markdown: str,
+    label_start: int,
+    label_end: int,
+) -> bool:
+    if label_end + 1 >= len(markdown) or markdown[label_end + 1] != ":":
+        return False
+    line_start = markdown.rfind("\n", 0, label_start) + 1
+    indentation = markdown[line_start:label_start]
+    return len(indentation) <= 3 and not indentation.strip(" \t")
+
+
+def _parse_reference_definitions(
+    markdown: str,
+) -> tuple[dict[str, _ReferenceDefinition], list[tuple[int, int]]]:
+    definitions: dict[str, _ReferenceDefinition] = {}
+    payload_spans: list[tuple[int, int]] = []
+    for match in _REFERENCE_DEFINITION_RE.finditer(markdown):
+        normalized_label = _normalize_reference_label(match.group("label"))
+        if not normalized_label:
             continue
-        payload_start = label_end + 2
-        payload = _parse_markdown_destination_payload(markdown, payload_start)
-        if payload is None:
-            next_line = markdown.find("\n", payload_start)
-            position = len(markdown) if next_line < 0 else next_line + 1
-            continue
-        destination, payload_end = payload
-        yield _MarkdownDestination(
-            is_image=is_image,
-            destination=destination,
-            payload_start=payload_start,
-            payload_end=payload_end,
+        parsed = _parse_reference_definition_payload(
+            markdown,
+            match.start("payload"),
+            match.end("payload"),
         )
-        position = payload_end + 1
+        if parsed is None:
+            continue
+        destination, destination_start = parsed
+        payload_end = match.end("payload")
+        payload_spans.append((destination_start, payload_end))
+        definitions.setdefault(
+            normalized_label,
+            _ReferenceDefinition(
+                destination=destination,
+            ),
+        )
+    return definitions, payload_spans
+
+
+def _parse_reference_definition_payload(
+    markdown: str,
+    payload_start: int,
+    payload_end: int,
+) -> tuple[str, int] | None:
+    position = payload_start
+    while position < payload_end and markdown[position] in " \t":
+        position += 1
+    if position >= payload_end:
+        return None
+    if markdown[position] == "<":
+        destination_start = position + 1
+        closing = markdown.find(">", destination_start, payload_end)
+        if closing < 0:
+            return None
+        return markdown[destination_start:closing], position
+
+    destination_start = position
+    parenthesis_depth = 0
+    while position < payload_end:
+        character = markdown[position]
+        if character == "\\":
+            position += 2
+            continue
+        if character == "(":
+            parenthesis_depth += 1
+        elif character == ")" and parenthesis_depth:
+            parenthesis_depth -= 1
+        elif character in " \t" and not parenthesis_depth:
+            break
+        position += 1
+    return markdown[destination_start:position], destination_start
+
+
+def _normalize_reference_label(label: str) -> str:
+    return re.sub(r"\s+", " ", label.strip()).casefold()
 
 
 def _build_markdown_label_ends(markdown: str) -> dict[int, int]:
@@ -482,15 +642,15 @@ def _parse_markdown_destination_payload(
     markdown: str,
     payload_start: int,
 ) -> tuple[str, int] | None:
+    if payload_start >= len(markdown):
+        return None
+    if markdown[payload_start] == ")":
+        return "", payload_start
     position = _skip_markdown_whitespace(markdown, payload_start)
-    has_leading_whitespace = position > payload_start
     if position >= len(markdown):
         return None
     if markdown[position] == ")":
-        return "", position
-    if has_leading_whitespace and markdown[position] in "\"'(":
-        title_end = _parse_markdown_title(markdown, position)
-        return _finish_markdown_destination(markdown, "", title_end)
+        return None
 
     if markdown[position] == "<":
         destination_start = position + 1
@@ -578,10 +738,18 @@ def _skip_markdown_whitespace(markdown: str, position: int) -> int:
 def _mask_markdown_destination_payloads(
     markdown: str,
     destinations: list[_MarkdownDestination],
+    *,
+    extra_spans: list[tuple[int, int]] | None = None,
 ) -> str:
     characters = list(markdown)
-    for item in destinations:
-        for position in range(item.payload_start, item.payload_end):
+    spans = [
+        (item.payload_start, item.payload_end)
+        for item in destinations
+        if item.payload_end > item.payload_start
+    ]
+    spans.extend(extra_spans or [])
+    for start, end in spans:
+        for position in range(start, end):
             if characters[position] not in "\r\n":
                 characters[position] = " "
     return "".join(characters)
@@ -594,13 +762,9 @@ def _is_relative_local_video(destination: str) -> bool:
     if parsed.scheme or parsed.netloc:
         return False
     path = re.split(r"[?#]", destination, maxsplit=1)[0].lower()
-    while path.startswith(("/", "./", "../")):
-        if path.startswith("../"):
-            path = path[3:]
-        elif path.startswith("./"):
-            path = path[2:]
-        else:
-            path = path[1:]
+    prefix = _RELATIVE_PATH_PREFIX_RE.match(path)
+    if prefix:
+        path = path[prefix.end() :]
     if not path.startswith("videos/"):
         return False
     return any(path.endswith(extension) for extension in _VIDEO_EXTENSIONS)
