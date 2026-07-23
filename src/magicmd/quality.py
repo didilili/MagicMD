@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import re
+import string
 import unicodedata
 from collections.abc import Iterator
 from dataclasses import dataclass
@@ -60,9 +61,6 @@ _VIDEO_EXTENSIONS = {".avi", ".m4v", ".mkv", ".mov", ".mp4", ".mpeg", ".mpg", ".
 _WECHAT_IMAGE_HOSTS = {"mmbiz.qlogo.cn", "mmbiz.qpic.cn", "mpvideo.qpic.cn"}
 _BLOCKQUOTE_PREFIX_RE = re.compile(r"[ \t]{0,3}>[ \t]?")
 _LIST_CONTAINER_RE = re.compile(r"[ \t]{0,3}(?:[-+*]|\d+[.)])[ \t]+$")
-_REFERENCE_LABEL_RE = re.compile(
-    r"^[ \t]{0,3}\[(?P<label>[^\]\r\n]+)\]:[ \t]*(?P<payload>[^\r\n]*)$"
-)
 _AUTOLINK_RE = re.compile(
     r"<(?P<destination>(?:"
     r"[A-Za-z][A-Za-z0-9+.-]{1,31}:[^<>\x00-\x20]*|"
@@ -581,16 +579,16 @@ def _parse_reference_definitions(
     lines = _build_reference_lines(markdown)
 
     for index, line in enumerate(lines):
-        match = _REFERENCE_LABEL_RE.fullmatch(line.text)
-        if not match:
+        parsed_label = _parse_reference_definition_label(line)
+        if parsed_label is None:
             continue
-        definition_label_starts.add(line.content_start + match.start("label") - 1)
-        normalized_label = _normalize_reference_label(match.group("label"))
+        raw_label, label_start, payload_start = parsed_label
+        definition_label_starts.add(label_start)
+        normalized_label = _normalize_reference_label(raw_label)
         if not normalized_label:
             continue
-        payload_start = line.content_start + match.start("payload")
         payload_end = line.content_end
-        if not match.group("payload").strip():
+        if not markdown[payload_start:payload_end].strip():
             continuation = _reference_definition_continuation(lines, index)
             if continuation is None:
                 continue
@@ -611,6 +609,52 @@ def _parse_reference_definitions(
             ),
         )
     return definitions, payload_spans, definition_label_starts
+
+
+def _parse_reference_definition_label(
+    line: _ReferenceLine,
+) -> tuple[str, int, int] | None:
+    position, indentation = _markdown_indentation(line.text)
+    if indentation > 3 or position >= len(line.text):
+        return None
+    if line.text[position] != "[":
+        return None
+    label_start = position
+    position += 1
+    label_content_start = position
+    while position < len(line.text):
+        if line.text[position] == "\\" and position + 1 < len(line.text):
+            position += 2
+            continue
+        if line.text[position] == "]":
+            break
+        position += 1
+    if position >= len(line.text) or position == label_content_start:
+        return None
+    raw_label = line.text[label_content_start:position]
+    position += 1
+    if position >= len(line.text) or line.text[position] != ":":
+        return None
+    position += 1
+    while position < len(line.text) and line.text[position] in " \t":
+        position += 1
+    return (
+        raw_label,
+        line.content_start + label_start,
+        line.content_start + position,
+    )
+
+
+def _markdown_indentation(value: str) -> tuple[int, int]:
+    position = 0
+    columns = 0
+    while position < len(value) and value[position] in " \t":
+        if value[position] == "\t":
+            columns += 4 - (columns % 4)
+        else:
+            columns += 1
+        position += 1
+    return position, columns
 
 
 def _build_reference_lines(markdown: str) -> list[_ReferenceLine]:
@@ -644,19 +688,9 @@ def _reference_definition_continuation(
         return None
     definition_line = lines[definition_index]
     continuation = lines[continuation_index]
-    if continuation.blockquote_depth != definition_line.blockquote_depth:
+    if continuation.blockquote_depth > definition_line.blockquote_depth:
         return None
-    indentation_text = continuation.text[
-        : len(continuation.text) - len(continuation.text.lstrip(" \t"))
-    ]
-    indentation = 0
-    for character in indentation_text:
-        indentation += 4 - (indentation % 4) if character == "\t" else 1
-    if (
-        not continuation.text.strip()
-        or indentation > 3
-        or (not definition_line.blockquote_depth and not indentation)
-    ):
+    if not continuation.text.strip():
         return None
     return continuation.content_start, continuation.content_end
 
@@ -696,7 +730,18 @@ def _parse_reference_definition_payload(
 
 
 def _normalize_reference_label(label: str) -> str:
-    return re.sub(r"\s+", " ", label.strip()).casefold()
+    unescaped: list[str] = []
+    position = 0
+    while position < len(label):
+        if (
+            label[position] == "\\"
+            and position + 1 < len(label)
+            and label[position + 1] in string.punctuation
+        ):
+            position += 1
+        unescaped.append(label[position])
+        position += 1
+    return re.sub(r"\s+", " ", "".join(unescaped).strip()).casefold()
 
 
 def _build_markdown_label_ends(markdown: str) -> dict[int, int]:

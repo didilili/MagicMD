@@ -464,11 +464,35 @@ def test_scan_markdown_quality_skips_each_malformed_link_payload_once(monkeypatc
             "external_media_not_rewritten",
         ),
         (
+            "![图][img]\n\n   [img]: //mmbiz.qpic.cn/three-spaces.png",
+            "external_media_not_rewritten",
+        ),
+        (
             "[观看][vid]\n\n[vid]:\n  ../videos/demo.mp4",
             "relative_local_video",
         ),
         (
             "[观看][vid]\n\n> > [vid]:\n> >   ../VIDEOS/demo.MP4",
+            "relative_local_video",
+        ),
+        (
+            "![图][img]\n\n[img]:\n//mmbiz.qpic.cn/zero-indent.png",
+            "external_media_not_rewritten",
+        ),
+        (
+            "![图][img]\n\n[img]:\n    //mmbiz.qpic.cn/four-spaces.png",
+            "external_media_not_rewritten",
+        ),
+        (
+            "[观看][vid]\n\n[vid]:\n\t../videos/tab-demo.mp4",
+            "relative_local_video",
+        ),
+        (
+            "![图][img]\n\n> [img]:\n//mmbiz.qpic.cn/lazy.png",
+            "external_media_not_rewritten",
+        ),
+        (
+            "[观看][vid]\n\n> > [vid]:\n../videos/lazy-demo.mp4",
             "relative_local_video",
         ),
     ],
@@ -496,10 +520,8 @@ def test_scan_markdown_quality_masks_continued_definition_destinations(markdown)
     "markdown",
     [
         "> [unused]: //mmbiz.qpic.cn/unused.png",
-        "![图][img]\n\n[img]:\n//mmbiz.qpic.cn/not-indented.png",
-        "![图][img]\n\n[img]:\n    //mmbiz.qpic.cn/code-block.png",
-        "![图][img]\n\n[img]:\n\t//mmbiz.qpic.cn/tab-code-block.png",
-        "![图][img]\n\n> [img]:\n  //mmbiz.qpic.cn/wrong-container.png",
+        "![图][img]\n\n\t[img]: //mmbiz.qpic.cn/tab-start.png",
+        "![图][img]\n\n    [img]: //mmbiz.qpic.cn/four-space-start.png",
     ],
 )
 def test_scan_markdown_quality_ignores_unused_or_invalid_container_definitions(
@@ -508,6 +530,19 @@ def test_scan_markdown_quality_ignores_unused_or_invalid_container_definitions(
     issues = scan_markdown_quality(markdown)
 
     assert "external_media_not_rewritten" not in issues
+
+
+@pytest.mark.parametrize(
+    "markdown",
+    [
+        "![图][a\\]b]\n\n[a\\]b]: //mmbiz.qpic.cn/escaped-label.png",
+        ("![图][A\\]   B]\n\n[a\\] b]: //mmbiz.qpic.cn/normalized-label.png"),
+    ],
+)
+def test_scan_markdown_quality_resolves_escaped_reference_labels(markdown):
+    issues = scan_markdown_quality(markdown)
+
+    assert "external_media_not_rewritten" in issues
 
 
 def test_build_package_quality_reads_metadata_and_article(tmp_path: Path):
