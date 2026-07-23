@@ -360,12 +360,21 @@ def test_scan_markdown_quality_does_not_infer_title_only_image_as_empty():
         "[ref]: https://example.com/**/b",
         ("[ref]: https://example.com/first\n[REF]: https://example.com/**/duplicate"),
         "<https://example.com/**/b>",
+        "<ftp://example.com/**/b>",
+        "<git+ssh://example.com/**/repo>",
+        "<user**tag@example.com>",
     ],
 )
 def test_scan_markdown_quality_masks_reference_definitions_and_autolinks(markdown):
     issues = scan_markdown_quality(markdown)
 
     assert "unbalanced_emphasis_marker" not in issues
+
+
+def test_scan_markdown_quality_does_not_mask_ordinary_angle_text():
+    issues = scan_markdown_quality("<普通 **未闭合>")
+
+    assert "unbalanced_emphasis_marker" in issues
 
 
 @pytest.mark.parametrize(
@@ -441,6 +450,64 @@ def test_scan_markdown_quality_skips_each_malformed_link_payload_once(monkeypatc
     scan_markdown_quality("[x](" * 1_000)
 
     assert parse_calls == 1
+
+
+@pytest.mark.parametrize(
+    ("markdown", "expected_issue"),
+    [
+        (
+            "![图][img]\n\n> [img]: //mmbiz.qpic.cn/blockquote.png",
+            "external_media_not_rewritten",
+        ),
+        (
+            "![图][img]\n\n> > [img]: //mmbiz.qpic.cn/nested.png",
+            "external_media_not_rewritten",
+        ),
+        (
+            "[观看][vid]\n\n[vid]:\n  ../videos/demo.mp4",
+            "relative_local_video",
+        ),
+        (
+            "[观看][vid]\n\n> > [vid]:\n> >   ../VIDEOS/demo.MP4",
+            "relative_local_video",
+        ),
+    ],
+)
+def test_scan_markdown_quality_resolves_container_reference_definitions(markdown, expected_issue):
+    issues = scan_markdown_quality(markdown)
+
+    assert expected_issue in issues
+
+
+@pytest.mark.parametrize(
+    "markdown",
+    [
+        "[ref]:\n  https://example.com/**/continued",
+        "> [ref]:\n>   https://example.com/**/blockquote",
+    ],
+)
+def test_scan_markdown_quality_masks_continued_definition_destinations(markdown):
+    issues = scan_markdown_quality(markdown)
+
+    assert "unbalanced_emphasis_marker" not in issues
+
+
+@pytest.mark.parametrize(
+    "markdown",
+    [
+        "> [unused]: //mmbiz.qpic.cn/unused.png",
+        "![图][img]\n\n[img]:\n//mmbiz.qpic.cn/not-indented.png",
+        "![图][img]\n\n[img]:\n    //mmbiz.qpic.cn/code-block.png",
+        "![图][img]\n\n[img]:\n\t//mmbiz.qpic.cn/tab-code-block.png",
+        "![图][img]\n\n> [img]:\n  //mmbiz.qpic.cn/wrong-container.png",
+    ],
+)
+def test_scan_markdown_quality_ignores_unused_or_invalid_container_definitions(
+    markdown,
+):
+    issues = scan_markdown_quality(markdown)
+
+    assert "external_media_not_rewritten" not in issues
 
 
 def test_build_package_quality_reads_metadata_and_article(tmp_path: Path):

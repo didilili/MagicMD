@@ -60,11 +60,16 @@ _VIDEO_EXTENSIONS = {".avi", ".m4v", ".mkv", ".mov", ".mp4", ".mpeg", ".mpg", ".
 _WECHAT_IMAGE_HOSTS = {"mmbiz.qlogo.cn", "mmbiz.qpic.cn", "mpvideo.qpic.cn"}
 _BLOCKQUOTE_PREFIX_RE = re.compile(r"[ \t]{0,3}>[ \t]?")
 _LIST_CONTAINER_RE = re.compile(r"[ \t]{0,3}(?:[-+*]|\d+[.)])[ \t]+$")
-_REFERENCE_DEFINITION_RE = re.compile(
-    r"(?m)^[ \t]{0,3}\[(?P<label>[^\]\r\n]+)\]:[ \t]*(?P<payload>[^\r\n]*)$"
+_REFERENCE_LABEL_RE = re.compile(
+    r"^[ \t]{0,3}\[(?P<label>[^\]\r\n]+)\]:[ \t]*(?P<payload>[^\r\n]*)$"
 )
 _AUTOLINK_RE = re.compile(
-    r"<(?P<destination>(?:https?://|mailto:)[^<>\s]*)>",
+    r"<(?P<destination>(?:"
+    r"[A-Za-z][A-Za-z0-9+.-]{1,31}:[^<>\x00-\x20]*|"
+    r"[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@"
+    r"[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?"
+    r"(?:\.[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?)+"
+    r"))>",
     re.IGNORECASE,
 )
 _RELATIVE_PATH_PREFIX_RE = re.compile(r"^(?:(?:\.\.?/)|/)+")
@@ -83,12 +88,30 @@ class _ReferenceDefinition:
     destination: str
 
 
+@dataclass(frozen=True)
+class _ReferenceLine:
+    text: str
+    content_start: int
+    content_end: int
+    blockquote_depth: int
+
+
 def scan_markdown_quality(markdown: str) -> list[str]:
     fenced_segments = _split_fenced_segments(markdown)
     code_fences = _parse_code_fences(fenced_segments)
     prose_markdown = _without_inline_code(_without_fenced_code(markdown, segments=fenced_segments))
-    reference_definitions, reference_definition_spans = _parse_reference_definitions(prose_markdown)
-    destinations = list(_iter_markdown_destinations(prose_markdown, reference_definitions))
+    (
+        reference_definitions,
+        reference_definition_spans,
+        reference_definition_label_starts,
+    ) = _parse_reference_definitions(prose_markdown)
+    destinations = list(
+        _iter_markdown_destinations(
+            prose_markdown,
+            reference_definitions,
+            reference_definition_label_starts,
+        )
+    )
     masked_destination_markdown = _mask_markdown_destination_payloads(
         prose_markdown,
         destinations,
@@ -453,6 +476,7 @@ def _is_punctuation(value: str) -> bool:
 def _iter_markdown_destinations(
     markdown: str,
     reference_definitions: dict[str, _ReferenceDefinition],
+    reference_definition_label_starts: set[int],
 ) -> Iterator[_MarkdownDestination]:
     label_ends = _build_markdown_label_ends(markdown)
     ranges = [(0, len(markdown))]
@@ -474,7 +498,7 @@ def _iter_markdown_destinations(
             if label_end is None or label_end >= range_end:
                 position = label_start + 1
                 continue
-            if _is_reference_definition_label(markdown, label_start, label_end):
+            if label_start in reference_definition_label_starts:
                 position = label_end + 1
                 continue
 
@@ -544,36 +568,41 @@ def _resolve_reference_destination(
     return definition, continuation_start
 
 
-def _is_reference_definition_label(
-    markdown: str,
-    label_start: int,
-    label_end: int,
-) -> bool:
-    if label_end + 1 >= len(markdown) or markdown[label_end + 1] != ":":
-        return False
-    line_start = markdown.rfind("\n", 0, label_start) + 1
-    indentation = markdown[line_start:label_start]
-    return len(indentation) <= 3 and not indentation.strip(" \t")
-
-
 def _parse_reference_definitions(
     markdown: str,
-) -> tuple[dict[str, _ReferenceDefinition], list[tuple[int, int]]]:
+) -> tuple[
+    dict[str, _ReferenceDefinition],
+    list[tuple[int, int]],
+    set[int],
+]:
     definitions: dict[str, _ReferenceDefinition] = {}
     payload_spans: list[tuple[int, int]] = []
-    for match in _REFERENCE_DEFINITION_RE.finditer(markdown):
+    definition_label_starts: set[int] = set()
+    lines = _build_reference_lines(markdown)
+
+    for index, line in enumerate(lines):
+        match = _REFERENCE_LABEL_RE.fullmatch(line.text)
+        if not match:
+            continue
+        definition_label_starts.add(line.content_start + match.start("label") - 1)
         normalized_label = _normalize_reference_label(match.group("label"))
         if not normalized_label:
             continue
+        payload_start = line.content_start + match.start("payload")
+        payload_end = line.content_end
+        if not match.group("payload").strip():
+            continuation = _reference_definition_continuation(lines, index)
+            if continuation is None:
+                continue
+            payload_start, payload_end = continuation
         parsed = _parse_reference_definition_payload(
             markdown,
-            match.start("payload"),
-            match.end("payload"),
+            payload_start,
+            payload_end,
         )
         if parsed is None:
             continue
         destination, destination_start = parsed
-        payload_end = match.end("payload")
         payload_spans.append((destination_start, payload_end))
         definitions.setdefault(
             normalized_label,
@@ -581,7 +610,55 @@ def _parse_reference_definitions(
                 destination=destination,
             ),
         )
-    return definitions, payload_spans
+    return definitions, payload_spans, definition_label_starts
+
+
+def _build_reference_lines(markdown: str) -> list[_ReferenceLine]:
+    lines: list[_ReferenceLine] = []
+    offset = 0
+    for raw_line in markdown.splitlines(keepends=True):
+        line_text = raw_line.rstrip("\r\n")
+        content_position = 0
+        blockquote_depth = 0
+        while match := _BLOCKQUOTE_PREFIX_RE.match(line_text, content_position):
+            blockquote_depth += 1
+            content_position = match.end()
+        lines.append(
+            _ReferenceLine(
+                text=line_text[content_position:],
+                content_start=offset + content_position,
+                content_end=offset + len(line_text),
+                blockquote_depth=blockquote_depth,
+            )
+        )
+        offset += len(raw_line)
+    return lines
+
+
+def _reference_definition_continuation(
+    lines: list[_ReferenceLine],
+    definition_index: int,
+) -> tuple[int, int] | None:
+    continuation_index = definition_index + 1
+    if continuation_index >= len(lines):
+        return None
+    definition_line = lines[definition_index]
+    continuation = lines[continuation_index]
+    if continuation.blockquote_depth != definition_line.blockquote_depth:
+        return None
+    indentation_text = continuation.text[
+        : len(continuation.text) - len(continuation.text.lstrip(" \t"))
+    ]
+    indentation = 0
+    for character in indentation_text:
+        indentation += 4 - (indentation % 4) if character == "\t" else 1
+    if (
+        not continuation.text.strip()
+        or indentation > 3
+        or (not definition_line.blockquote_depth and not indentation)
+    ):
+        return None
+    return continuation.content_start, continuation.content_end
 
 
 def _parse_reference_definition_payload(
