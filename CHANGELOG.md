@@ -2,13 +2,25 @@
 
 ## Unreleased
 
+## v0.7.2 - 2026-07-25
+
 ### 中文
 
-- 修复 npm wrapper 和 `uvx --from magicmd` 可能解析到不兼容 Playwright 版本的问题；npm wrapper 现在固定请求同版本 Python 包，并在 Windows 上正确调用 `uvx.exe`，发布元数据将 Playwright 约束在与当前 Camoufox 0.4.11 已验证兼容的 1.60 版本线。
-- 新增真实 Camoufox `Browser.new_page()` 冒烟测试入口，用于发布前验证浏览器协议兼容性。
+- 新增 `ConvertedVideo` 和 `ArticleConversionResult.videos`，SDK 现在会返回视频来源、Markdown 路径、本地文件路径和扩展名，方便业务系统明确选择归档或不归档视频。
+- 加固视频下载重试、重复来源复用、路径冲突检测和内容包目录边界，避免覆盖已有视频或返回越界文件路径。
+- 系统化修复采集 Markdown 中的加粗边界、游离强调符号、空图片、图片外层强调、转义加粗、裸链接和仅地址代码块等格式问题。
+- Markdown 修复会保护行内代码、围栏代码块、嵌套容器、带括号的图片地址与标题以及引用式链接，减少格式清理对原文语义的误伤。
+- 扩展质量扫描，识别相对本地视频、失效图片、标题层级跳跃、异常代码语言、外部微信媒体未重写等采集缺陷，并支持安全、幂等的 `repair_markdown_quality()`。
+- 修复 npm wrapper 和 `uvx --from magicmd` 可能解析到不兼容 Playwright 版本的问题；npm wrapper 固定请求同版本 Python 包，并在 Windows 上正确调用 `uvx.exe`，发布元数据将 Playwright 约束在与 Camoufox 0.4.11 已验证兼容的 1.60 版本线。
+- 新增可选的真实 Camoufox `Browser.new_page()` 冒烟测试入口，用于发布前验证浏览器协议兼容性。
 
 ### English
 
+- Added `ConvertedVideo` and `ArticleConversionResult.videos`, exposing each video's source URL, Markdown path, local path, and extension so SDK consumers can explicitly choose whether to archive video files.
+- Hardened video retry behavior, duplicate-source reuse, path-collision detection, and package-root containment to avoid overwriting existing videos or returning paths outside the generated package.
+- Systematically repaired collected Markdown defects involving strong boundaries, orphan emphasis markers, empty images, emphasized images, escaped strong markers, bare URLs, and address-only code fences.
+- Protected inline code, fenced code blocks, nested containers, parenthesized image destinations and titles, and reference-style links from destructive cleanup.
+- Expanded quality scanning for relative local videos, broken images, heading-level jumps, suspicious code languages, unreplaced external WeChat media, and other ingestion defects, with safe and idempotent `repair_markdown_quality()` support.
 - Fixed npm wrapper and `uvx --from magicmd` installs resolving an incompatible Playwright version; the npm wrapper now requests the same-version Python package and correctly invokes `uvx.exe` on Windows, while published metadata constrains Playwright to the 1.60 line verified with current Camoufox 0.4.11.
 - Added an opt-in real Camoufox `Browser.new_page()` smoke test for pre-release browser-protocol verification.
 
