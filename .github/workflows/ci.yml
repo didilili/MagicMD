@@ -5,6 +5,41 @@ on:
   pull_request:
 
 jobs:
+  commitlint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          package-manager-cache: false
+
+      - name: Install commitlint
+        run: npm ci --ignore-scripts
+
+      - name: Test commitlint rules
+        run: npm run test:commitlint
+
+      - name: Lint commit messages
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BEFORE_SHA: ${{ github.event.before }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          if [[ "$EVENT_NAME" == "pull_request" ]]; then
+            npx --no -- commitlint --from "$BASE_SHA" --to "$HEAD_SHA" --verbose
+          elif [[ "$BEFORE_SHA" =~ ^0+$ ]]; then
+            npx --no -- commitlint --last --verbose
+          else
+            npx --no -- commitlint --from "$BEFORE_SHA" --to "$HEAD_SHA" --verbose
+          fi
+
   test:
     runs-on: ubuntu-latest
 

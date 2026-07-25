@@ -3,6 +3,8 @@
   "private": true,
   "scripts": {
     "prepare": "husky",
+    "test:commitlint": "node tests/commitlint.cjs",
+    "lint:commit": "commitlint --last --verbose",
     "format": "npm run format:python && npm run format:web",
     "format:python": "uv run ruff format .",
     "format:web": "prettier --write .",
