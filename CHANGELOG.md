@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+## v0.7.3 - 2026-07-29
+
+### 中文
+
+- 修复微信公众号正文使用视觉上为普通段落的 `h1` 标签时被错误写入文章目录的问题；MagicMD 现在会根据正文字号、字重和颜色还原这类段落，同时保留真正的一级标题及其层级。
+- 修复图片夹在相邻加粗文本之间时强调边界被破坏的问题，并清理独立的 `**` 标记。
+- 修复合法行内代码触发加粗边界或强调符号质量误报的问题。
+
+### English
+
+- Fixed WeChat body paragraphs encoded as visually plain `h1` elements being added to the article table of contents. MagicMD now restores those elements to paragraphs based on body typography while preserving genuine first-level headings and their hierarchy.
+- Preserved emphasis boundaries when images appear between adjacent strong spans and removed standalone `**` markers.
+- Prevented valid inline code from triggering false strong-boundary or emphasis-marker quality issues.
+
 ## v0.7.2 - 2026-07-25
 
 ### 中文
