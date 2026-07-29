@@ -309,6 +309,26 @@ def test_normalize_markdown_emphasis_removes_orphan_markers_around_images():
     assert normalized == "正文\n\n![Image](images/example.png)\n\n后文"
 
 
+def test_repair_markdown_quality_removes_standalone_orphan_strong_marker():
+    markdown = "前文\n\n**\n\n后文"
+
+    assert quality.repair_markdown_quality(markdown) == "前文\n\n后文"
+
+
+def test_repair_markdown_quality_preserves_images_between_adjacent_strong_spans():
+    markdown = (
+        "**光标美化**![Image](images/a.gif)**时间线编辑****![Image](images/b.png)**摄像头气泡**"
+    )
+
+    assert quality.repair_markdown_quality(markdown) == (
+        "**光标美化**\n\n"
+        "![Image](images/a.gif)\n\n"
+        "**时间线编辑**\n\n"
+        "![Image](images/b.png)\n\n"
+        "**摄像头气泡**"
+    )
+
+
 def test_normalize_markdown_emphasis_cleans_partial_image_and_redundant_markers():
     markdown = """
 **

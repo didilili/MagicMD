@@ -73,11 +73,36 @@ def _is_text_character(value: str) -> bool:
 
 
 def _strip_image_emphasis(md: str) -> str:
-    return re.sub(
-        rf"(?<!\*)\*{{1,3}}(?P<image>{_MARKDOWN_IMAGE_PATTERN})\*{{1,3}}(?!\*)",
-        r"\g<image>",
-        md,
-    )
+    pattern = re.compile(rf"(?<!\*)\*{{1,3}}(?P<image>{_MARKDOWN_IMAGE_PATTERN})\*{{1,3}}(?!\*)")
+
+    def strip_wrapper(match: re.Match[str]) -> str:
+        line_start = md.rfind("\n", 0, match.start()) + 1
+        if _has_unclosed_strong_marker(md[line_start : match.start()]):
+            return match.group(0)
+        return match.group("image")
+
+    return pattern.sub(strip_wrapper, md)
+
+
+def _has_unclosed_strong_marker(value: str) -> bool:
+    marker_count = 0
+    position = 0
+    while position < len(value):
+        if value[position] != "*":
+            position += 1
+            continue
+        run_end = position + 1
+        while run_end < len(value) and value[run_end] == "*":
+            run_end += 1
+        backslashes = 0
+        escape_position = position - 1
+        while escape_position >= 0 and value[escape_position] == "\\":
+            backslashes += 1
+            escape_position -= 1
+        if backslashes % 2 == 0:
+            marker_count += (run_end - position) // 2
+        position = run_end
+    return marker_count % 2 == 1
 
 
 def _normalize_bare_urls(md: str) -> str:
@@ -123,6 +148,11 @@ def _promote_numbered_markdown_headings(md: str) -> str:
 def _normalize_markdown_emphasis(md: str) -> str:
     md = _ORPHAN_IMAGE_EMPHASIS_RE.sub(r"\g<image>", md)
     md = _ORPHAN_IMAGE_PREFIX_RE.sub(r"\g<image>", md)
+    md = re.sub(
+        r"(?m)^[ \t]*\*\*[ \t]*$(?:\r?\n(?:[ \t]*\r?\n)?)?",
+        "",
+        md,
+    )
     previous = None
     while previous != md:
         previous = md
@@ -338,8 +368,8 @@ def repair_markdown_quality(md: str) -> str:
     md = md.replace("\u00a0", " ")
     md = _repair_paired_escaped_strong(md)
     md = _transform_prose(md, _strip_image_emphasis)
-    md = _transform_prose(md, _normalize_markdown_emphasis)
     md = _transform_prose(md, _separate_markdown_images)
+    md = _transform_prose(md, _normalize_markdown_emphasis)
     md = _transform_prose(
         md,
         lambda segment: re.sub(r"\n{4,}", "\n\n\n", segment),

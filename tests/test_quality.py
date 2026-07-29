@@ -240,6 +240,24 @@ def test_scan_markdown_quality_separates_removed_inline_code_from_url_neighbors(
     assert "broken_bare_url_boundary" not in issues
 
 
+def test_scan_markdown_quality_allows_inline_code_inside_strong_text():
+    markdown = "里面**每一个按钮的默认色都设成了 `bg-indigo-500`**（一种靛蓝色）。"
+
+    issues = scan_markdown_quality(markdown)
+
+    assert "broken_strong_boundary" not in issues
+    assert "unbalanced_emphasis_marker" not in issues
+
+
+def test_scan_markdown_quality_allows_inline_code_after_strong_text():
+    markdown = "**② 代理（Proxy）：**`headroom proxy --port 8787` 起一个本地代理。"
+
+    issues = scan_markdown_quality(markdown)
+
+    assert "broken_strong_boundary" not in issues
+    assert "unbalanced_emphasis_marker" not in issues
+
+
 @pytest.mark.parametrize(
     ("markdown", "expected_issue"),
     [

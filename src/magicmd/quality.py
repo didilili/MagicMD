@@ -408,7 +408,7 @@ def _has_heading_level_jump(markdown: str) -> bool:
 
 
 def _without_inline_code(markdown: str) -> str:
-    return re.sub(r"(`+)([^\n]*?)\1", " ", markdown)
+    return re.sub(r"(`+)([^\n]*?)\1", "\u2024", markdown)
 
 
 def _has_unbalanced_emphasis_marker(markdown: str) -> bool:
