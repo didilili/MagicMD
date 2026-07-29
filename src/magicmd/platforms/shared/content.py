@@ -274,11 +274,29 @@ def _normalize_non_code_pre(content_el: Tag) -> None:
         pre.name = "section"
 
 
+def _h1_uses_body_text_style(tag: Tag) -> bool:
+    styled_elements = [*tag.find_all(["span", "strong", "em"]), tag]
+    for element in styled_elements:
+        if not normalize_text(element.get_text(" ", strip=True)):
+            continue
+        style = element.get("style", "")
+        font_size = _style_font_size(style)
+        if not font_size:
+            continue
+        color = _style_value(style, "color")
+        return (
+            font_size <= 16 and not _is_bold_style(style) and (not color or _is_body_color(color))
+        )
+    return False
+
+
 def _is_layout_heading(tag: Tag) -> bool:
-    if tag.name not in {"h2", "h3", "h4", "h5", "h6"}:
+    if tag.name not in {"h1", "h2", "h3", "h4", "h5", "h6"}:
         return False
     if tag.find("img"):
         return True
+    if tag.name == "h1":
+        return _h1_uses_body_text_style(tag)
 
     style = tag.get("style", "")
     font_size = _style_font_size(style)
@@ -305,7 +323,7 @@ def _is_layout_heading(tag: Tag) -> bool:
 
 
 def _normalize_layout_headings(content_el: Tag) -> None:
-    for tag in content_el.find_all(["h2", "h3", "h4", "h5", "h6"]):
+    for tag in content_el.find_all(["h1", "h2", "h3", "h4", "h5", "h6"]):
         if _is_layout_heading(tag):
             tag.name = "p"
 

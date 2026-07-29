@@ -573,6 +573,29 @@ def test_parse_wechat_html_narrows_block_link_to_colored_span():
     assert "。平台将按照规范限制。" in article.content_markdown
 
 
+def test_parse_wechat_html_treats_visually_plain_body_h1_as_paragraph():
+    html = """
+    <html><body>
+      <h1 id="activity-name">正文一级标签文章</h1>
+      <div id="js_content">
+        <h1 style="margin-left: 8px; margin-right: 8px; line-height: 2em;">
+          <span style="color: rgba(0, 0, 0, 0.9); font-size: 14px; font-weight: normal;">
+            这是一段普通正文。
+          </span>
+        </h1>
+        <h1><span style="font-size: 24px; font-weight: bold;">真正的一级标题</span></h1>
+        <h2>真正的二级标题</h2>
+      </div>
+    </body></html>
+    """
+
+    article = parse_wechat_html(html, "https://mp.weixin.qq.com/s/plain-body-h1")
+
+    assert article.content_markdown == (
+        "这是一段普通正文。\n\n## 真正的一级标题\n\n### 真正的二级标题"
+    )
+
+
 def test_parse_wechat_html_keeps_images_wrapped_in_layout_headings():
     html = """
     <html><body>
