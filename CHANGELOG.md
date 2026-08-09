@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+## v0.7.4 - 2026-08-09
+
+### 中文
+
+- 修复文章正文标题层级跳跃的问题；当源 HTML 从 `h2` 直接跳到 `h4`、`h5` 等更深层级时，MagicMD 现在会保留原有父子关系并压平缺失层级，生成连续的 Markdown 标题结构。
+- 增加微信公众号标题断层回归测试，覆盖子标题、孙级标题、同级标题和返回较浅层级的组合。
+
+### English
+
+- Fixed skipped heading levels in article bodies. When source HTML jumps directly from `h2` to `h4`, `h5`, or deeper levels, MagicMD now preserves the original parent-child relationships while producing a continuous Markdown heading hierarchy.
+- Added a WeChat regression case covering child, grandchild, sibling, and shallower heading transitions.
+
 ## v0.7.3 - 2026-07-29
 
 ### 中文
