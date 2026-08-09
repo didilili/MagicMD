@@ -440,9 +440,15 @@ def _normalize_body_heading_depth(content_el: Tag) -> None:
     ):
         base_level = dominant_level
 
+    heading_stack: list[tuple[int, int]] = []
     for tag in headings:
-        level = int(str(tag.name)[1])
-        tag.name = f"h{max(2, min(6, 2 + max(0, level - base_level)))}"
+        source_level = max(base_level, int(str(tag.name)[1]))
+        while heading_stack and heading_stack[-1][0] >= source_level:
+            heading_stack.pop()
+
+        normalized_level = 2 if not heading_stack else min(6, heading_stack[-1][1] + 1)
+        tag.name = f"h{normalized_level}"
+        heading_stack.append((source_level, normalized_level))
 
 
 def _transform_unquoted_text(text: str, transform: Callable[[str], str]) -> str:

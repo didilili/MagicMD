@@ -145,6 +145,30 @@ def test_parse_wechat_html_normalizes_rich_sections_styles_and_images():
     )
 
 
+def test_parse_wechat_html_closes_skipped_body_heading_levels():
+    html = """
+    <html><body>
+      <h1 id="activity-name">营销 Skills</h1>
+      <div id="js_content">
+        <h2>功能详情</h2>
+        <h4>所有 Skill 先读同一份产品档案</h4>
+        <h5>产品档案内容</h5>
+        <h4>转化率优化拆得很细</h4>
+        <h3>快速开始</h3>
+      </div>
+    </body></html>
+    """
+
+    article = parse_wechat_html(html, "https://mp.weixin.qq.com/s/skipped-heading")
+
+    lines = article.content_markdown.splitlines()
+    assert "## 功能详情" in lines
+    assert "### 所有 Skill 先读同一份产品档案" in lines
+    assert "#### 产品档案内容" in lines
+    assert "### 转化率优化拆得很细" in lines
+    assert "### 快速开始" in lines
+
+
 def test_parse_wechat_html_separates_bold_label_from_following_text():
     html = """
     <html><body>
