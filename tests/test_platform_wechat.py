@@ -944,6 +944,65 @@ def test_parse_wechat_html_filters_decorative_images_by_default():
     assert [img.source_url for img in article.images] == ["https://example.com/content.png"]
 
 
+def test_parse_wechat_html_filters_tiny_images_in_decorative_layout_boxes():
+    html = """
+    <html><body>
+      <h1 id="activity-name">微型装饰图文章</h1>
+      <div id="js_content">
+        <p>正文前。</p>
+        <section style="width: 100%; padding: 0 10px;">
+          <section style="width: 14px; height: 13px; display: flex; margin: 0 0 -9px -1px;">
+            <img data-src="https://example.com/open-quote.png" data-w="28"
+                 data-ratio="0.9285714285714286" class="rich_pages wxw-img"
+                 style="background-color: transparent;" />
+          </section>
+          <section style="width: 11px; height: 6px; display: flex; flex-shrink: 0;">
+            <img data-src="https://example.com/triangle.png" data-w="24"
+                 data-ratio="0.5833333333333334" class="rich_pages wxw-img"
+                 style="background-color: transparent;" />
+          </section>
+          <p>引用正文。</p>
+          <section style="width: 14px; height: 13px; display: flex; align-self: flex-end;">
+            <img data-src="https://example.com/close-quote.png" data-w="28"
+                 data-ratio="0.9285714285714286" class="rich_pages wxw-img"
+                 style="background-color: transparent;" />
+          </section>
+        </section>
+        <p>正文后。</p>
+      </div>
+    </body></html>
+    """
+
+    article = parse_wechat_html(html, "https://mp.weixin.qq.com/s/tiny-decorative-layout")
+
+    assert article.content_markdown == "正文前。\n\n引用正文。\n\n正文后。"
+    assert article.images == []
+
+
+def test_parse_wechat_html_keeps_meaningful_tiny_linked_image():
+    html = """
+    <html><body>
+      <h1 id="activity-name">微型正文图片文章</h1>
+      <div id="js_content">
+        <section style="width: 14px; height: 13px; display: flex;">
+          <a href="https://example.com/status">
+            <img data-src="https://example.com/status.png" data-w="24" data-ratio="1"
+                 class="rich_pages wxw-img" alt="项目状态" />
+          </a>
+        </section>
+        <p>当前服务正常。</p>
+      </div>
+    </body></html>
+    """
+
+    article = parse_wechat_html(html, "https://mp.weixin.qq.com/s/tiny-content-image")
+
+    assert "[![项目状态](https://example.com/status.png)](https://example.com/status)" in (
+        article.content_markdown
+    )
+    assert [image.source_url for image in article.images] == ["https://example.com/status.png"]
+
+
 def test_parse_wechat_html_simplifies_poster_template_heading_frames():
     html = """
     <html><body>

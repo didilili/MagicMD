@@ -247,6 +247,20 @@ def _is_decorative_image(img: Tag) -> bool:
     except ValueError:
         ratio = 0.0
     width = _style_pixel_value(img.get("style", ""), "width")
+    parent = img.parent
+    if (
+        0 < natural_width <= 32
+        and {"rich_pages", "wxw-img"}.issubset(classes)
+        and not normalize_text(str(img.get("alt") or ""))
+        and img.find_parent("a") is None
+        and isinstance(parent, Tag)
+        and not normalize_text(parent.get_text(" ", strip=True))
+    ):
+        parent_style = parent.get("style", "")
+        parent_width = _style_pixel_value(parent_style, "width")
+        parent_height = _style_pixel_value(parent_style, "height")
+        if 0 < parent_width <= 32 and 0 < parent_height <= 32:
+            return True
     if "__bg_gif" in classes and classes.intersection(placeholder_classes) and 0 < width <= 32:
         return True
     if _is_in_poster_template(img) and natural_width >= 250 and 0 < ratio <= 0.13:

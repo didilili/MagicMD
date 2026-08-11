@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+## v0.7.14 - 2026-08-12
+
+### 中文
+
+- 过滤微信公众号引用卡片中自然尺寸仅 24–28px 的开引号、小三角和闭引号装饰素材，避免它们被输出为独立正文图片。
+- 规则同时校验微信图片类、无有效替代文本、非链接和显式微型布局容器，继续保留有意义的小图、链接图标及普通正文图片。
+
+### English
+
+- Filtered 24–28px opening-quote, triangle, and closing-quote decorations from WeChat quote cards instead of emitting them as standalone content images.
+- Required WeChat image classes, no meaningful alt text, no link, and an explicit tiny layout box while preserving meaningful small images, linked icons, and regular content images.
+
 ## v0.7.13 - 2026-08-12
 
 ### 中文
