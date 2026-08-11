@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+## v0.7.6 - 2026-08-11
+
+### 中文
+
+- 修复可视圆点或有序编号后未留空格时，真实 HTML 列表项仍可能生成重复 Markdown 列表标记的问题。
+- 扩展无空格列表前缀回归测试，并继续保护普通段落、行内代码和代码块中的合法标记。
+
+### English
+
+- Fixed duplicate Markdown list markers when visible bullets or ordered-number prefixes are directly adjacent to list-item text without whitespace.
+- Extended regressions for no-space list prefixes while preserving valid markers in regular paragraphs, inline code, and code blocks.
+
 ## v0.7.5 - 2026-08-11
 
 ### 中文
