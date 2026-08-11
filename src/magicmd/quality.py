@@ -61,10 +61,10 @@ _VIDEO_EXTENSIONS = {".avi", ".m4v", ".mkv", ".mov", ".mp4", ".mpeg", ".mpg", ".
 _WECHAT_IMAGE_HOSTS = {"mmbiz.qlogo.cn", "mmbiz.qpic.cn", "mpvideo.qpic.cn"}
 _BLOCKQUOTE_PREFIX_RE = re.compile(r"[ \t]{0,3}>[ \t]?")
 _LIST_CONTAINER_RE = re.compile(r"[ \t]{0,3}(?:[-+*]|\d+[.)])[ \t]+$")
-_DUPLICATE_UNORDERED_LIST_MARKER_RE = re.compile(r"(?m)^[ \t]{0,3}[-+*][ \t]+[•●○◦▪▫](?:[ \t]+|$)")
+_DUPLICATE_UNORDERED_LIST_MARKER_RE = re.compile(r"(?m)^[ \t]{0,3}[-+*][ \t]+[•●○◦▪▫][ \t]*")
 _DUPLICATE_ORDERED_LIST_MARKER_RE = re.compile(
     r"(?m)^[ \t]{0,3}(?P<number>\d+)[.)][ \t]+(?P=number)"
-    r"(?:[.．](?:[ \t]+|$)|、[ \t]*)"
+    r"[.．、][ \t]*"
 )
 _AUTOLINK_RE = re.compile(
     r"<(?P<destination>(?:"
