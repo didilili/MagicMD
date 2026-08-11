@@ -53,6 +53,19 @@ print("two")
     assert "empty_code_fence" not in issues
 
 
+@pytest.mark.parametrize(
+    "markdown",
+    [
+        "- • JSON",
+        "- ● Claude Code",
+        "1. 1. 一句话生成动效",
+        "2. 2、逐组件编辑",
+    ],
+)
+def test_scan_markdown_quality_flags_duplicate_list_markers(markdown):
+    assert "duplicate_list_marker" in scan_markdown_quality(markdown)
+
+
 def test_scan_markdown_quality_ignores_markdown_inside_code_fences():
     markdown = """
 正文

@@ -128,6 +128,33 @@ def test_html_to_markdown_removes_empty_image_with_nonempty_alt():
     assert html_to_markdown('<p>前文</p><img alt="Image"><p>后文</p>') == "前文\n\n后文"
 
 
+def test_html_to_markdown_removes_redundant_visual_bullets_from_unordered_list_items():
+    html = (
+        "<p>普通段落保留 • 符号</p>"
+        "<ul><li>• <strong>JSON</strong>：可被 AI 读写</li>"
+        "<li><span>● </span>Claude Code</li></ul>"
+    )
+
+    assert html_to_markdown(html) == (
+        "普通段落保留 • 符号\n\n- **JSON**：可被 AI 读写\n- Claude Code"
+    )
+
+
+def test_html_to_markdown_removes_matching_redundant_numbers_from_ordered_list_items():
+    html = "<ol><li>1. 一句话生成动效</li><li><span>2、</span>逐组件编辑</li></ol>"
+
+    assert html_to_markdown(html) == ("1. 一句话生成动效\n2. 逐组件编辑")
+
+
+def test_html_to_markdown_preserves_list_like_markers_inside_inline_code():
+    html = "<ul><li><code>• literal</code></li></ul><ol><li><code>1. literal</code></li></ol>"
+
+    markdown = html_to_markdown(html)
+
+    assert "`• literal`" in markdown
+    assert "`1. literal`" in markdown
+
+
 def test_html_to_markdown_keeps_image_syntax_inside_extracted_code_block():
     code = (
         "正文**![x](https://example.com/a_(1).png (paren))**后文\n"

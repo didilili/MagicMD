@@ -61,6 +61,11 @@ _VIDEO_EXTENSIONS = {".avi", ".m4v", ".mkv", ".mov", ".mp4", ".mpeg", ".mpg", ".
 _WECHAT_IMAGE_HOSTS = {"mmbiz.qlogo.cn", "mmbiz.qpic.cn", "mpvideo.qpic.cn"}
 _BLOCKQUOTE_PREFIX_RE = re.compile(r"[ \t]{0,3}>[ \t]?")
 _LIST_CONTAINER_RE = re.compile(r"[ \t]{0,3}(?:[-+*]|\d+[.)])[ \t]+$")
+_DUPLICATE_UNORDERED_LIST_MARKER_RE = re.compile(r"(?m)^[ \t]{0,3}[-+*][ \t]+[•●○◦▪▫](?:[ \t]+|$)")
+_DUPLICATE_ORDERED_LIST_MARKER_RE = re.compile(
+    r"(?m)^[ \t]{0,3}(?P<number>\d+)[.)][ \t]+(?P=number)"
+    r"(?:[.．](?:[ \t]+|$)|、[ \t]*)"
+)
 _AUTOLINK_RE = re.compile(
     r"<(?P<destination>(?:"
     r"[A-Za-z][A-Za-z0-9+.-]{1,31}:[^<>\x00-\x20]*|"
@@ -157,6 +162,10 @@ def scan_markdown_quality(markdown: str) -> list[str]:
         "suspicious_code_language": _has_suspicious_code_language(code_fences),
         "address_only_code_fence": any(
             _ADDRESS_ONLY_CODE_RE.fullmatch(content) for _, content in code_fences
+        ),
+        "duplicate_list_marker": bool(
+            _DUPLICATE_UNORDERED_LIST_MARKER_RE.search(prose_markdown)
+            or _DUPLICATE_ORDERED_LIST_MARKER_RE.search(prose_markdown)
         ),
         "heading_level_jump": _has_heading_level_jump(prose_markdown),
         "external_media_not_rewritten": any(

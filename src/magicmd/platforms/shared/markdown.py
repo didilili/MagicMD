@@ -5,6 +5,7 @@ import re
 import unicodedata
 
 import markdownify
+from bs4 import BeautifulSoup, NavigableString, Tag
 
 
 _FENCED_CODE_BLOCK_RE = re.compile(r"(?ms)^(`{3,}|~{3,})[^\n]*\n.*?^\1[ \t]*$")
@@ -59,6 +60,9 @@ _PAIRED_PUNCTUATION = {
     "『": "』",
 }
 _TRAILING_GROUP_PAIRS = (("（", "）"), ("(", ")"))
+_UNORDERED_LIST_BULLET_RE = re.compile(r"^\s*[•●○◦▪▫](?:[ \t]+|$)")
+_ORDERED_LIST_NUMBER_RE = re.compile(r"^\s*(?P<number>\d+)[.．、](?:[ \t]+|$)")
+_LIST_MARKER_PROTECTED_ELEMENTS = {"code", "pre", "ul", "ol"}
 
 
 def _is_punctuation(value: str) -> bool:
@@ -385,7 +389,55 @@ def _remove_code_widget_noise(md: str) -> str:
     return md
 
 
+def _first_list_item_text_node(element: Tag) -> tuple[NavigableString | None, bool]:
+    for child in element.children:
+        if isinstance(child, NavigableString):
+            if child.strip():
+                return child, False
+            continue
+        if not isinstance(child, Tag):
+            continue
+        if child.name in _LIST_MARKER_PROTECTED_ELEMENTS:
+            return None, True
+        text_node, blocked = _first_list_item_text_node(child)
+        if text_node is not None or blocked:
+            return text_node, blocked
+    return None, False
+
+
+def _strip_redundant_list_markers(content_html: str) -> str:
+    soup = BeautifulSoup(content_html, "html.parser")
+    for unordered_list in soup.find_all("ul"):
+        for list_item in unordered_list.find_all("li", recursive=False):
+            text_node, _blocked = _first_list_item_text_node(list_item)
+            if text_node is None:
+                continue
+            cleaned_text = _UNORDERED_LIST_BULLET_RE.sub("", str(text_node), count=1)
+            if cleaned_text != str(text_node):
+                text_node.replace_with(cleaned_text)
+
+    for ordered_list in soup.find_all("ol"):
+        expected_number = _html_integer_attribute(ordered_list, "start", 1)
+        for list_item in ordered_list.find_all("li", recursive=False):
+            item_number = _html_integer_attribute(list_item, "value", expected_number)
+            text_node, _blocked = _first_list_item_text_node(list_item)
+            if text_node is not None:
+                match = _ORDERED_LIST_NUMBER_RE.match(str(text_node))
+                if match is not None and int(match.group("number")) == item_number:
+                    text_node.replace_with(str(text_node)[match.end() :])
+            expected_number = item_number + 1
+    return str(soup)
+
+
+def _html_integer_attribute(element: Tag, attribute: str, default: int) -> int:
+    try:
+        return int(str(element.get(attribute, default)))
+    except (TypeError, ValueError):
+        return default
+
+
 def html_to_markdown(content_html: str, code_blocks: list[dict[str, str]] | None = None) -> str:
+    content_html = _strip_redundant_list_markers(content_html)
     md = markdownify.markdownify(
         content_html,
         heading_style="ATX",
