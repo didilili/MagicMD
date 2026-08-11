@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+## v0.7.7 - 2026-08-11
+
+### 中文
+
+- 修复微信公众号视觉章节序号以独立数字段落紧邻已识别标题时，生成孤立序号而未组成规范 Markdown 标题的问题。
+- 合并后保留原有标题层级与章节序号，避免重复编号，并保护超过两位的普通数字段落。
+
+### English
+
+- Fixed orphan section numbers when a standalone numeric WeChat block immediately precedes an already detected Markdown heading.
+- The normalized heading preserves its original level and section number, avoids duplicate numbering, and leaves ordinary numeric paragraphs longer than two digits unchanged.
+
 ## v0.7.6 - 2026-08-11
 
 ### 中文

@@ -2,10 +2,10 @@
 
 This package is a thin npm wrapper for the Python MagicMD CLI.
 
-It does not reimplement article parsing in JavaScript. The wrapper reads its npm package version and requests the same Python package version, so `magicmd@0.7.6` runs `magicmd==0.7.6` with:
+It does not reimplement article parsing in JavaScript. The wrapper reads its npm package version and requests the same Python package version, so `magicmd@0.7.7` runs `magicmd==0.7.7` with:
 
 ```bash
-uvx --from "magicmd==0.7.6" magicmd
+uvx --from "magicmd==0.7.7" magicmd
 ```
 
 On Windows, the wrapper launches `uvx.exe` directly; on macOS and Linux, it launches `uvx`. The wrapper passes arguments without enabling shell execution.
