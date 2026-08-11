@@ -60,8 +60,8 @@ _PAIRED_PUNCTUATION = {
     "『": "』",
 }
 _TRAILING_GROUP_PAIRS = (("（", "）"), ("(", ")"))
-_UNORDERED_LIST_BULLET_RE = re.compile(r"^\s*[•●○◦▪▫](?:[ \t]+|$)")
-_ORDERED_LIST_NUMBER_RE = re.compile(r"^\s*(?P<number>\d+)[.．、](?:[ \t]+|$)")
+_UNORDERED_LIST_BULLET_RE = re.compile(r"^\s*[•●○◦▪▫][ \t]*")
+_ORDERED_LIST_NUMBER_RE = re.compile(r"^\s*(?P<number>\d+)[.．、][ \t]*")
 _LIST_MARKER_PROTECTED_ELEMENTS = {"code", "pre", "ul", "ol"}
 
 

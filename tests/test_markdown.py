@@ -132,7 +132,7 @@ def test_html_to_markdown_removes_redundant_visual_bullets_from_unordered_list_i
     html = (
         "<p>普通段落保留 • 符号</p>"
         "<ul><li>• <strong>JSON</strong>：可被 AI 读写</li>"
-        "<li><span>● </span>Claude Code</li></ul>"
+        "<li>●Claude Code</li></ul>"
     )
 
     assert html_to_markdown(html) == (
@@ -141,7 +141,7 @@ def test_html_to_markdown_removes_redundant_visual_bullets_from_unordered_list_i
 
 
 def test_html_to_markdown_removes_matching_redundant_numbers_from_ordered_list_items():
-    html = "<ol><li>1. 一句话生成动效</li><li><span>2、</span>逐组件编辑</li></ol>"
+    html = "<ol><li>1. 一句话生成动效</li><li>2、逐组件编辑</li></ol>"
 
     assert html_to_markdown(html) == ("1. 一句话生成动效\n2. 逐组件编辑")
 
