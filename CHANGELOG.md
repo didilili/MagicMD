@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+## v0.7.9 - 2026-08-11
+
+### 中文
+
+- 扩展 `duplicate_list_marker` 质量检测，识别可视圆点或重复序号与正文、行内代码直接相连的无空格写法。
+- 保留普通段落、行内代码、代码块及嵌套列表中的合法符号，避免误报。
+
+### English
+
+- Extended `duplicate_list_marker` quality detection to catch visible bullets and repeated numbers directly attached to text or inline code without whitespace.
+- Preserved valid symbols in regular paragraphs, inline code, fenced code blocks, and nested lists to avoid false positives.
+
 ## v0.7.8 - 2026-08-11
 
 ### 中文
