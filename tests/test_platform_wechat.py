@@ -145,6 +145,30 @@ def test_parse_wechat_html_normalizes_rich_sections_styles_and_images():
     )
 
 
+def test_parse_wechat_html_merges_plain_section_number_with_detected_heading():
+    html = """
+    <html><body>
+      <h1 id="activity-name">章节序号文章</h1>
+      <div id="js_content">
+        <section>01</section>
+        <section style="font-size: 22px; font-weight: 700;">概要</section>
+        <p>第一节正文。</p>
+        <section>02</section>
+        <section style="font-size: 22px; font-weight: 700;">02 全文</section>
+        <p>第二节正文。</p>
+        <section>2026</section>
+        <section style="font-size: 22px; font-weight: 700;">未来</section>
+      </div>
+    </body></html>
+    """
+
+    article = parse_wechat_html(html, "https://mp.weixin.qq.com/s/plain-section-number")
+
+    assert article.content_markdown == (
+        "## 01 概要\n\n第一节正文。\n\n## 02 全文\n\n第二节正文。\n\n2026\n\n## 未来"
+    )
+
+
 def test_parse_wechat_html_closes_skipped_body_heading_levels():
     html = """
     <html><body>

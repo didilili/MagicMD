@@ -140,6 +140,22 @@ def _separate_markdown_images(md: str) -> str:
 def _promote_numbered_markdown_headings(md: str) -> str:
     md = re.sub(r"(?m)^(?:\*\*)?(0?\d{1,2})(?:\*\*)?\n\n\*\*([^*\n]{1,80})\*\*$", r"## \1 \2", md)
 
+    def merge_numbered_heading(match: re.Match[str]) -> str:
+        number = match.group("number")
+        marker = match.group("marker")
+        text = match.group("text").strip()
+        normalized_text = text.replace("**", "").replace("*", "").strip()
+        if re.match(rf"{re.escape(number)}(?:\s|$)", normalized_text):
+            return f"{marker} {text}"
+        return f"{marker} {number} {text}"
+
+    md = re.sub(
+        r"(?m)^(?:\*\*)?(?P<number>\d{1,2})(?:\*\*)?\n\n"
+        r"(?P<marker>#{1,6})[ \t]+(?P<text>[^\n]+)$",
+        merge_numbered_heading,
+        md,
+    )
+
     def clean_heading(match: re.Match[str]) -> str:
         marker = match.group("marker")
         text = match.group("text").replace("**", "").replace("*", "")
