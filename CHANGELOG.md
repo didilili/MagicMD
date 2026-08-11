@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+## v0.7.8 - 2026-08-11
+
+### 中文
+
+- 修复微信公众号把两位章节序号粘连到图片说明末尾时，序号没有并入后续标题的问题。
+- 规则限定于图片说明、无空格两位序号和紧邻标题的组合，保护年份及带空格的普通图片编号。
+
+### English
+
+- Fixed two-digit WeChat section numbers being left attached to an image caption instead of merged into the following heading.
+- Limited the repair to image captions with an unspaced two-digit suffix immediately before a heading, preserving years and ordinary spaced figure numbers.
+
 ## v0.7.7 - 2026-08-11
 
 ### 中文
