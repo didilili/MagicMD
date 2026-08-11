@@ -102,21 +102,79 @@ def _is_italic_style(style: str) -> bool:
     return _style_value(style, "font-style") in {"italic", "oblique"}
 
 
-def _looks_like_heading(tag: Tag) -> bool:
+def _has_visible_background(style: str) -> bool:
+    value = _style_value(style, "background-color") or _style_value(style, "background")
+    normalized = re.sub(r"\s+", "", value)
+    return bool(
+        normalized
+        and normalized
+        not in {
+            "none",
+            "transparent",
+            "rgba(0,0,0,0)",
+            "rgba(0,0,0,0.0)",
+        }
+    )
+
+
+def _heading_level_from_style(style: str, *, semantically_bold: bool = False) -> int | None:
+    font_size = _style_font_size(style)
+    is_bold = semantically_bold or _is_bold_style(style)
+    if font_size >= 24:
+        return 2
+    if font_size >= 20 and (is_bold or _has_heading_color(style)):
+        return 2
+    if is_bold and font_size >= 17:
+        return 3
+    return None
+
+
+def _is_semantically_bold_within(tag: Tag, boundary: Tag) -> bool:
+    current: Tag | None = tag
+    while current is not None:
+        if current.name in {"strong", "b"} or _is_bold_style(current.get("style", "")):
+            return True
+        if current is boundary or not isinstance(current.parent, Tag):
+            return False
+        current = current.parent
+    return False
+
+
+def _visual_heading_level(tag: Tag) -> int | None:
     text = normalize_text(tag.get_text(" ", strip=True))
     if not text or len(text) > 90:
-        return False
-    style = tag.get("style", "")
-    if not _style_font_size(style) and isinstance(tag.parent, Tag):
-        style = f"{style};{tag.parent.get('style', '')}"
-    font_size = _style_font_size(style)
-    if font_size >= 24:
-        return True
-    if font_size >= 20 and (_is_bold_style(style) or _has_heading_color(style)):
-        return True
-    if _is_bold_style(style) and font_size >= 17:
-        return True
-    return False
+        return None
+
+    own_style = tag.get("style", "")
+    styles = [(own_style, _is_bold_style(own_style))]
+    if not _style_font_size(own_style) and isinstance(tag.parent, Tag):
+        parent_style = tag.parent.get("style", "")
+        styles.append((parent_style, _is_bold_style(parent_style)))
+    for descendant in tag.find_all(["span", "strong", "b", "em"]):
+        descendant_text = normalize_text(descendant.get_text(" ", strip=True))
+        style = descendant.get("style", "")
+        if (
+            descendant_text == text
+            and _style_font_size(style)
+            and not _has_visible_background(style)
+        ):
+            styles.append((style, _is_semantically_bold_within(descendant, tag)))
+
+    levels = [
+        level
+        for style, semantically_bold in styles
+        if (
+            level := _heading_level_from_style(
+                style,
+                semantically_bold=semantically_bold,
+            )
+        )
+    ]
+    return min(levels, default=None)
+
+
+def _looks_like_heading(tag: Tag) -> bool:
+    return _visual_heading_level(tag) is not None
 
 
 def _wrap_contents(tag: Tag, wrapper_name: str) -> None:
@@ -339,8 +397,8 @@ def _normalize_wechat_rich_text(content_el: Tag) -> None:
     for tag in reversed(content_el.find_all(["section", "p"])):
         if not isinstance(tag, Tag) or _has_direct_block_child(tag):
             continue
-        if _looks_like_heading(tag):
-            tag.name = "h2"
+        if level := _visual_heading_level(tag):
+            tag.name = f"h{level}"
         else:
             tag.name = "p"
 

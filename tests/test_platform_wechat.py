@@ -610,6 +610,53 @@ def test_parse_wechat_html_does_not_promote_ordinary_bold_paragraphs_to_headings
     assert "## 真正的小标题" in article.content_markdown
 
 
+def test_parse_wechat_html_promotes_descendant_styled_visual_heading_levels():
+    html = """
+    <html><body>
+      <h1 id="activity-name">后代样式标题文章</h1>
+      <div id="js_content">
+        <p style="margin: 0 0 24px;">
+          <strong><span style="font-size: 20px; color: rgb(0, 82, 255); font-weight: bold;">章节标题</span></strong>
+        </p>
+        <section style="background: rgb(245, 248, 255); border-left: 4px solid rgb(0, 82, 255);">
+          <p>
+            <strong><span style="font-size: 18px; color: rgb(34, 34, 34);">编号子标题</span></strong>
+          </p>
+        </section>
+      </div>
+    </body></html>
+    """
+
+    article = parse_wechat_html(html, "https://mp.weixin.qq.com/s/descendant-heading")
+
+    assert article.content_markdown == "## 章节标题\n\n### 编号子标题"
+
+
+def test_parse_wechat_html_promotes_visual_heading_inside_nested_sections():
+    html = """
+    <html><body>
+      <h1 id="activity-name">嵌套标题文章</h1>
+      <div id="js_content">
+        <section>
+          <section>
+            <section style="margin-left: 8px; margin-right: 8px;">
+              <strong>
+                <span style="font-size: 17px; font-weight: normal;">
+                  <span style="font-size: 20px; color: rgb(0, 82, 255); font-weight: bold;">AR手势控制</span>
+                </span>
+              </strong>
+            </section>
+          </section>
+        </section>
+      </div>
+    </body></html>
+    """
+
+    article = parse_wechat_html(html, "https://mp.weixin.qq.com/s/nested-heading")
+
+    assert article.content_markdown == "## AR手势控制"
+
+
 def test_parse_wechat_html_keeps_large_lazy_images_with_tiny_css_width():
     html = """
     <html><body>

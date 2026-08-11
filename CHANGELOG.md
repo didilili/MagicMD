@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+## v0.7.13 - 2026-08-12
+
+### 中文
+
+- 识别微信公众号把视觉标题字号、颜色和字重写在后代 `span` 中的结构，避免章节标题退化为普通加粗。
+- 将 20px 及以上的视觉章节标题规范为二级标题，将 17–19px 粗体子标题规范为三级标题；排除带可见背景的徽标文字并保留普通整段加粗。
+
+### English
+
+- Detected WeChat visual headings whose font size, color, and weight are applied to descendant `span` elements, preventing section headings from degrading to plain bold text.
+- Normalized visual headings at 20px or larger to level two and bold 17–19px subheadings to level three, while excluding badge text with visible backgrounds and preserving ordinary bold paragraphs.
+
 ## v0.7.12 - 2026-08-11
 
 ### 中文
