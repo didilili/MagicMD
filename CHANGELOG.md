@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+## v0.7.10 - 2026-08-11
+
+### 中文
+
+- 识别微信公众号使用固定高度和垂直滚动样式模拟的纯文本面板，并转换为保留空行的 `text` 围栏代码块。
+- 规则限定于带 `data-autoskip` 标记的纯文本容器，并排除图片、视频、表格及已有代码结构，避免误判滚动图片和普通页面布局。
+
+### English
+
+- Preserved WeChat text panels implemented with fixed-height vertical scrolling as fenced `text` blocks while retaining paragraph spacing.
+- Limited detection to text-only containers marked with `data-autoskip`, excluding images, video, tables, and existing code structures to avoid false positives.
+
 ## v0.7.9 - 2026-08-11
 
 ### 中文
