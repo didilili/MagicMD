@@ -259,6 +259,26 @@ def test_parse_wechat_html_normalizes_nbsp_and_fused_command_in_code_snippet():
     assert article.content_markdown == ("```shell\n# 安装到全局\nnpm install -g demo\n```")
 
 
+def test_parse_wechat_html_preserves_br_line_breaks_in_wechat_code_snippet():
+    html = (
+        '<html><body><h1 id="activity-name">微信代码片段换行文章</h1>'
+        '<div id="js_content"><div class="code-snippet__fix">'
+        '<pre data-lang="javascript"><code>'
+        "<span>const styles = stylex.create({</span><br />"
+        "<span>&nbsp;&nbsp;card: {</span><br />"
+        "<span>&nbsp;&nbsp;&nbsp;&nbsp;padding: 16,</span><br />"
+        "<span>&nbsp;&nbsp;},</span><br />"
+        "<span>});</span>"
+        "</code></pre></div></div></body></html>"
+    )
+
+    article = parse_wechat_html(html, "https://mp.weixin.qq.com/s/code-snippet-breaks")
+
+    assert article.content_markdown == (
+        "```javascript\nconst styles = stylex.create({\n  card: {\n    padding: 16,\n  },\n});\n```"
+    )
+
+
 def test_parse_wechat_html_preserves_br_line_breaks_in_mdnice_code_block():
     html = (
         '<html><body><h1 id="activity-name">mdnice 代码文章</h1><div id="js_content">'

@@ -632,10 +632,10 @@ def clean_content_element(content_el: Tag) -> tuple[str, list[ImageAsset], list[
         lang = pre.get("data-lang", "") if pre else ""
         lines = []
         for code_tag in el.find_all("code"):
-            text = code_tag.get_text()
+            text = _code_text(code_tag)
             if re.match(r"^[ce]?ounter\(line", text):
                 continue
-            lines.append(_normalize_code_text(text))
+            lines.append(text)
         code = "\n".join(lines) or el.get_text()
         placeholder = _block_placeholder("code", len(code_blocks))
         code_blocks.append({"placeholder": placeholder, "lang": lang, "code": code})

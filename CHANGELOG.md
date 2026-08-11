@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+## v0.7.12 - 2026-08-11
+
+### 中文
+
+- 补齐微信公众号 `.code-snippet__fix` 代码片段中的 `<br>` 换行保留，与普通 `<pre><code>` 分支使用同一套代码文本提取逻辑。
+- 保持已有 NBSP、命令边界和语法高亮处理不变，避免代码片段被重新拼接成单行。
+
+### English
+
+- Preserved `<br>` line breaks in WeChat `.code-snippet__fix` blocks by sharing the same code-text extraction path used for regular `<pre><code>` blocks.
+- Kept existing NBSP, command-boundary, and syntax-highlighting normalization while preventing code snippets from collapsing into a single line.
+
 ## v0.7.11 - 2026-08-11
 
 ### 中文
