@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+## v0.7.5 - 2026-08-11
+
+### 中文
+
+- 修复源 HTML 列表项同时包含语义列表结构和可视圆点或序号时，生成 `- •` 或 `1. 1.` 等重复列表标记的问题。
+- 新增 `duplicate_list_marker` 质量检测，并保护普通段落、行内代码、代码块和嵌套列表中的合法标记。
+
+### English
+
+- Fixed duplicate list markers such as `- •` and `1. 1.` when source HTML list items contain both semantic list structure and visible bullet or number prefixes.
+- Added `duplicate_list_marker` quality detection while preserving valid markers in regular paragraphs, inline code, code blocks, and nested lists.
+
 ## v0.7.4 - 2026-08-09
 
 ### 中文
