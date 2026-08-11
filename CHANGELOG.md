@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+## v0.7.11 - 2026-08-11
+
+### 中文
+
+- 保留微信公众号 mdnice 等编辑器在 `<pre><code>` 中使用 `<br>` 表示的代码换行与空行。
+- 仅把显式 `<br>` 转换为换行，不在语法高亮的相邻元素之间添加多余换行。
+
+### English
+
+- Preserved code line breaks and blank lines represented by `<br>` inside WeChat `<pre><code>` blocks, including mdnice output.
+- Converted only explicit `<br>` elements to newlines without inserting breaks between adjacent syntax-highlighting elements.
+
 ## v0.7.10 - 2026-08-11
 
 ### 中文

@@ -571,7 +571,15 @@ def _code_text(code_tag: Tag) -> str:
             for line in highlighted_lines
         ]
         return textwrap.dedent("\n".join(lines)).strip("\n")
-    return _normalize_code_text(code_tag.get_text())
+    text = "".join(
+        "\n"
+        if isinstance(descendant, Tag) and descendant.name == "br"
+        else str(descendant)
+        if isinstance(descendant, NavigableString)
+        else ""
+        for descendant in code_tag.descendants
+    )
+    return _normalize_code_text(text)
 
 
 def clean_content_element(content_el: Tag) -> tuple[str, list[ImageAsset], list[dict[str, str]]]:

@@ -259,6 +259,31 @@ def test_parse_wechat_html_normalizes_nbsp_and_fused_command_in_code_snippet():
     assert article.content_markdown == ("```shell\n# 安装到全局\nnpm install -g demo\n```")
 
 
+def test_parse_wechat_html_preserves_br_line_breaks_in_mdnice_code_block():
+    html = (
+        '<html><body><h1 id="activity-name">mdnice 代码文章</h1><div id="js_content">'
+        '<pre data-tool="mdnice编辑器"><code>'
+        "<span>import</span><span>&nbsp;*&nbsp;</span><span>as</span><span>&nbsp;stylex&nbsp;</span>"
+        "<span>from</span><span>&nbsp;'@stylexjs/stylex';</span><span><br /></span>"
+        "<span><br /></span>"
+        "<span>const styles = stylex.create({</span><span><br /></span>"
+        "<span>&nbsp;&nbsp;</span><span>&lt;</span><span>div</span><span>&gt;</span><span><br /></span>"
+        "<span>&nbsp;&nbsp;</span><span>&lt;/</span><span>div</span><span>&gt;</span>"
+        "</code></pre></div></body></html>"
+    )
+
+    article = parse_wechat_html(html, "https://mp.weixin.qq.com/s/mdnice-code-breaks")
+
+    assert article.content_markdown == (
+        "```\n"
+        "import * as stylex from '@stylexjs/stylex';\n\n"
+        "const styles = stylex.create({\n"
+        "  <div>\n"
+        "  </div>\n"
+        "```"
+    )
+
+
 def test_parse_wechat_html_preserves_scrollable_text_panel_as_text_fence():
     html = """
     <html><body>
