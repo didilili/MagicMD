@@ -400,6 +400,49 @@ def _block_placeholder(kind: str, index: int) -> str:
     return f"MAGICMD{kind.upper()}BLOCK{index:06d}END"
 
 
+def _scrollable_text_block_content(tag: Tag) -> str:
+    paragraphs = tag.find_all("p")
+    if not paragraphs:
+        return ""
+
+    lines: list[str] = []
+    for paragraph in paragraphs:
+        for line_break in paragraph.find_all("br"):
+            line_break.replace_with(NavigableString("\n"))
+        text = paragraph.get_text("", strip=False)
+        text = text.replace("\u00a0", " ").replace("\r\n", "\n").replace("\r", "\n")
+        lines.append(text.strip())
+    return "\n".join(lines).strip("\n")
+
+
+def _preserve_scrollable_text_blocks(content_el: Tag, blocks: list[dict[str, str]]) -> None:
+    excluded_content = ["audio", "code", "iframe", "img", "pre", "svg", "table", "video"]
+    for tag in list(content_el.find_all(["div", "section"])):
+        style = str(tag.get("style") or "")
+        overflow_y = _style_value(style, "overflow-y")
+        fixed_height = _style_pixel_value(style, "height") or _style_pixel_value(
+            style, "max-height"
+        )
+        if not re.match(r"^(?:auto|scroll)(?:\s*!important)?$", overflow_y) or not fixed_height:
+            continue
+        if not tag.find(attrs={"data-autoskip": True}) or tag.find(excluded_content):
+            continue
+
+        text = _scrollable_text_block_content(tag)
+        if not text:
+            continue
+        placeholder = _block_placeholder("code", len(blocks))
+        blocks.append(
+            {
+                "placeholder": placeholder,
+                "lang": "text",
+                "code": text,
+                "normalize_block_spacing": "true",
+            }
+        )
+        tag.replace_with(NavigableString(placeholder))
+
+
 def _preserve_raw_html_blocks(content_el: Tag, blocks: list[dict[str, str]]) -> None:
     for tag in list(content_el.select(".mermaid")):
         if not tag.find("svg"):
@@ -545,6 +588,7 @@ def clean_content_element(content_el: Tag) -> tuple[str, list[ImageAsset], list[
     _narrow_block_links(content_el)
     _normalize_external_links(content_el)
     _remove_code_chrome(content_el)
+    _preserve_scrollable_text_blocks(content_el, code_blocks)
 
     for img in content_el.find_all("img"):
         data_src = img.get("data-src")

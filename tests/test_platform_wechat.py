@@ -259,6 +259,86 @@ def test_parse_wechat_html_normalizes_nbsp_and_fused_command_in_code_snippet():
     assert article.content_markdown == ("```shell\n# 安装到全局\nnpm install -g demo\n```")
 
 
+def test_parse_wechat_html_preserves_scrollable_text_panel_as_text_fence():
+    html = """
+    <html><body>
+      <h1 id="activity-name">滚动提示词文章</h1>
+      <div id="js_content">
+        <section data-tools="135编辑器" data-id="85709">
+          <section style="background: #f5f5f4; padding: 1em 0;">
+            <section data-brushtype="text"><strong>提示词（可上下滚动）</strong></section>
+            <section style="height: 180px; overflow-x: hidden; overflow-y: scroll;">
+              <section data-autoskip="1">
+                <p>在 Django 部署了两个应用：</p>
+                <p><br /></p>
+                <p>/myapp/ → 应用 A</p>
+                <p>/myapplication/ → 应用 B</p>
+                <p><br /></p>
+                <p>你帮我看看是怎么回事？</p>
+              </section>
+            </section>
+          </section>
+        </section>
+        <p>提示词后的正文。</p>
+      </div>
+    </body></html>
+    """
+
+    article = parse_wechat_html(html, "https://mp.weixin.qq.com/s/scrollable-text-panel")
+
+    assert article.content_markdown == (
+        "**提示词（可上下滚动）**\n\n"
+        "```text\n"
+        "在 Django 部署了两个应用：\n\n"
+        "/myapp/ → 应用 A\n"
+        "/myapplication/ → 应用 B\n\n"
+        "你帮我看看是怎么回事？\n"
+        "```\n\n"
+        "提示词后的正文。"
+    )
+
+
+def test_parse_wechat_html_does_not_fence_scrollable_image_panel():
+    html = """
+    <html><body>
+      <h1 id="activity-name">滚动图片文章</h1>
+      <div id="js_content">
+        <section style="height: 180px; overflow-y: scroll;">
+          <section data-autoskip="1">
+            <img data-src="https://example.com/scrollable-image.png" />
+            <p>可以上下滚动的图片</p>
+          </section>
+        </section>
+      </div>
+    </body></html>
+    """
+
+    article = parse_wechat_html(html, "https://mp.weixin.qq.com/s/scrollable-image-panel")
+
+    assert "```text" not in article.content_markdown
+    assert "![Image](https://example.com/scrollable-image.png)" in article.content_markdown
+    assert "可以上下滚动的图片" in article.content_markdown
+
+
+def test_parse_wechat_html_does_not_fence_generic_overflow_container():
+    html = """
+    <html><body>
+      <h1 id="activity-name">普通滚动布局文章</h1>
+      <div id="js_content">
+        <section style="height: 180px; overflow-y: auto;">
+          <p>普通页面布局中的滚动正文。</p>
+          <p>没有微信公众号文本框标记。</p>
+        </section>
+      </div>
+    </body></html>
+    """
+
+    article = parse_wechat_html(html, "https://mp.weixin.qq.com/s/generic-overflow")
+
+    assert "```text" not in article.content_markdown
+    assert "普通页面布局中的滚动正文。" in article.content_markdown
+
+
 @pytest.mark.parametrize(
     "code",
     [

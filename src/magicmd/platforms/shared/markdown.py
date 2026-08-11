@@ -514,8 +514,15 @@ def html_to_markdown(content_html: str, code_blocks: list[dict[str, str]] | None
         if "raw_html" in block:
             md = md.replace(block["placeholder"], f"\n{block['raw_html']}\n")
             continue
-        fence = f"\n```{block['lang']}\n{block['code']}\n```\n"
-        md = md.replace(block["placeholder"], fence)
+        fence = f"```{block['lang']}\n{block['code']}\n```"
+        if block.get("normalize_block_spacing") == "true":
+            md = re.sub(
+                rf"(?:\n[ \t]*)*{re.escape(block['placeholder'])}(?:[ \t]*\n)*",
+                f"\n\n{fence}\n\n",
+                md,
+            )
+        else:
+            md = md.replace(block["placeholder"], f"\n{fence}\n")
     md = _remove_code_widget_noise(md)
     md = _transform_prose(md, _separate_markdown_images)
     md = _transform_prose(md, _promote_numbered_markdown_headings)
