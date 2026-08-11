@@ -169,6 +169,36 @@ def test_parse_wechat_html_merges_plain_section_number_with_detected_heading():
     )
 
 
+def test_parse_wechat_html_splits_section_number_stuck_to_image_caption():
+    html = """
+    <html><body>
+      <h1 id="activity-name">图片说明章节序号文章</h1>
+      <div id="js_content">
+        <section><img data-src="https://example.com/ranking.png" /></section>
+        <section>AA 排名<span>04</span></section>
+        <section style="font-size: 22px; font-weight: 700;">大模型的味道</section>
+        <section><img data-src="https://example.com/report.png" /></section>
+        <section>年度报告2026</section>
+        <section style="font-size: 22px; font-weight: 700;">未来</section>
+        <section><img data-src="https://example.com/figure.png" /></section>
+        <section>图 24</section>
+        <section style="font-size: 22px; font-weight: 700;">附录</section>
+      </div>
+    </body></html>
+    """
+
+    article = parse_wechat_html(html, "https://mp.weixin.qq.com/s/image-caption-section-number")
+
+    assert article.content_markdown == (
+        "![Image](https://example.com/ranking.png)\n\n"
+        "AA 排名\n\n## 04 大模型的味道\n\n"
+        "![Image](https://example.com/report.png)\n\n"
+        "年度报告2026\n\n## 未来\n\n"
+        "![Image](https://example.com/figure.png)\n\n"
+        "图 24\n\n## 附录"
+    )
+
+
 def test_parse_wechat_html_closes_skipped_body_heading_levels():
     html = """
     <html><body>

@@ -140,14 +140,35 @@ def _separate_markdown_images(md: str) -> str:
 def _promote_numbered_markdown_headings(md: str) -> str:
     md = re.sub(r"(?m)^(?:\*\*)?(0?\d{1,2})(?:\*\*)?\n\n\*\*([^*\n]{1,80})\*\*$", r"## \1 \2", md)
 
-    def merge_numbered_heading(match: re.Match[str]) -> str:
-        number = match.group("number")
-        marker = match.group("marker")
-        text = match.group("text").strip()
+    def format_numbered_heading(number: str, marker: str, text: str) -> str:
+        text = text.strip()
         normalized_text = text.replace("**", "").replace("*", "").strip()
         if re.match(rf"{re.escape(number)}(?:\s|$)", normalized_text):
             return f"{marker} {text}"
         return f"{marker} {number} {text}"
+
+    def merge_numbered_heading(match: re.Match[str]) -> str:
+        return format_numbered_heading(
+            match.group("number"),
+            match.group("marker"),
+            match.group("text"),
+        )
+
+    def split_image_caption_numbered_heading(match: re.Match[str]) -> str:
+        heading = format_numbered_heading(
+            match.group("number"),
+            match.group("marker"),
+            match.group("text"),
+        )
+        return f"{match.group('image')}\n\n{match.group('caption')}\n\n{heading}"
+
+    md = re.sub(
+        rf"(?m)^(?P<image>{_MARKDOWN_IMAGE_PATTERN})\n\n"
+        r"(?P<caption>[^\n]*?[^\s\d])(?P<number>0[1-9]|[1-9]\d)\n\n"
+        r"(?P<marker>#{1,6})[ \t]+(?P<text>[^\n]+)$",
+        split_image_caption_numbered_heading,
+        md,
+    )
 
     md = re.sub(
         r"(?m)^(?:\*\*)?(?P<number>\d{1,2})(?:\*\*)?\n\n"
