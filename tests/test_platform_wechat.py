@@ -1003,6 +1003,130 @@ def test_parse_wechat_html_keeps_meaningful_tiny_linked_image():
     assert [image.source_url for image in article.images] == ["https://example.com/status.png"]
 
 
+def test_parse_wechat_html_normalizes_newzhiyuan_single_line_chapter_heading():
+    html = """
+    <html><body>
+      <h1 id="activity-name">新智元单行章节标题文章</h1>
+      <div id="js_content">
+        <section style="text-align: center; margin-top: 0px; margin-bottom: 0px;">
+          <span>
+            <img data-src="https://example.com/chapter-mark.png" data-w="112"
+                 data-ratio="0.5267857142857143" class="rich_pages wxw-img"
+                 style="width: 85px; height: 40px;" />
+            <img class="rich_pages wxw-img" />
+            <img class="rich_pages wxw-img" />
+          </span>
+        </section>
+        <section style="text-align: center; margin: 8px 0 0; line-height: 1.75em;">
+          <span style="color: rgb(0, 0, 0); font-size: 19px; letter-spacing: 1px;">
+            <strong><span>三巨头只剩两个</span></strong>
+          </span>
+        </section>
+        <p>章节正文。</p>
+      </div>
+    </body></html>
+    """
+
+    article = parse_wechat_html(html, "https://mp.weixin.qq.com/s/newzhiyuan-single")
+
+    assert article.content_markdown == "## 三巨头只剩两个\n\n章节正文。"
+    assert article.images == []
+
+
+def test_parse_wechat_html_merges_newzhiyuan_two_line_chapter_heading():
+    html = """
+    <html><body>
+      <h1 id="activity-name">新智元双行章节标题文章</h1>
+      <div id="js_content">
+        <h2 style="margin: 0 8px; line-height: 1.75em;"><span><br /></span></h2>
+        <section style="text-align: center; margin-top: 0px; margin-bottom: 0px;">
+          <span>
+            <img data-src="https://example.com/chapter-mark.png" data-w="112"
+                 data-ratio="0.5267857142857143" class="rich_pages wxw-img"
+                 style="width: 85px; height: 40px;" />
+          </span>
+        </section>
+        <section style="text-align: center; margin-bottom: 0px; margin-top: 8px; line-height: 1.75em;">
+          <span style="color: rgb(0, 0, 0); font-size: 19px; letter-spacing: 1px;">
+            <strong><span>软硬协同：</span></strong>
+          </span>
+        </section>
+        <section style="text-align: center; margin-bottom: 0px; margin-top: 8px; line-height: 1.75em;">
+          <span style="color: rgb(0, 0, 0); font-size: 19px; letter-spacing: 1px;">
+            <strong><span>释放超智融合澎湃算力</span></strong>
+          </span>
+        </section>
+        <h2 style="margin: 0 8px; line-height: 1.75em;"><strong><span><br /></span></strong></h2>
+        <p>HPC 与 AI 深度协同。</p>
+      </div>
+    </body></html>
+    """
+
+    article = parse_wechat_html(html, "https://mp.weixin.qq.com/s/newzhiyuan-double")
+
+    assert article.content_markdown == "## 软硬协同：释放超智融合澎湃算力\n\nHPC 与 AI 深度协同。"
+    assert article.images == []
+
+
+def test_parse_wechat_html_keeps_same_size_content_image_without_chapter_template():
+    html = """
+    <html><body>
+      <h1 id="activity-name">同尺寸正文图片文章</h1>
+      <div id="js_content">
+        <section style="text-align: center;">
+          <img data-src="https://example.com/status-chart.png" data-w="112"
+               data-ratio="0.5267857142857143" class="rich_pages wxw-img"
+               style="width: 85px; height: 40px;" alt="服务状态图" />
+        </section>
+        <p>这是一张有正文意义的小图。</p>
+      </div>
+    </body></html>
+    """
+
+    article = parse_wechat_html(html, "https://mp.weixin.qq.com/s/same-size-content-image")
+
+    assert "![服务状态图](https://example.com/status-chart.png)" in article.content_markdown
+    assert [image.source_url for image in article.images] == [
+        "https://example.com/status-chart.png"
+    ]
+
+
+def test_parse_wechat_html_does_not_promote_reverse_nested_bold_text_without_template():
+    html = """
+    <html><body>
+      <h1 id="activity-name">普通居中强调文章</h1>
+      <div id="js_content">
+        <section style="text-align: center; line-height: 1.75em;">
+          <span style="color: rgb(0, 0, 0); font-size: 19px; letter-spacing: 1px;">
+            <strong><span>这只是普通居中强调文字</span></strong>
+          </span>
+        </section>
+      </div>
+    </body></html>
+    """
+
+    article = parse_wechat_html(html, "https://mp.weixin.qq.com/s/reverse-nested-bold")
+
+    assert article.content_markdown == "**这只是普通居中强调文字**"
+
+
+def test_parse_wechat_html_drops_empty_layout_headings():
+    html = """
+    <html><body>
+      <h1 id="activity-name">空布局标题文章</h1>
+      <div id="js_content">
+        <p>正文前。</p>
+        <h2 style="margin: 0 8px; line-height: 1.75em;"><strong><span><br /></span></strong></h2>
+        <p>正文后。</p>
+      </div>
+    </body></html>
+    """
+
+    article = parse_wechat_html(html, "https://mp.weixin.qq.com/s/empty-layout-heading")
+
+    assert article.content_markdown == "正文前。\n\n正文后。"
+
+
 def test_parse_wechat_html_simplifies_poster_template_heading_frames():
     html = """
     <html><body>

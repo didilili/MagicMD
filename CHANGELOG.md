@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+## v0.7.15 - 2026-08-13
+
+### 中文
+
+- 识别微信公众号“新智元”使用 112×59 章节标记图搭配一至两行居中粗体文字的标题模板，过滤装饰图并将换行标题合并为单个规范二级标题。
+- 兼容同一模板中的无来源空图片占位节点，清理只含换行的空标题，同时保留同尺寸内容图片和没有模板标记的普通居中加粗文字。
+
+### English
+
+- Detected the 112×59 chapter-mark template used by New Zhiyuan WeChat articles, filtered its decorative image, and merged one or two centered bold lines into one normalized level-two heading.
+- Tolerated source-less empty image placeholders, removed headings containing only line breaks, and preserved same-size content images plus ordinary centered bold text without the template mark.
+
 ## v0.7.14 - 2026-08-12
 
 ### 中文

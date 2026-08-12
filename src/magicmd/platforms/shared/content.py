@@ -400,6 +400,119 @@ def _normalize_layout_headings(content_el: Tag) -> None:
             tag.name = "p"
 
 
+def _is_centered(tag: Tag) -> bool:
+    return _style_value(tag.get("style", ""), "text-align").split()[0:1] == ["center"]
+
+
+def _is_newzhiyuan_chapter_mark(img: Tag) -> bool:
+    classes = set(img.get("class", []))
+    try:
+        natural_width = int(float(str(img.get("data-w") or "0")))
+        ratio = float(str(img.get("data-ratio") or "0"))
+    except ValueError:
+        return False
+
+    alt = normalize_text(str(img.get("alt") or ""))
+    return (
+        natural_width == 112
+        and 0.52 <= ratio <= 0.54
+        and {"rich_pages", "wxw-img"}.issubset(classes)
+        and alt.lower() in {"", "image"}
+        and img.find_parent("a") is None
+    )
+
+
+def _newzhiyuan_chapter_mark_container(img: Tag, content_el: Tag) -> Tag | None:
+    for ancestor in img.parents:
+        if not isinstance(ancestor, Tag) or ancestor is content_el:
+            break
+        sourced_images = [
+            image for image in ancestor.find_all("img") if image.get("src") or image.get("data-src")
+        ]
+        if (
+            ancestor.name in {"div", "p", "section"}
+            and _is_centered(ancestor)
+            and not normalize_text(ancestor.get_text(" ", strip=True))
+            and len(sourced_images) == 1
+            and sourced_images[0] is img
+        ):
+            return ancestor
+    return None
+
+
+def _is_newzhiyuan_chapter_heading_line(tag: Tag) -> bool:
+    if tag.name not in {"p", "section"} or not _is_centered(tag):
+        return False
+    text = normalize_text(tag.get_text(" ", strip=True))
+    if not text or len(text) > 60 or _has_visible_background(tag.get("style", "")):
+        return False
+
+    for styled in tag.find_all(["span", "strong", "b"]):
+        if normalize_text(styled.get_text(" ", strip=True)) != text:
+            continue
+        font_size = _style_font_size(styled.get("style", ""))
+        if not 18.5 <= font_size <= 19.5 or _has_visible_background(styled.get("style", "")):
+            continue
+        if styled.name in {"strong", "b"} or styled.find(["strong", "b"]):
+            return True
+    return False
+
+
+def _join_visual_heading_lines(lines: list[str]) -> str:
+    heading = lines[0]
+    for line in lines[1:]:
+        separator = " " if heading[-1:].isascii() and line[:1].isascii() else ""
+        heading += separator + line
+    return heading
+
+
+def _is_empty_heading(tag: Tag | None) -> bool:
+    return bool(
+        isinstance(tag, Tag)
+        and tag.name in {"h1", "h2", "h3", "h4", "h5", "h6"}
+        and not normalize_text(tag.get_text(" ", strip=True))
+    )
+
+
+def _normalize_newzhiyuan_chapter_headings(content_el: Tag) -> None:
+    for img in list(content_el.find_all("img")):
+        if img.parent is None or not _is_newzhiyuan_chapter_mark(img):
+            continue
+        container = _newzhiyuan_chapter_mark_container(img, content_el)
+        if container is None:
+            continue
+
+        heading_lines: list[Tag] = []
+        sibling = container.find_next_sibling()
+        while (
+            isinstance(sibling, Tag)
+            and len(heading_lines) < 2
+            and _is_newzhiyuan_chapter_heading_line(sibling)
+        ):
+            heading_lines.append(sibling)
+            sibling = sibling.find_next_sibling()
+        if not heading_lines:
+            continue
+
+        heading_text = _join_visual_heading_lines(
+            [normalize_text(line.get_text(" ", strip=True)) for line in heading_lines]
+        )
+        heading = heading_lines[0]
+        heading.name = "h2"
+        heading.clear()
+        heading.append(NavigableString(heading_text))
+        for extra_line in heading_lines[1:]:
+            extra_line.decompose()
+        preceding = container.find_previous_sibling()
+        if isinstance(preceding, Tag) and _is_empty_heading(preceding):
+            preceding.decompose()
+        container.decompose()
+
+        following = heading.find_next_sibling()
+        if isinstance(following, Tag) and _is_empty_heading(following):
+            following.decompose()
+
+
 def _normalize_wechat_rich_text(content_el: Tag) -> None:
     for tag in content_el.find_all(["span", "em"]):
         style = tag.get("style", "")
@@ -415,6 +528,12 @@ def _normalize_wechat_rich_text(content_el: Tag) -> None:
             tag.name = f"h{level}"
         else:
             tag.name = "p"
+
+
+def _remove_empty_headings(content_el: Tag) -> None:
+    for tag in list(content_el.find_all(["h1", "h2", "h3", "h4", "h5", "h6"])):
+        if _is_empty_heading(tag):
+            tag.decompose()
 
 
 def _flatten_nested_emphasis(content_el: Tag) -> None:
@@ -664,6 +783,7 @@ def clean_content_element(content_el: Tag) -> tuple[str, list[ImageAsset], list[
 
     _replace_video_players(content_el)
     _normalize_non_code_pre(content_el)
+    _normalize_newzhiyuan_chapter_headings(content_el)
     _normalize_layout_headings(content_el)
     _narrow_block_links(content_el)
     _normalize_external_links(content_el)
@@ -681,6 +801,7 @@ def clean_content_element(content_el: Tag) -> tuple[str, list[ImageAsset], list[
             img["alt"] = "Image"
 
     _normalize_wechat_rich_text(content_el)
+    _remove_empty_headings(content_el)
     _flatten_nested_emphasis(content_el)
     _normalize_body_heading_depth(content_el)
 
