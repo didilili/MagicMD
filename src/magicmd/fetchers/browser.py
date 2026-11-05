@@ -2,7 +2,16 @@ from __future__ import annotations
 
 import asyncio
 
-from camoufox.async_api import AsyncCamoufox
+
+def AsyncCamoufox(*args, **kwargs):
+    """Keep the existing factory available without eagerly importing the browser."""
+    try:
+        from camoufox.async_api import AsyncCamoufox as factory
+    except ImportError as exc:
+        raise RuntimeError(
+            "Browser support is optional. Install it with: pip install 'magicmd[browser]'"
+        ) from exc
+    return factory(*args, **kwargs)
 
 
 async def _fetch_browser_once(url: str, wait_selector: str = "", timeout_ms: int = 15000) -> str:

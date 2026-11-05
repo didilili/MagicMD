@@ -16,8 +16,6 @@ from magicmd.exceptions import (
     ParseError,
     UnsupportedPlatformError,
 )
-from magicmd.fetchers.browser import fetch_browser
-from magicmd.fetchers.http import fetch_http
 from magicmd.i18n import ui_text
 from magicmd.models import Article
 from magicmd.output import ensure_content_hash, write_article_files, write_article_package
@@ -74,12 +72,16 @@ def fetch_for_platform(url: str, platform: str, config_path: Optional[Path] = No
     config = load_config(config_path)
     platform_config = config.platforms.get(platform)
     if platform_config and platform_config.browser == "camoufox":
+        from magicmd.fetchers.browser import fetch_browser
+
         return fetch_browser(
             url,
             wait_selector=platform_config.wait_selector,
             timeout_ms=config.fetch.browser_timeout_seconds * 1000,
             attempts=config.fetch.browser_attempts,
         )
+    from magicmd.fetchers.http import fetch_http
+
     return fetch_http(
         url, timeout_seconds=config.fetch.timeout_seconds, user_agent=config.fetch.user_agent
     )

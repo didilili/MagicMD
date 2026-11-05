@@ -782,43 +782,67 @@ wheels = [
 
 [[package]]
 name = "magicmd"
-version = "0.7.15"
+version = "0.8.0"
 source = { editable = "." }
 dependencies = [
     { name = "beautifulsoup4" },
-    { name = "camoufox", extra = ["geoip"] },
-    { name = "chardet" },
-    { name = "httpx" },
     { name = "markdownify" },
-    { name = "playwright" },
     { name = "pydantic" },
-    { name = "rich" },
-    { name = "typer" },
 ]
 
 [package.optional-dependencies]
+all = [
+    { name = "camoufox", extra = ["geoip"] },
+    { name = "chardet" },
+    { name = "click" },
+    { name = "httpx" },
+    { name = "playwright" },
+    { name = "rich" },
+    { name = "typer" },
+]
+browser = [
+    { name = "camoufox", extra = ["geoip"] },
+    { name = "playwright" },
+]
+cli = [
+    { name = "chardet" },
+    { name = "click" },
+    { name = "httpx" },
+    { name = "rich" },
+    { name = "typer" },
+]
 dev = [
+    { name = "camoufox", extra = ["geoip"] },
+    { name = "chardet" },
+    { name = "click" },
+    { name = "httpx" },
+    { name = "playwright" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "rich" },
     { name = "ruff" },
+    { name = "typer" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "beautifulsoup4", specifier = ">=4.12" },
-    { name = "camoufox", extras = ["geoip"], specifier = ">=0.4" },
-    { name = "chardet", specifier = ">=5.2" },
-    { name = "httpx", specifier = ">=0.27" },
+    { name = "camoufox", extras = ["geoip"], marker = "extra == 'browser'", specifier = ">=0.4" },
+    { name = "chardet", marker = "extra == 'cli'", specifier = ">=5.2" },
+    { name = "click", marker = "extra == 'cli'", specifier = ">=8.1" },
+    { name = "httpx", marker = "extra == 'cli'", specifier = ">=0.27" },
+    { name = "magicmd", extras = ["all"], marker = "extra == 'dev'" },
+    { name = "magicmd", extras = ["cli", "browser"], marker = "extra == 'all'" },
     { name = "markdownify", specifier = ">=0.13" },
-    { name = "playwright", specifier = ">=1.60,<1.61" },
+    { name = "playwright", marker = "extra == 'browser'", specifier = ">=1.60,<1.61" },
     { name = "pydantic", specifier = ">=2.8" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.2" },
     { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=0.23" },
-    { name = "rich", specifier = ">=13.7" },
+    { name = "rich", marker = "extra == 'cli'", specifier = ">=13.7" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.6" },
-    { name = "typer", specifier = ">=0.12" },
+    { name = "typer", marker = "extra == 'cli'", specifier = ">=0.12" },
 ]
-provides-extras = ["dev"]
+provides-extras = ["browser", "cli", "all", "dev"]
 
 [[package]]
 name = "markdown-it-py"

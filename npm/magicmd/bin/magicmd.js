@@ -5,8 +5,8 @@ const { version: packageVersion } = require('../package.json');
 
 const args = process.argv.slice(2);
 const command = process.platform === 'win32' ? 'uvx.exe' : 'uvx';
-const pythonPackage = `magicmd==${packageVersion}`;
-// Equivalent command: uvx --from "magicmd==<npm package version>" magicmd ...
+const pythonPackage = `magicmd[cli,browser]==${packageVersion}`;
+// Equivalent command: uvx --from "magicmd[cli,browser]==<npm package version>" magicmd ...
 const result = spawnSync(command, ['--from', pythonPackage, 'magicmd', ...args], {
   stdio: 'inherit'
 });
@@ -26,8 +26,8 @@ Windows:
 powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
 
 Or install MagicMD directly:
-uv tool install magicmd
-pipx install magicmd`);
+uv tool install "magicmd[cli,browser]"
+pipx install "magicmd[cli,browser]"`);
     process.exit(127);
   }
   console.error(result.error.message);

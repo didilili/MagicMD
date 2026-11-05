@@ -17,6 +17,7 @@ def parse_generic_html(html: str, url: str) -> Article:
     content_el = (
         soup.select_one("article")
         or soup.select_one("main")
+        or soup.select_one('[role="main"]')
         or soup.select_one(".post-content")
         or soup.select_one(".content")
         or soup.body

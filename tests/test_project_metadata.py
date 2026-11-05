@@ -157,13 +157,13 @@ def test_project_metadata_uses_magicmd_name_and_cli():
     metadata = tomllib.loads(Path("pyproject.toml").read_text(encoding="utf-8"))
 
     assert metadata["project"]["name"] == "magicmd"
-    assert metadata["project"]["scripts"] == {"magicmd": "magicmd.cli:entrypoint"}
+    assert metadata["project"]["scripts"] == {"magicmd": "magicmd.entrypoint:main"}
     assert metadata["tool"]["hatch"]["build"]["targets"]["wheel"]["packages"] == ["src/magicmd"]
 
 
 def test_project_metadata_constrains_playwright_for_camoufox():
     metadata = tomllib.loads(Path("pyproject.toml").read_text(encoding="utf-8"))
-    assert "playwright>=1.60,<1.61" in metadata["project"]["dependencies"]
+    assert "playwright>=1.60,<1.61" in metadata["project"]["optional-dependencies"]["browser"]
 
 
 def test_npm_wrapper_metadata_matches_python_package():
@@ -175,7 +175,7 @@ def test_npm_wrapper_metadata_matches_python_package():
     assert npm_package["version"] == python_metadata["project"]["version"]
     assert npm_package["bin"] == {"magicmd": "bin/magicmd.js"}
     assert npm_package["private"] is False
-    expected_command = f'uvx --from "magicmd=={npm_package["version"]}" magicmd'
+    expected_command = f'uvx --from "magicmd[cli,browser]=={npm_package["version"]}" magicmd'
     assert expected_command in readme
 
 
@@ -226,7 +226,7 @@ def test_npm_wrapper_forwards_same_version_python_package(tmp_path):
     assert result.returncode == 0, result.stderr
     assert json.loads(captured_argv.read_text(encoding="utf-8")) == [
         "--from",
-        f"magicmd=={npm_package['version']}",
+        f"magicmd[cli,browser]=={npm_package['version']}",
         "magicmd",
         *forwarded_args,
     ]
@@ -249,11 +249,11 @@ def test_npm_wrapper_explains_missing_uvx(tmp_path):
 
     assert result.returncode == 127
     assert "MagicMD npm package needs uv" in result.stderr
-    assert f'uvx --from "magicmd=={npm_package["version"]}" magicmd' in result.stderr
+    assert f'uvx --from "magicmd[cli,browser]=={npm_package["version"]}" magicmd' in result.stderr
     assert "curl -LsSf https://astral.sh/uv/install.sh | sh" in result.stderr
     assert "powershell -ExecutionPolicy ByPass" in result.stderr
-    assert "uv tool install magicmd" in result.stderr
-    assert "pipx install magicmd" in result.stderr
+    assert 'uv tool install "magicmd[cli,browser]"' in result.stderr
+    assert 'pipx install "magicmd[cli,browser]"' in result.stderr
 
 
 def test_publishable_skill_exists():
