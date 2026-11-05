@@ -24,7 +24,7 @@ uv run magicmd --version
 全局安装推荐：
 
 ```bash
-uv tool install magicmd
+uv tool install "magicmd[cli,browser]"
 ```
 
 如果是 npm 安装，确认本机能使用 `uvx`：

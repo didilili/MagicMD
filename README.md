@@ -1,5 +1,24 @@
 # MagicMD
 
+> 0.8.0 新增离线 HTML 解析与 Markdown 修复接口，可作为轻量 Python 库使用。
+
+在自己的程序中处理已取得的 HTML 或 Markdown，可仅安装基础包，使用不联网的接口：
+
+```python
+from magicmd import parse_html, repair_markdown
+
+article = parse_html(html, "https://example.org/article")
+markdown = repair_markdown(article.content_markdown)
+```
+
+核心仅依赖 Beautiful Soup、markdownify 与 Pydantic，不安装浏览器。
+完整命令行使用 `magicmd[cli,browser]`；只需 HTTP/CLI 时使用 `magicmd[cli]`。
+接口约定见 [Python SDK](docs/integrations/python-sdk.md)。
+
+从 0.7.x 升级且继续使用 CLI/Studio 的用户，请运行
+`uv tool install --upgrade "magicmd[cli,browser]"` 或 `pipx install --force "magicmd[cli,browser]"`。
+0.8.0 的基础包仅安装解析依赖，不再自动安装完整命令行与浏览器组件；npm 入口会自动选择完整依赖。
+
 [![PyPI](https://img.shields.io/pypi/v/magicmd?label=PyPI)](https://pypi.org/project/magicmd/)
 [![npm](https://img.shields.io/npm/v/magicmd?label=npm)](https://www.npmjs.com/package/magicmd)
 [![CI](https://github.com/didilili/MagicMD/actions/workflows/ci.yml/badge.svg)](https://github.com/didilili/MagicMD/actions/workflows/ci.yml)
@@ -13,7 +32,7 @@
 MagicMD 是一个面向公开文章链接的 Markdown 转换工具。你给它一条 URL，或者一整个 URL 列表，它把文章正文、图片、来源信息和转换报告整理成一个可长期保存的内容包。
 
 ```bash
-uv tool install magicmd
+uv tool install "magicmd[cli,browser]"
 # 或者
 npm install -g magicmd
 ```
@@ -68,14 +87,14 @@ MagicMD 的优势不是“抓全网”，而是把中文技术内容归档这件
 推荐用 `uv` 全局安装：
 
 ```bash
-uv tool install magicmd
+uv tool install "magicmd[cli,browser]"
 magicmd doctor
 ```
 
 如果你习惯 `pipx`：
 
 ```bash
-pipx install magicmd
+pipx install "magicmd[cli,browser]"
 magicmd doctor
 ```
 
@@ -99,8 +118,8 @@ uv run magicmd batch urls.txt -o output/
 MagicMD 已发布到 PyPI：
 
 ```bash
-uv tool install magicmd
-pipx install magicmd
+uv tool install "magicmd[cli,browser]"
+pipx install "magicmd[cli,browser]"
 ```
 
 也可以通过 npm 安装。npm 包是一个轻量入口，底层仍调用 PyPI 版 MagicMD CLI，所以需要本机能使用 `uvx`：

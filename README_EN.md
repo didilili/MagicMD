@@ -1,5 +1,24 @@
 # MagicMD
 
+> 0.8.0 adds offline HTML parsing and Markdown repair APIs for use as a lightweight Python library.
+
+To process HTML or Markdown already obtained by your application, install the base package:
+
+```python
+from magicmd import parse_html, repair_markdown
+
+article = parse_html(html, "https://example.org/article")
+markdown = repair_markdown(article.content_markdown)
+```
+
+These offline functions do not fetch pages, download images or write files. Core dependencies are
+Beautiful Soup, markdownify and Pydantic; browser and CLI components are optional.
+
+For CLI/Studio users upgrading from 0.7.x, run
+`uv tool install --upgrade "magicmd[cli,browser]"` or `pipx install --force "magicmd[cli,browser]"`.
+The 0.8.0 base package installs parsing dependencies only; the npm wrapper selects the complete CLI
+and browser extras automatically. See [Python SDK](docs/integrations/python-sdk.md).
+
 [![PyPI](https://img.shields.io/pypi/v/magicmd?label=PyPI)](https://pypi.org/project/magicmd/)
 [![npm](https://img.shields.io/npm/v/magicmd?label=npm)](https://www.npmjs.com/package/magicmd)
 [![CI](https://github.com/didilili/MagicMD/actions/workflows/ci.yml/badge.svg)](https://github.com/didilili/MagicMD/actions/workflows/ci.yml)
@@ -13,7 +32,7 @@ Turn scattered web articles into Markdown you can keep in your own repository.
 MagicMD is a Markdown conversion tool for public article URLs. Give it one URL, or a whole URL list, and it writes the article body, images, source metadata, and extraction reports into a durable content package.
 
 ```bash
-uv tool install magicmd
+uv tool install "magicmd[cli,browser]"
 # or
 npm install -g magicmd
 ```
@@ -68,14 +87,14 @@ MagicMD's advantage is not "crawl the whole web." It is doing the Chinese techni
 Recommended global install with `uv`:
 
 ```bash
-uv tool install magicmd
+uv tool install "magicmd[cli,browser]"
 magicmd doctor
 ```
 
 If you prefer `pipx`:
 
 ```bash
-pipx install magicmd
+pipx install "magicmd[cli,browser]"
 magicmd doctor
 ```
 
@@ -99,8 +118,8 @@ uv run magicmd batch urls.txt -o output/
 MagicMD is available on PyPI:
 
 ```bash
-uv tool install magicmd
-pipx install magicmd
+uv tool install "magicmd[cli,browser]"
+pipx install "magicmd[cli,browser]"
 ```
 
 MagicMD is also available through npm. The npm package is a thin entrypoint that still runs the PyPI CLI, so `uvx` must be available on your machine:

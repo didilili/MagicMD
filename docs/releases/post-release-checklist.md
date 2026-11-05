@@ -39,7 +39,7 @@ Expected:
 
 ```bash
 python3 -m pip index versions magicmd
-uvx --from "magicmd==${VERSION}" magicmd --version
+uvx --from "magicmd[cli]==${VERSION}" magicmd --version
 ```
 
 Expected:

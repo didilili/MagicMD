@@ -21,16 +21,27 @@ MagicMD 已经支持 Python SDK。也就是说，你不一定要在终端里运�
 在你的 Python 项目里安装 MagicMD：
 
 ```bash
-uv add magicmd
+uv add "magicmd[cli,browser]"
 ```
 
 也可以使用 pip：
 
 ```bash
-pip install magicmd
+pip install "magicmd[cli,browser]"
 ```
 
 ## 最小调用
+
+0.8.0 起，只处理主程序已经取得的 HTML 或 Markdown 时，可以仅安装 `magicmd` 基础包：
+
+```python
+from magicmd import parse_html, repair_markdown
+
+article = parse_html(html, source_url)
+markdown = repair_markdown(article.content_markdown)
+```
+
+这两个接口不联网、不下载图片、不写文件。下列 URL 转换示例需要上面的完整依赖组合。
 
 只在内存里拿到转换结果，不强制写出内容包：
 

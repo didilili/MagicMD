@@ -1,5 +1,23 @@
 # Changelog
 
+## v0.8.0 - 2026-11-05
+
+### 中文
+
+- 新增 `parse_html()`，可将已经取得的网页 HTML 转为 Markdown 和文章信息，方便其他软件接入。
+- 新增 `repair_markdown()`，可单独修复已有 Markdown 的排版，同时保留代码内容。
+- 支持轻量安装：只使用正文解析和排版修复时，无须安装浏览器和命令行组件。
+- 使用命令行或 Studio 时，安装命令改为 `uv tool install "magicmd[cli,browser]"`；从旧版升级时加上 `--upgrade`。npm 安装方式保持不变。
+- 修复命令行安装后无法启动、npm 发布检查失败的问题，补充安装验证并更新中英文说明。
+
+### English
+
+- Added `parse_html()` to convert existing page HTML into Markdown and article metadata for use in other applications.
+- Added `repair_markdown()` to repair formatting in existing Markdown while preserving code content.
+- Added a lightweight installation option: HTML parsing and Markdown repair work without browser or CLI components.
+- CLI and Studio users should install with `uv tool install "magicmd[cli,browser]"`; add `--upgrade` when upgrading an existing installation. The npm installation command stays the same.
+- Fixed CLI startup failures after installation and failing npm release checks; added installation checks and updated the Chinese and English instructions.
+
 ## Unreleased
 
 ## v0.7.15 - 2026-08-13

@@ -1,5 +1,25 @@
 # Python SDK Integration
 
+## 离线核心接口（0.8.0）
+
+基础安装 `pip install magicmd` 只提供文本解析依赖，不包含浏览器或 CLI 组件。
+主程序负责取得页面 HTML、网络校验与文件保存，MagicMD 只做解析和格式修复：
+
+```python
+from magicmd import parse_html, repair_markdown
+
+article = parse_html(html, source_url, platform="auto")
+markdown = repair_markdown(article.content_markdown)
+```
+
+`parse_html` 返回现有 `Article` 模型，保留标题、作者、正文 HTML/Markdown、来源与图片信息。
+支持现有平台解析器；通用解析器也识别 `role="main"`。函数不联网、不下载图片、不写输出目录。
+`repair_markdown` 复用同一份 Markdown 修复流程，保护代码块与行内代码。
+调用者仍需按自己的产品要求验证正文范围、来源和图片下载结果。
+
+原有 `convert_article` 网络转换流程继续使用下文接口；安装时选择 `magicmd[cli]` 或
+`magicmd[cli,browser]`。命令行通过可选入口加载，缺少 CLI 依赖时会给出安装提示。
+
 中文 | English below
 
 MagicMD 不只是 CLI。其他 Python 项目可以直接 `import magicmd`，把公开文章链接转换成结构化结果，再按自己的业务规则入库、重写媒体路径或发布到站点。
@@ -16,9 +36,9 @@ SDK 的定位很明确：
 在外部项目中安装 MagicMD：
 
 ```bash
-uv add magicmd
+uv add "magicmd[cli,browser]"
 # 或
-pip install magicmd
+pip install "magicmd[cli,browser]"
 ```
 
 如果你在 MagicMD 源码仓库内开发：
@@ -186,6 +206,10 @@ uv run python examples/python/convert_for_cms.py "https://mp.weixin.qq.com/s/exa
 
 MagicMD is not only a CLI. Python projects can import `magicmd`, convert public article URLs into structured results, and then store Markdown, rewrite media paths, or publish the content using their own application rules.
 
+In 0.8.0, `pip install magicmd` provides the dependencies for the offline
+`parse_html(html, url)` and `repair_markdown(markdown)` core APIs. They do not fetch URLs,
+download media or write files. For the URL conversion examples below, install the CLI/browser extras.
+
 The SDK has a narrow contract:
 
 - No extra HTTP service is started.
@@ -196,9 +220,9 @@ The SDK has a narrow contract:
 ## Install
 
 ```bash
-uv add magicmd
+uv add "magicmd[cli,browser]"
 # or
-pip install magicmd
+pip install "magicmd[cli,browser]"
 ```
 
 For local MagicMD development:

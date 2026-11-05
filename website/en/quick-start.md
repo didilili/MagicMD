@@ -12,7 +12,7 @@ Run the shortest path first: install MagicMD, open the local Studio console, pas
 Use `uv` for the recommended isolated CLI install:
 
 ```bash
-uv tool install magicmd
+uv tool install "magicmd[cli,browser]"
 magicmd doctor
 ```
 
@@ -23,7 +23,7 @@ magicmd doctor
 If you use `pipx`:
 
 ```bash
-pipx install magicmd
+pipx install "magicmd[cli,browser]"
 magicmd doctor
 ```
 

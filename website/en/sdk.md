@@ -21,16 +21,27 @@ If you are manually converting articles, start with [Quick Start](/en/quick-star
 Install MagicMD in your Python project:
 
 ```bash
-uv add magicmd
+uv add "magicmd[cli,browser]"
 ```
 
 Or use pip:
 
 ```bash
-pip install magicmd
+pip install "magicmd[cli,browser]"
 ```
 
 ## Minimal Call
+
+Starting in 0.8.0, applications that already have HTML or Markdown can install only the `magicmd` base package:
+
+```python
+from magicmd import parse_html, repair_markdown
+
+article = parse_html(html, source_url)
+markdown = repair_markdown(article.content_markdown)
+```
+
+These functions do not fetch URLs, download media or write files. The URL conversion examples below require the full extras shown above.
 
 Return the conversion result in memory without forcing a package write:
 

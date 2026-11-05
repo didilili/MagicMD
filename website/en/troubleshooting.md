@@ -24,7 +24,7 @@ uv run magicmd --version
 Recommended global install:
 
 ```bash
-uv tool install magicmd
+uv tool install "magicmd[cli,browser]"
 ```
 
 If you installed via npm, make sure `uvx` is available:

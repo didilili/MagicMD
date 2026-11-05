@@ -235,7 +235,7 @@ jobs:
             version="${GITHUB_REF_NAME#v}"
           fi
           for attempt in $(seq 1 12); do
-            if uvx --refresh-package magicmd --from "magicmd==${version}" magicmd --version; then
+            if uvx --refresh-package magicmd --from "magicmd[cli]==${version}" magicmd --version; then
               exit 0
             fi
             if [ "$attempt" -lt 12 ]; then
@@ -290,7 +290,7 @@ git push origin "$TAG"
 uv publish --username __token__ --password "$PYPI_TOKEN"
 
 for attempt in $(seq 1 12); do
-  if uvx --refresh-package magicmd --from "magicmd==${VERSION}" magicmd --version; then
+  if uvx --refresh-package magicmd --from "magicmd[cli]==${VERSION}" magicmd --version; then
     break
   fi
   if [ "$attempt" -eq 12 ]; then
@@ -310,7 +310,7 @@ gh release create "$TAG" \
 
 VERSION="$VERSION" bash -c '
 python3 -m pip index versions magicmd
-uvx --from "magicmd==${VERSION}" magicmd --version
+uvx --from "magicmd[cli]==${VERSION}" magicmd --version
 npm view magicmd version --registry=https://registry.npmjs.org/
 npx "magicmd@${VERSION}" --version
 '

@@ -12,7 +12,7 @@ description: 安装 MagicMD，并把第一篇公开文章转换成 Markdown 内�
 推荐用 `uv` 安装，它会把命令行工具隔离到独立环境里：
 
 ```bash
-uv tool install magicmd
+uv tool install "magicmd[cli,browser]"
 magicmd doctor
 ```
 
@@ -23,7 +23,7 @@ magicmd doctor
 如果你习惯 `pipx`：
 
 ```bash
-pipx install magicmd
+pipx install "magicmd[cli,browser]"
 magicmd doctor
 ```
 
