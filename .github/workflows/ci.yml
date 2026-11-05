@@ -66,6 +66,9 @@ jobs:
       - name: Build package
         run: uv build
 
+      - name: Smoke test installed core and CLI
+        run: uv run python tests/smoke_install.py dist/magicmd-*.whl
+
   npm-wrapper-windows:
     runs-on: windows-latest
 
@@ -83,23 +86,24 @@ jobs:
           node-version: 24
           package-manager-cache: false
 
-      - name: Use published npm wrapper version for Windows smoke
+      - name: Build current wheel for Windows smoke
         shell: pwsh
         run: |
-          $packagePath = "npm/magicmd/package.json"
-          $package = Get-Content $packagePath -Raw | ConvertFrom-Json
-          $package.version = "0.7.0"
-          $package | ConvertTo-Json -Depth 10 | Set-Content $packagePath -Encoding utf8
+          uv build --wheel
+          if ($LASTEXITCODE -ne 0) { throw "Wheel build failed" }
 
       - name: Smoke test npm wrapper on Windows
         shell: pwsh
         run: |
+          $env:UV_FIND_LINKS = (Resolve-Path dist).Path
+          $package = Get-Content npm/magicmd/package.json -Raw | ConvertFrom-Json
+          $expected = "MagicMD $($package.version)"
           $output = node npm/magicmd/bin/magicmd.js --version
           if ($LASTEXITCODE -ne 0) {
             throw "npm wrapper exited with code $LASTEXITCODE"
           }
           $outputText = ($output | Out-String).Trim()
           Write-Output $outputText
-          if ($outputText -ne "MagicMD 0.7.0") {
-            throw "Expected 'MagicMD 0.7.0', got '$outputText'"
+          if ($outputText -ne $expected) {
+            throw "Expected '$expected', got '$outputText'"
           }

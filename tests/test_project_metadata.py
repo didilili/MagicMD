@@ -62,7 +62,7 @@ def test_ci_smokes_npm_wrapper_with_real_uvx_on_windows():
         (
             (index, step)
             for index, step in enumerate(steps)
-            if step.get("name") == "Use published npm wrapper version for Windows smoke"
+            if step.get("name") == "Build current wheel for Windows smoke"
         ),
         None,
     )
@@ -86,12 +86,13 @@ def test_ci_smokes_npm_wrapper_with_real_uvx_on_windows():
     assert checkout_index < setup_uv_index < setup_node_index < version_index < smoke_index
     assert setup_node["with"]["node-version"] == 24
     assert version_step["shell"] == "pwsh"
-    assert "npm/magicmd/package.json" in version_step["run"]
-    assert '$package.version = "0.7.0"' in version_step["run"]
-    assert "ConvertTo-Json" in version_step["run"]
+    assert "uv build --wheel" in version_step["run"]
+    assert "$LASTEXITCODE" in version_step["run"]
     assert smoke_step["shell"] == "pwsh"
     assert "node npm/magicmd/bin/magicmd.js --version" in smoke_step["run"]
-    assert "MagicMD 0.7.0" in smoke_step["run"]
+    assert "$env:UV_FIND_LINKS = (Resolve-Path dist).Path" in smoke_step["run"]
+    assert '"MagicMD $($package.version)"' in smoke_step["run"]
+    assert "$package.version =" not in version_step["run"]
     assert "$LASTEXITCODE" in smoke_step["run"]
 
 
@@ -144,7 +145,7 @@ def test_publish_npm_waits_for_matching_python_package_on_pypi():
     assert guard["env"]["MAGICMD_VERSION"] == "${{ inputs.version }}"
     guard_script = guard["run"]
     assert (
-        'uvx --refresh-package magicmd --from "magicmd==${MAGICMD_VERSION}" magicmd --version'
+        'uvx --refresh-package magicmd --from "magicmd[cli]==${MAGICMD_VERSION}" magicmd --version'
         in guard_script
     )
     assert "for attempt in $(seq 1 12)" in guard_script
